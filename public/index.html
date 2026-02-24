@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SoundVote</title>
+<style>
+body{margin:0;font-family:Arial;background:#111;color:white}
+header{text-align:center;padding:20px;background:#000;color:#00ffd5}
+.container{max-width:900px;margin:auto;padding:20px}
+.now{background:#1c1c1c;padding:20px;border-radius:12px;margin-bottom:20px}
+.progressBar{height:8px;background:#333;border-radius:10px;overflow:hidden;margin-top:10px}
+.progress{height:100%;width:0%;background:#00ffd5}
+.song{background:#1c1c1c;padding:15px;margin:10px 0;border-radius:10px;display:flex;justify-content:space-between;gap:12px}
+button{background:#00ffd5;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:bold}
+button:hover{background:#00c2a5}
+button:disabled{opacity:.6;cursor:not-allowed}
+.small{opacity:.8;font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🎵 SoundVote</h1>
+<div class="small" id="restName"></div>
+</header>
+
+<div class="container">
+
+<div class="now">
+<h3 id="currentTitle">Cargando...</h3>
+<div class="progressBar"><div class="progress" id="progress"></div></div>
+<p>Próxima canción en: <span id="countdown">--</span></p>
+</div>
+
+<div id="songs"></div>
+
+</div>
+
+<script>
+const rid = location.pathname.split("/")[2]; // /r/:rid
+
+const api = {
+  queue: () => fetch(`/api/r/${rid}/songs/queue`),
+  vote: (id) => fetch(`/api/r/${rid}/songs/${id}/vote`, {method:"POST"}),
+  current: () => fetch(`/api/r/${rid}/current`)
+};
+
+async function loadSongs(){
+  const res = await api.queue();
+  const songs = await res.json();
+
+  const container=document.getElementById("songs");
+  container.innerHTML="";
+
+  songs.forEach((song, idx)=>{
+    container.innerHTML += `
+      <div class="song">
+        <div>
+          <strong>#${idx+1} ${song.title}</strong><br>
+          ${song.votes} votos
+        </div>
+        <button id="btn-${song.id}" onclick="vote(${song.id})">Votar</button>
+      </div>
+    `;
+  });
+}
+
+async function vote(id){
+  const btn = document.getElementById(`btn-${id}`);
+  if(btn){
+    btn.disabled = true;
+    btn.innerText = "✅ Votado";
+  }
+
+  await api.vote(id);
+
+  setTimeout(loadSongs, 500);
+  setTimeout(()=>{
+    if(btn){
+      btn.disabled = false;
+      btn.innerText = "Votar";
+    }
+  }, 2500);
+}
+
+async function updateNow(){
+  const res = await api.current();
+  const data = await res.json();
+
+  if(!data.currentSong || !data.songStartTime || !data.songDuration){
+    document.getElementById("currentTitle").innerText = "Aún no hay canción en reproducción";
+    document.getElementById("countdown").innerText="--";
+    document.getElementById("progress").style.width="0%";
+    return;
+  }
+
+  document.getElementById("currentTitle").innerText = data.currentSong.title;
+
+  const elapsed=(Date.now()-data.songStartTime)/1000;
+  const remaining=Math.max(0, data.songDuration - elapsed);
+
+  document.getElementById("countdown").innerText=Math.floor(remaining)+" s";
+  const pct = Math.min(100, (elapsed/data.songDuration)*100);
+  document.getElementById("progress").style.width = pct + "%";
+}
+
+setInterval(loadSongs,3000);
+setInterval(updateNow,1000);
+
+loadSongs();
+updateNow();
+</script>
+
+</body>
+</html>

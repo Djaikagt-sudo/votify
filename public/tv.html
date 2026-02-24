@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;background:black;overflow:hidden">
+
+<video id="video" autoplay playsinline muted
+style="width:100vw;height:100vh;object-fit:cover"></video>
+
+<div id="queue"
+style="position:absolute;right:0;top:0;width:320px;height:100vh;
+background:rgba(0,0,0,0.7);color:white;padding:20px;overflow:auto;font-family:Arial">
+<h2 style="color:#00ffd5">En fila</h2>
+<div style="opacity:.8;font-size:12px" id="ridLabel"></div>
+</div>
+
+<script>
+const rid = location.pathname.split("/")[2]; // /tv/:rid
+document.getElementById("ridLabel").innerText = `Restaurante: ${rid}`;
+
+const video=document.getElementById("video");
+
+document.body.addEventListener("click",()=>{
+  video.muted=false;
+  video.play();
+},{once:true});
+
+async function getQueue(){
+  const res=await fetch(`/api/r/${rid}/songs/queue`);
+  return await res.json();
+}
+
+async function getNext(){
+  const res=await fetch(`/api/r/${rid}/songs/next`);
+  return await res.json();
+}
+
+async function updateQueue(){
+  const songs=await getQueue();
+  const container=document.getElementById("queue");
+  container.innerHTML="<h2 style='color:#00ffd5'>En fila</h2><div style='opacity:.8;font-size:12px'>Restaurante: "+rid+"</div>";
+
+  songs.forEach((song,i)=>{
+    container.innerHTML+=`<p>${i+1}. ${song.title} (${song.votes})</p>`;
+  });
+}
+
+async function nextSong(){
+  const song = await getNext();
+  if(!song){
+    setTimeout(nextSong, 4000);
+    return;
+  }
+
+  video.src="/videos/" + song.file;
+  video.load();
+
+  video.onloadedmetadata = async function(){
+    const duration = Math.max(1, Math.floor(video.duration || 1));
+
+    await fetch(`/api/r/${rid}/current`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ song, duration })
+    });
+
+    video.play();
+  };
+}
+
+video.addEventListener("ended", nextSong);
+
+setInterval(updateQueue, 3000);
+
+nextSong();
+updateQueue();
+</script>
+
+</body>
+</html>
