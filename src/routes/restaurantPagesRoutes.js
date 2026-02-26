@@ -1,8 +1,12 @@
 import express from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 import { getRestaurant } from "../data/store.js";
 
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 router.get("/r/:room", (req, res) => {
   const { room } = req.params;
@@ -12,8 +16,9 @@ router.get("/r/:room", (req, res) => {
     return res.status(404).send("Restaurante no existe");
   }
 
-  // sirve tu cliente
-  return res.sendFile(path.join(process.cwd(), "public", "index.html"));
+  return res.sendFile(
+    path.join(__dirname, "../../public/index.html")
+  );
 });
 
 router.get("/tv/:room", (req, res) => {
@@ -24,8 +29,9 @@ router.get("/tv/:room", (req, res) => {
     return res.status(404).send("Restaurante no existe");
   }
 
-  // sirve tu TV
-  return res.sendFile(path.join(process.cwd(), "public", "tv.html"));
+  return res.sendFile(
+    path.join(__dirname, "../../public/tv.html")
+  );
 });
 
 export default router;
