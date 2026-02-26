@@ -5,93 +5,127 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Votify TV</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
-body{
-  margin:0;
-  background:#0f1220;
-  color:white;
-  font-family:Arial, sans-serif;
-  display:flex;
-  height:100vh;
+:root{
+  --bg:#0d0f1a;
+  --card:#151829;
+  --border:#23263a;
+  --accent:#7c5cff;
+  --text:#ffffff;
+  --muted:#9aa0c3;
 }
 
-.video{
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(145deg,#0d0f1a,#121528);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+}
+
+.video-side{
   flex:2;
   background:black;
 }
 
 .sidebar{
   flex:1;
-  padding:40px;
-  background:#151829;
+  background:var(--card);
+  padding:30px;
   display:flex;
   flex-direction:column;
-  gap:20px;
+  gap:16px;
 }
 
-h2{
-  margin:0;
+h2{margin:0;font-size:22px}
+
+.qr-card{
+  background:#0f1220;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
 }
 
 .qr-box{
-  background:white;
-  padding:20px;
+  background:#fff;
   border-radius:16px;
-  width:240px;
-  height:240px;
+  padding:16px;
   display:flex;
-  align-items:center;
   justify-content:center;
+  align-items:center;
 }
 
 #voteLink{
-  font-size:14px;
-  opacity:.8;
+  margin-top:10px;
+  font-size:13px;
+  color:var(--muted);
   word-break:break-all;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+  opacity:.9;
 }
 </style>
 </head>
 
 <body>
 
-<div class="video"></div>
+<div class="video-side"></div>
 
 <div class="sidebar">
   <h2>📱 Escanea para votar</h2>
 
-  <div class="qr-box">
-    <canvas id="qr"></canvas>
+  <div class="qr-card">
+    <div class="qr-box">
+      <canvas id="qr" width="220" height="220"></canvas>
+    </div>
+    <div id="voteLink"></div>
+    <div class="small" id="roomInfo"></div>
   </div>
 
-  <div id="voteLink"></div>
+  <div class="small">
+    Si escaneas y dice “Restaurante no existe”, crea una sala NUEVA en <b>/admin</b> (en Render Free las salas se borran si el servidor reinicia).
+  </div>
 </div>
 
+<!-- ✅ Librería local (NO CDN) -->
 <script src="/vendor/qrcode.min.js"></script>
 
 <script>
-const roomId = window.location.pathname.split("/").pop();
-const voteUrl = window.location.origin + "/r/" + roomId;
+(function(){
+  // ✅ roomId seguro aunque la URL termine en / al final
+  const parts = window.location.pathname.split("/").filter(Boolean);
+  const roomId = parts[parts.length - 1];
 
-document.getElementById("voteLink").innerText = voteUrl;
+  const voteUrl = window.location.origin + "/r/" + roomId;
 
-function generateQR(){
-  if(!window.QRCode){
+  document.getElementById("voteLink").textContent = voteUrl;
+  document.getElementById("roomInfo").textContent = "Sala: " + roomId;
+
+  try {
+    if (!window.QRCode) throw new Error("QRCode library not loaded");
+    QRCode.toCanvas(document.getElementById("qr"), voteUrl, {
+      width: 220,
+      margin: 2,
+      errorCorrectionLevel: "M"
+    });
+  } catch (e) {
+    console.error(e);
     document.getElementById("qr").replaceWith(
       Object.assign(document.createElement("div"), {
-        innerText: "QR no disponible",
-        style: "color:black;font-weight:bold"
+        innerText: "QR no disponible. Usa el link.",
+        style: "background:#fff;color:#000;padding:12px;border-radius:12px"
       })
     );
-    return;
   }
-
-  QRCode.toCanvas(document.getElementById("qr"), voteUrl, {
-    width:200,
-    margin:2
-  });
-}
-
-generateQR();
+})();
 </script>
 
 </body>
