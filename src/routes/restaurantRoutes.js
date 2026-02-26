@@ -29,9 +29,7 @@ router.post("/", async (req, res) => {
 
     // ✅ Base URL “real”
     // En producción: PUBLIC_BASE_URL=https://votify.tudominio.com
-    const baseUrl =
-      process.env.PUBLIC_BASE_URL ||
-      `${req.protocol}://${req.get("host")}`;
+ const baseUrl = `${req.protocol}://${req.headers.host}`;
 
     const votePath = `/r/${id}`;
     const tvPath = `/tv/${id}`;
