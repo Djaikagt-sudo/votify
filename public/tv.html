@@ -1,517 +1,68 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Votify — TV</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Votify TV</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <style>
-    :root{
-      --bg:#0a0b12;
-      --panel:#121428;
-      --line:#232643;
-      --txt:#ffffff;
-      --muted:rgba(255,255,255,.72);
-      --acc:#7c5cff;
-      --good:#2dd4bf;
-      --shadow: 0 18px 50px rgba(0,0,0,.45);
-      --radius:18px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--txt);
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(124,92,255,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 0%, rgba(45,212,191,.18), transparent 55%),
-        linear-gradient(180deg, #080912, #0a0b12 55%, #070810);
-    }
-    header{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      background: rgba(18,20,40,.65);
-      backdrop-filter: blur(10px);
-      position: sticky; top:0; z-index:10;
-    }
-    .left{display:flex; flex-direction:column; gap:6px; min-width:0;}
-    .title{
-      font-weight:800; font-size:16px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .meta{display:flex; gap:8px; flex-wrap:wrap}
-    .pill{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding:6px 10px;
-      border-radius:999px;
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns: 1.55fr .95fr;
-      gap:14px;
-      padding:14px;
-    }
-    .card{
-      border:1px solid var(--line);
-      background: rgba(18,20,40,.72);
-      backdrop-filter: blur(10px);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .cardHead{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line);
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-    }
-    .cardHead h2{margin:0; font-size:14px; font-weight:800; color:#e9e9ff;}
-    .sub{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-
-    #player{width:100%; height:66vh; background:#000;}
-    .progressBar{height:8px; background:rgba(255,255,255,.06); border-top:1px solid var(--line);}
-    .progressFill{
-      height:100%; width:0%;
-      background: linear-gradient(90deg, var(--acc), var(--good));
-      transition: width .25s linear;
-    }
-
-    .rankBody{padding:12px}
-    .row{
-      display:grid;
-      grid-template-columns: 28px 1fr auto;
-      gap:10px;
-      align-items:center;
-      padding:10px 10px;
-      border:1px solid rgba(255,255,255,.06);
-      background: rgba(0,0,0,.18);
-      border-radius: 14px;
-      margin-bottom:10px;
-    }
-    .idx{
-      width:28px; height:28px; display:grid; place-items:center;
-      border-radius:10px; border:1px solid rgba(255,255,255,.10);
-      color:rgba(255,255,255,.85);
-      font-weight:800; font-size:12px;
-    }
-    .song{min-width:0}
-    .song b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .song small{display:block;margin-top:2px;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .votes{
-      font-weight:800;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(124,92,255,.14);
-      padding:6px 10px;
-      border-radius: 999px;
-      font-size:12px;
-    }
-
-    /* ✅ QR arriba del TOP */
-    .qrTop{
-      margin:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.20);
-      border-radius: 16px;
-      padding:12px;
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .qrTop img{
-      width:200px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background:#fff;
-    }
-    .qrText{min-width:0}
-    .qrTitle{font-weight:800;font-size:13px;margin-bottom:6px;}
-    .qrLink{
-      font-size:11px;
-      color: rgba(255,255,255,.75);
-      word-break: break-all;
-      line-height: 1.25;
-    }
-
-    /* toast */
-    .toast{
-      position:fixed;
-      left:50%; transform:translateX(-50%);
-      bottom:18px;
-      padding:12px 16px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(18,20,40,.85);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      display:none;
-      max-width: min(720px, calc(100vw - 28px));
-      color:#fff;
-      font-weight:800;
-    }
-    .toast span{color:rgba(255,255,255,.85); font-weight:600}
-
-    /* 🔊 overlay para autoplay bloqueado */
-    .soundGate{
-      position:absolute;
-      inset:0;
-      display:none;
-      place-items:center;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
-      z-index: 20;
-    }
-    .soundGate .box{
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(18,20,40,.9);
-      border-radius: 18px;
-      padding:18px 18px;
-      box-shadow: var(--shadow);
-      text-align:center;
-      max-width: 420px;
-      margin: 0 14px;
-    }
-    .soundGate .box h3{
-      margin:0 0 8px;
-      font-size:16px;
-      font-weight:800;
-    }
-    .soundGate .box p{
-      margin:0 0 14px;
-      color: rgba(255,255,255,.75);
-      font-size:12px;
-      line-height:1.35;
-    }
-    .soundGate button{
-      border:0;
-      cursor:pointer;
-      border-radius: 12px;
-      padding:12px 14px;
-      font-weight:800;
-      color:#fff;
-      background: var(--acc);
-    }
-    .soundGate button:active{transform:translateY(1px)}
-
-    @media (max-width: 980px){
-      .layout{grid-template-columns:1fr;}
-      #player{height:54vh;}
-      .qrTop img{width:180px}
-    }
-  </style>
+<style>
+body{
+  margin:0;
+  background:#0d0f1a;
+  color:white;
+  font-family:Arial, sans-serif;
+}
+.container{
+  display:flex;
+  height:100vh;
+}
+.left{
+  flex:2;
+  background:black;
+}
+.right{
+  flex:1;
+  padding:30px;
+  background:#151829;
+  display:flex;
+  flex-direction:column;
+}
+.qr{
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+</style>
 </head>
 
 <body>
-<header>
+
+<div class="container">
   <div class="left">
-    <div class="title" id="nowPlaying">Cargando…</div>
-    <div class="meta">
-      <div class="pill" id="roomPill">Sala: —</div>
-      <div class="pill">Modo: no repetir</div>
-      <div class="pill" id="statusPill">Conectando…</div>
-    </div>
-  </div>
-  <div class="pill">Siempre suena</div>
-</header>
-
-<div class="layout">
-  <div class="card" id="playerCard">
-    <div class="cardHead">
-      <h2>Reproducción</h2>
-      <div class="sub">Auto-skip bloqueados • Sonido activo</div>
-    </div>
-
-    <div id="player"></div>
-    <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
-
-    <!-- 🔊 Si autoplay con sonido está bloqueado, aparece esto -->
-    <div class="soundGate" id="soundGate">
-      <div class="box">
-        <h3>🔊 Toca para activar sonido</h3>
-        <p>Algunos navegadores bloquean el autoplay con audio. Un toque y queda sonando.</p>
-        <button id="soundBtn">Activar sonido</button>
-      </div>
-    </div>
+    <!-- Aquí va el player -->
   </div>
 
-  <div class="card">
-    <div class="cardHead">
-      <h2>Top de votos</h2>
-      <div class="sub">En vivo</div>
-    </div>
-
-    <!-- ✅ QR arriba del top -->
-    <div class="qrTop">
-      <img id="qrImg" alt="QR Votify">
-      <div class="qrText">
-        <div class="qrTitle">📲 Escanea para votar</div>
-        <div class="qrLink" id="qrLinkText"></div>
-      </div>
-    </div>
-
-    <div class="rankBody" id="ranking"></div>
+  <div class="right">
+    <h2>📱 Escanea para votar</h2>
+    <div id="qrcode" class="qr"></div>
+    <div id="voteLink"></div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
-<script src="/socket.io/socket.io.js"></script>
 <script>
-  const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
-  const origin = location.origin;
-  const voteUrl = `${origin}/r/${room}`;
-  const qrUrl   = `${origin}/qrcodes/${room}.png`;
+const roomId = window.location.pathname.split("/").pop();
+const voteUrl = `${window.location.origin}/r/${roomId}`;
 
-  document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
-  document.getElementById("qrImg").src = qrUrl;
-  document.getElementById("qrLinkText").textContent = voteUrl;
+document.getElementById("voteLink").innerText = voteUrl;
 
-  const socket = io();
-  const statusPill = document.getElementById("statusPill");
-
-  let player;
-  let currentSongs = [];
-  let lastPlayedId = null;
-
-  // no repetir
-  let playedSet = new Set();
-
-  // siempre suena (fallback)
-  let failStreak = 0;
-  const MAX_FAIL_STREAK = 8;
-  let forcedRelax = false;
-
-  // progreso
-  let progressTimer;
-
-  // toast
-  const toastEl = document.getElementById("toast");
-  let toastTimer;
-
-  // sound gate
-  const soundGate = document.getElementById("soundGate");
-  const soundBtn  = document.getElementById("soundBtn");
-
-  socket.on("connect", () => {
-    statusPill.textContent = "Conectado ✅";
-    socket.emit("room:join", { room });
-    loadState();
-  });
-
-  socket.on("disconnect", () => {
-    statusPill.textContent = "Desconectado…";
-  });
-
-  socket.on("votes:update", (payload) => {
-    if (!payload || payload.room !== room) return;
-    currentSongs = payload.songs || [];
-    renderRanking();
-  });
-
-  socket.on("vote:notification", (data) => {
-    if (!data || data.room !== room) return;
-    showToast(`🔥 ${data.voter} `, `votó por ${data.songTitle}`);
-  });
-
-  async function loadState() {
-    const res = await fetch(`/api/r/${room}/state`);
-    const data = await res.json();
-    currentSongs = data.songs || [];
-    renderRanking();
-    playNextSong();
-  }
-
-  // YouTube API
-  const tag = document.createElement("script");
-  tag.src = "https://www.youtube.com/iframe_api";
-  document.head.appendChild(tag);
-
-  window.onYouTubeIframeAPIReady = function () {
-    player = new YT.Player("player", {
-      height:"100%",
-      width:"100%",
-      videoId:"",
-      playerVars:{ autoplay:1, controls:0, rel:0, modestbranding:1 },
-      events:{
-        onReady:()=>{
-          // ✅ NO mute aquí
-          // Intentar arrancar sonido si el navegador lo permite
-          try { player.setVolume(80); } catch {}
-        },
-        onStateChange:(event)=>{
-          // 0 = terminó
-          if (event.data === 0) {
-            failStreak = 0;
-            forcedRelax = false;
-
-            if (lastPlayedId != null) socket.emit("song:ended", { room, songId: lastPlayedId });
-            playNextSong();
-          }
-
-          // 1 = reproduciendo -> sincronizar clientes con duración real
-          if (event.data === 1) {
-            // si estaba el gate, lo quitamos
-            soundGate.style.display = "none";
-
-            setTimeout(() => {
-              try {
-                const duration = player.getDuration();
-                if (duration && lastPlayedId != null) {
-                  socket.emit("song:start", {
-                    room,
-                    songId: lastPlayedId,
-                    startedAt: Date.now(),
-                    durationSec: duration
-                  });
-                }
-              } catch {}
-            }, 600);
-          }
-
-          // -1 = unstarted / puede ser autoplay bloqueado
-          if (event.data === -1) {
-            // mostramos gate para que el usuario toque una vez
-            soundGate.style.display = "grid";
-          }
-        },
-        onError:()=>{
-          failStreak++;
-          if (lastPlayedId != null) playedSet.add(lastPlayedId);
-
-          if (failStreak >= MAX_FAIL_STREAK) {
-            playedSet = new Set();
-            forcedRelax = true;
-            failStreak = 0;
-          }
-          playNextSong();
-        }
-      }
-    });
-  };
-
-  soundBtn.addEventListener("click", () => {
-    try {
-      player.unMute?.();
-      player.setVolume?.(80);
-      player.playVideo?.();
-    } catch {}
-    soundGate.style.display = "none";
-  });
-
-  function showToast(bold, rest){
-    clearTimeout(toastTimer);
-    toastEl.innerHTML = `${escapeHtml(bold)}<span>${escapeHtml(rest)}</span>`;
-    toastEl.style.display = "block";
-    toastTimer = setTimeout(()=> toastEl.style.display="none", 2200);
-  }
-
-  function playVideo(youtubeId, titleText, songId) {
-    if (!player || !youtubeId) return;
-
-    lastPlayedId = songId;
-    document.getElementById("nowPlaying").textContent = titleText || "Reproduciendo…";
-
-    try {
-      player.loadVideoById(youtubeId);
-      player.playVideo();
-      // Intento de sonido (si está permitido)
-      try { player.unMute?.(); player.setVolume?.(80); } catch {}
-      startProgress();
-    } catch {
-      if (songId != null) playedSet.add(songId);
-      playNextSong();
-    }
-  }
-
-  function pickNextCandidate() {
-    if (!currentSongs.length) return null;
-
-    const available = currentSongs.filter(s => (s.youtubeId || "").trim().length > 0);
-    if (!available.length) return null;
-
-    const allIds = new Set(available.map(s => s.id));
-    const playedCount = [...playedSet].filter(id => allIds.has(id)).length;
-    if (playedCount >= allIds.size) playedSet = new Set();
-
-    let pool = available.filter(s => !playedSet.has(s.id));
-    if (!pool.length || forcedRelax) pool = available;
-
-    const sorted = [...pool].sort((a,b)=> Number(b.votes||0) - Number(a.votes||0));
-
-    let next;
-    if (sorted[0] && Number(sorted[0].votes||0) > 0) next = sorted[0];
-    else next = pool[Math.floor(Math.random() * pool.length)];
-
-    if (!forcedRelax && next && next.id === lastPlayedId && pool.length > 1) {
-      const others = pool.filter(s => s.id !== lastPlayedId);
-      next = others[Math.floor(Math.random() * others.length)];
-    }
-
-    return next;
-  }
-
-  function playNextSong() {
-    const next = pickNextCandidate();
-    if (!next) {
-      document.getElementById("nowPlaying").textContent = "⚠️ No hay canciones disponibles";
-      return;
-    }
-    playedSet.add(next.id);
-    playVideo(next.youtubeId, `${next.artist} — ${next.title}`, next.id);
-  }
-
-  function renderRanking(){
-    const ranking = document.getElementById("ranking");
-    ranking.innerHTML = "";
-
-    const sorted = [...currentSongs].sort((a,b)=> Number(b.votes||0) - Number(a.votes||0));
-
-    sorted.slice(0, 12).forEach((song,i)=>{
-      const row = document.createElement("div");
-      row.className = "row";
-      row.innerHTML = `
-        <div class="idx">${i+1}</div>
-        <div class="song">
-          <b>${escapeHtml(song.title || "")}</b>
-          <small>${escapeHtml(song.artist || "")}</small>
-        </div>
-        <div class="votes">${Number(song.votes||0)} votos</div>
-      `;
-      ranking.appendChild(row);
-    });
-  }
-
-  function startProgress(){
-    clearInterval(progressTimer);
-    const fill = document.getElementById("progressFill");
-
-    progressTimer = setInterval(()=>{
-      if (!player) return;
-      const duration = player.getDuration();
-      const current = player.getCurrentTime();
-      if (!duration || isNaN(duration) || isNaN(current)) return;
-
-      const pct = Math.max(0, Math.min(100, (current/duration)*100));
-      fill.style.width = pct + "%";
-    }, 450);
-  }
-
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
+QRCode.toCanvas(document.getElementById('qrcode'), voteUrl, {
+  width: 220,
+  margin: 2
+});
 </script>
+
 </body>
 </html>
