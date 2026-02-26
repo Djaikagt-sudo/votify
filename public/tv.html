@@ -1,172 +1,54 @@
 <!doctype html>
-<html lang="es">
+<html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Votify TV</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-
 <style>
-:root{
-  --bg:#0d0f1a;
-  --card:#151829;
-  --border:#23263a;
-  --accent:#7c5cff;
-  --text:#ffffff;
-  --muted:#9aa0c3;
-}
-
-*{box-sizing:border-box}
-
 body{
   margin:0;
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(145deg,#0d0f1a,#121528);
-  color:var(--text);
-  height:100vh;
+  background:#111;
+  color:white;
+  font-family:Arial;
   display:flex;
+  height:100vh;
 }
-
-.video-side{
+.left{
   flex:2;
   background:black;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
-
-.video-side iframe{
-  width:100%;
-  height:100%;
-}
-
-.sidebar{
+.right{
   flex:1;
-  background:var(--card);
-  padding:30px;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
+  padding:40px;
+  background:#1b1b2e;
 }
-
-h2{
-  margin:0;
-  font-size:22px;
-}
-
-.qr-container{
-  background:#fff;
-  border-radius:16px;
+#qr{
+  background:white;
   padding:20px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-#voteLink{
-  font-size:13px;
-  color:var(--muted);
-  word-break:break-all;
-}
-
-.song{
-  background:#0f1220;
-  border:1px solid var(--border);
-  padding:12px;
   border-radius:12px;
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-}
-
-.badge{
-  background:var(--accent);
-  padding:4px 10px;
-  border-radius:10px;
-  font-size:12px;
+  width:240px;
 }
 </style>
 </head>
-
 <body>
 
-<div class="video-side">
-  <div id="player"></div>
-</div>
+<div class="left"></div>
 
-<div class="sidebar">
-
-  <h2>📱 Escanea para votar</h2>
-
-  <div class="qr-container">
-    <img id="qrImg" width="200">
-  </div>
-
-  <div id="voteLink"></div>
-
-  <h2>🔥 Top votos</h2>
-
-  <div id="topList"></div>
-
+<div class="right">
+  <h2>Escanea para votar</h2>
+  <div id="qr"></div>
+  <p id="link"></p>
 </div>
 
 <script>
-
 const roomId = window.location.pathname.split("/").pop();
-const voteUrl = `${window.location.origin}/r/${roomId}`;
+const voteUrl = window.location.origin + "/r/" + roomId;
 
-document.getElementById("voteLink").textContent = voteUrl;
+document.getElementById("link").innerText = voteUrl;
 
-QRCode.toDataURL(voteUrl, {
-  width: 200,
-  margin: 2
-}).then(url => {
-  document.getElementById("qrImg").src = url;
+QRCode.toCanvas(document.getElementById("qr"), voteUrl, {
+  width:200
 });
-
-const socket = io();
-
-socket.emit("joinRoom", roomId);
-
-socket.on("updateState", (state) => {
-  renderTop(state.songs);
-  if(state.currentSong){
-    loadVideo(state.currentSong.youtubeId);
-  }
-});
-
-function renderTop(songs){
-  const list = document.getElementById("topList");
-  list.innerHTML = "";
-
-  songs
-    .sort((a,b)=>b.votes - a.votes)
-    .slice(0,7)
-    .forEach(song=>{
-      list.innerHTML += `
-        <div class="song">
-          <span>${song.title}</span>
-          <span class="badge">${song.votes} votos</span>
-        </div>
-      `;
-    });
-}
-
-function loadVideo(youtubeId){
-  document.getElementById("player").innerHTML = `
-    <iframe 
-      src="https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=0&rel=0"
-      frameborder="0"
-      allow="autoplay; encrypted-media"
-      allowfullscreen>
-    </iframe>
-  `;
-}
-
 </script>
 
 </body>
