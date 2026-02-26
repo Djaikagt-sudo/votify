@@ -1,0 +1,7 @@
+
+# Videos (no subir a GitHub)
+public/videos/
+
+# media
+public/videos/
+*.mp4
