@@ -2,10 +2,11 @@
   "name": "soundvote",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Votify - Multi-restaurante (Node + Express + Socket.IO)",
+  "main": "server.js",
+ "scripts": {
+  "start": "node src/server.js",
+  "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -20,5 +21,13 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.13"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Djaikagt-sudo/votify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Djaikagt-sudo/votify/issues"
+  },
+  "homepage": "https://github.com/Djaikagt-sudo/votify#readme"
 }

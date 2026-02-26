@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Votify Admin</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0d0f1a;
+  --card:#151829;
+  --border:#23263a;
+  --accent:#7c5cff;
+  --accent2:#5a3fff;
+  --text:#ffffff;
+  --muted:#9aa0c3;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(145deg,#0d0f1a,#121528);
+  color:var(--text);
+  padding:40px 20px;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+}
+
+.header{
+  margin-bottom:30px;
+}
+
+.header h1{
+  margin:0;
+  font-size:28px;
+  font-weight:800;
+}
+
+.header p{
+  margin:5px 0 0;
+  color:var(--muted);
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:25px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.4);
+  margin-bottom:30px;
+}
+
+label{
+  font-weight:600;
+  font-size:14px;
+  color:var(--muted);
+}
+
+input[type="text"]{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#0f1220;
+  color:white;
+  margin:10px 0 20px;
+  font-size:14px;
+}
+
+.genres{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.genre-item{
+  background:#0f1220;
+  border:1px solid var(--border);
+  padding:12px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.genre-item:hover{
+  border-color:var(--accent);
+}
+
+.genre-item input{
+  accent-color:var(--accent);
+}
+
+button{
+  background:var(--accent);
+  border:none;
+  padding:12px 20px;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+  color:white;
+  font-size:14px;
+  transition:0.2s;
+}
+
+button:hover{
+  background:var(--accent2);
+}
+
+.result-card{
+  animation:fadeIn 0.3s ease;
+}
+
+.qr-box{
+  display:flex;
+  gap:30px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.qr-box img{
+  width:200px;
+  border-radius:14px;
+  border:1px solid var(--border);
+}
+
+.links{
+  flex:1;
+}
+
+.links p{
+  margin:10px 0;
+}
+
+.links a{
+  color:var(--accent);
+  text-decoration:none;
+  word-break:break-all;
+}
+
+.copy-btn{
+  background:#1f2236;
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:8px;
+  margin-top:10px;
+  font-size:12px;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>🎵 Votify Admin</h1>
+    <p>Configura una sala profesional en segundos.</p>
+  </div>
+
+  <div class="card">
+
+    <label>Nombre del Restaurante</label>
+    <input type="text" id="name" placeholder="Ej: Los Cuchos">
+
+    <label>Selecciona Géneros</label>
+
+    <div class="genres">
+      <label class="genre-item"><input type="checkbox" value="pop"> Pop</label>
+      <label class="genre-item"><input type="checkbox" value="rock"> Rock</label>
+      <label class="genre-item"><input type="checkbox" value="electronic"> Electrónica</label>
+      <label class="genre-item"><input type="checkbox" value="retro90s"> Dance 90s</label>
+      <label class="genre-item"><input type="checkbox" value="hiphop"> Hip Hop</label>
+      <label class="genre-item"><input type="checkbox" value="latinoRetro"> Latino Retro</label>
+      <label class="genre-item"><input type="checkbox" value="party"> Party Mix</label>
+      <label class="genre-item"><input type="checkbox" value="indie"> Indie</label>
+    </div>
+
+    <button onclick="createRoom()">Crear Sala</button>
+
+  </div>
+
+  <div id="result"></div>
+
+</div>
+<script>
+async function createRoom(){
+
+  const name=document.getElementById("name").value.trim();
+  if(!name) return alert("Escribe el nombre.");
+
+  const genres=[...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
+  if(genres.length===0) return alert("Selecciona al menos un género.");
+
+  const res=await fetch("/api/restaurants",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ name, genres })
+  });
+
+  const data=await res.json();
+  if(!data.ok) return alert(data.error || "Error creando sala");
+
+  const voteUrl = data.restaurant?.urlsFull?.vote || (location.origin + data.restaurant.urls.vote);
+  const tvUrl   = data.restaurant?.urlsFull?.tv   || (location.origin + data.restaurant.urls.tv);
+  const qrDataUrl = data.restaurant?.qrDataUrl;
+
+  document.getElementById("result").innerHTML=`
+    <div class="card result-card">
+      <h2>✅ Sala creada correctamente</h2>
+      <div class="qr-box">
+        <img src="${qrDataUrl}" alt="QR Votify">
+        <div class="links">
+          <p><b>Clientes:</b><br><a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
+          <p><b>TV:</b><br><a href="${tvUrl}" target="_blank">${tvUrl}</a></p>
+
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">
+            Copiar link clientes
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>

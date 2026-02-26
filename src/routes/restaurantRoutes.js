@@ -1,44 +1,73 @@
 import express from "express";
-import path from "path";
+import crypto from "crypto";
 import QRCode from "qrcode";
-
-import { createRestaurant, restaurants } from "../data/store.js";
+import { createRestaurant } from "../data/store.js";
+import { library } from "../data/library.js";
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { name } = req.body;
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: "name requerido" });
+    const { name, genres } = req.body;
+
+    if (!name || !Array.isArray(genres) || genres.length === 0) {
+      return res.status(400).json({ ok: false, error: "Nombre y géneros requeridos" });
     }
 
-    const restaurant = createRestaurant(name.trim());
+    let songs = [];
+    for (const g of genres) {
+      if (library[g]) songs = songs.concat(library[g]);
+    }
 
-    // URL base (sirve para LAN / producción también)
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    if (songs.length === 0) {
+      return res.status(400).json({ ok: false, error: "No hay canciones en esos géneros" });
+    }
 
-    // URL del QR para comensales
-    const url = `${baseUrl}/r/${restaurant.id}`;
-    const qrDir = path.join("public", "qrcodes");
-    const qrPath = path.join(qrDir, `${restaurant.id}.png`);
+    const id = crypto.randomUUID();
 
-    await QRCode.toFile(qrPath, url);
+    const restaurant = createRestaurant({ id, name, songs });
 
-    res.json({
-      ...restaurant,
-      url,
-      qr: `/qrcodes/${restaurant.id}.png`,
-      tvUrl: `${baseUrl}/tv/${restaurant.id}`,
+    // ✅ Base URL “real”
+    // En producción: PUBLIC_BASE_URL=https://votify.tudominio.com
+    const baseUrl =
+      process.env.PUBLIC_BASE_URL ||
+      `${req.protocol}://${req.get("host")}`;
+
+    const votePath = `/r/${id}`;
+    const tvPath = `/tv/${id}`;
+    const apiStatePath = `/api/r/${id}/state`;
+
+    const voteFull = `${baseUrl}${votePath}`;
+    const tvFull = `${baseUrl}${tvPath}`;
+
+    // ✅ QR como DataURL (estable en hostings sin disco persistente)
+    const qrDataUrl = await QRCode.toDataURL(voteFull, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      scale: 8,
+    });
+
+    return res.json({
+      ok: true,
+      restaurant: {
+        id: restaurant.id,
+        name: restaurant.name,
+        urls: {
+          vote: votePath,
+          tv: tvPath,
+          apiState: apiStatePath,
+        },
+        urlsFull: {
+          vote: voteFull,
+          tv: tvFull,
+        },
+        qrDataUrl,
+      },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error creando restaurante" });
+    console.error("ERROR creando restaurante:", err);
+    res.status(500).json({ ok: false, error: "Error creando restaurante" });
   }
-});
-
-router.get("/", (req, res) => {
-  res.json(restaurants);
 });
 
 export default router;

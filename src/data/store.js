@@ -1,44 +1,64 @@
-import crypto from "crypto";
+// src/data/store.js
+// Store único en memoria (multi-restaurante)
 
-// Canciones base (se copian a cada restaurante)
-export const baseSongs = [
-  { id: 1, title: "Blessd - Condenado al Exito II", file: "condenadoalexito.mp4" },
-  { id: 2, title: "Codiciado - Vamos Aclarando Muchas Cosas", file: "vamosaclarandomuchascosas.mp4" },
-  { id: 3, title: "Daddy Yankee - Reggaeton Viejo Mix", file: "daddy001.mp4" },
-  { id: 4, title: "IA - Entre tu y yo", file: "entretuyyoia.mp4" },
-  { id: 5, title: "Blessd & Anuel AA - Yogurcito", file: "yogurcitoremix.mp4" },
-];
+export const store = {
+  restaurants: new Map(), // key: rid -> restaurant
+};
 
-export const restaurants = []; // memoria (luego lo pasas a DB si quieres)
-
-export function cloneSongs() {
-  return baseSongs.map((s) => ({
-    ...s,
-    votes: 0,
-    lastPlayed: null,
-    blockedUntil: null,
-  }));
-}
-
-export function createRestaurant(name) {
-  const id = crypto.randomUUID();
-
+export function createRestaurant({ id, name, songs }) {
   const restaurant = {
     id,
     name,
     createdAt: new Date().toISOString(),
-    songs: cloneSongs(),
+    songs: songs.map((s, i) => ({
+      id: i + 1,
+      title: s.title,
+      artist: s.artist,
+      youtubeId: s.youtubeId,
+      votes: 0,
+      lastPlayedAt: 0, // para información extra si la quieres luego
+    })),
     current: {
-      currentSong: null,
+      currentSongId: null,
       songStartTime: 0,
-      songDuration: 0,
     },
   };
 
-  restaurants.push(restaurant);
+  store.restaurants.set(id, restaurant);
   return restaurant;
 }
 
-export function getRestaurantById(id) {
-  return restaurants.find((r) => r.id === id) || null;
+export function getRestaurant(id) {
+  return store.restaurants.get(id) || null;
+}
+
+/**
+ * ✅ Cuando una canción terminó:
+ * - votes = 0 para que baje del top
+ * - se mueve al final del array para que quede abajo
+ */
+export function moveSongToBottomAfterPlayed(roomId, songId) {
+  const restaurant = getRestaurant(roomId);
+  if (!restaurant) return null;
+
+  const idx = restaurant.songs.findIndex((s) => Number(s.id) === Number(songId));
+  if (idx === -1) return null;
+
+  const song = restaurant.songs[idx];
+
+  // 1) bajar del top
+  song.votes = 0;
+
+  // 2) marcar como reproducida (opcional)
+  song.lastPlayedAt = Date.now();
+
+  // 3) mover al final del array
+  restaurant.songs.splice(idx, 1);
+  restaurant.songs.push(song);
+
+  // 4) guardar current (opcional)
+  restaurant.current.currentSongId = song.id;
+  restaurant.current.songStartTime = Date.now();
+
+  return restaurant;
 }
