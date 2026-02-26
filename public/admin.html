@@ -17,7 +17,6 @@
   --text:#ffffff;
   --muted:#9aa0c3;
 }
-
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -26,27 +25,10 @@ body{
   color:var(--text);
   padding:40px 20px;
 }
-
-.container{
-  max-width:900px;
-  margin:auto;
-}
-
-.header{
-  margin-bottom:30px;
-}
-
-.header h1{
-  margin:0;
-  font-size:28px;
-  font-weight:800;
-}
-
-.header p{
-  margin:5px 0 0;
-  color:var(--muted);
-}
-
+.container{max-width:900px;margin:auto}
+.header{margin-bottom:30px}
+.header h1{margin:0;font-size:28px;font-weight:800}
+.header p{margin:5px 0 0;color:var(--muted)}
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -55,13 +37,7 @@ body{
   box-shadow:0 20px 40px rgba(0,0,0,0.4);
   margin-bottom:30px;
 }
-
-label{
-  font-weight:600;
-  font-size:14px;
-  color:var(--muted);
-}
-
+label{font-weight:600;font-size:14px;color:var(--muted)}
 input[type="text"]{
   width:100%;
   padding:12px 14px;
@@ -72,14 +48,12 @@ input[type="text"]{
   margin:10px 0 20px;
   font-size:14px;
 }
-
 .genres{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:12px;
   margin-bottom:20px;
 }
-
 .genre-item{
   background:#0f1220;
   border:1px solid var(--border);
@@ -91,15 +65,8 @@ input[type="text"]{
   cursor:pointer;
   transition:0.2s;
 }
-
-.genre-item:hover{
-  border-color:var(--accent);
-}
-
-.genre-item input{
-  accent-color:var(--accent);
-}
-
+.genre-item:hover{border-color:var(--accent)}
+.genre-item input{accent-color:var(--accent)}
 button{
   background:var(--accent);
   border:none;
@@ -111,42 +78,13 @@ button{
   font-size:14px;
   transition:0.2s;
 }
-
-button:hover{
-  background:var(--accent2);
-}
-
-.result-card{
-  animation:fadeIn 0.3s ease;
-}
-
-.qr-box{
-  display:flex;
-  gap:30px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-
-.qr-box img{
-  width:200px;
-  border-radius:14px;
-  border:1px solid var(--border);
-}
-
-.links{
-  flex:1;
-}
-
-.links p{
-  margin:10px 0;
-}
-
-.links a{
-  color:var(--accent);
-  text-decoration:none;
-  word-break:break-all;
-}
-
+button:hover{background:var(--accent2)}
+.result-card{animation:fadeIn 0.3s ease}
+.qr-box{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
+.qr-box img{width:220px;border-radius:14px;border:1px solid var(--border);background:#fff;padding:10px}
+.links{flex:1}
+.links p{margin:10px 0}
+.links a{color:var(--accent);text-decoration:none;word-break:break-all}
 .copy-btn{
   background:#1f2236;
   border:1px solid var(--border);
@@ -155,29 +93,26 @@ button:hover{
   margin-top:10px;
   font-size:12px;
 }
-
 @keyframes fadeIn{
   from{opacity:0;transform:translateY(10px)}
   to{opacity:1;transform:translateY(0)}
 }
+.smallNote{color:var(--muted);font-size:12px;margin-top:12px;line-height:1.3}
 </style>
 </head>
 <body>
 
 <div class="container">
-
   <div class="header">
     <h1>🎵 Votify Admin</h1>
     <p>Configura una sala profesional en segundos.</p>
   </div>
 
   <div class="card">
-
     <label>Nombre del Restaurante</label>
     <input type="text" id="name" placeholder="Ej: Los Cuchos">
 
     <label>Selecciona Géneros</label>
-
     <div class="genres">
       <label class="genre-item"><input type="checkbox" value="pop"> Pop</label>
       <label class="genre-item"><input type="checkbox" value="rock"> Rock</label>
@@ -190,46 +125,52 @@ button:hover{
     </div>
 
     <button onclick="createRoom()">Crear Sala</button>
-
+    <div class="smallNote">
+      Nota: En Render Free, si el servidor se duerme/reinicia, las salas en memoria se borran.
+      Si te sale “Restaurante no existe”, crea una sala NUEVA aquí.
+    </div>
   </div>
 
   <div id="result"></div>
-
 </div>
+
 <script>
 async function createRoom(){
-
-  const name=document.getElementById("name").value.trim();
+  const name = document.getElementById("name").value.trim();
   if(!name) return alert("Escribe el nombre.");
 
-  const genres=[...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
+  const genres = [...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
   if(genres.length===0) return alert("Selecciona al menos un género.");
 
-  const res=await fetch("/api/restaurants",{
+  const res = await fetch("/api/restaurants",{
     method:"POST",
     headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ name, genres })
+    body: JSON.stringify({ name, genres })
   });
 
-  const data=await res.json();
+  const data = await res.json();
   if(!data.ok) return alert(data.error || "Error creando sala");
 
-  const voteUrl = data.restaurant?.urlsFull?.vote || (location.origin + data.restaurant.urls.vote);
-  const tvUrl   = data.restaurant?.urlsFull?.tv   || (location.origin + data.restaurant.urls.tv);
-  const qrDataUrl = data.restaurant?.qrDataUrl;
+  const voteUrl = data.restaurant?.urlsFull?.vote;
+  const tvUrl   = data.restaurant?.urlsFull?.tv;
+  const qrData  = data.restaurant?.qrDataUrl;
 
-  document.getElementById("result").innerHTML=`
+  if(!voteUrl || !tvUrl || !qrData){
+    console.log(data);
+    return alert("Respuesta incompleta del servidor (urlsFull/qrDataUrl). Revisa logs.");
+  }
+
+  document.getElementById("result").innerHTML = `
     <div class="card result-card">
       <h2>✅ Sala creada correctamente</h2>
       <div class="qr-box">
-        <img src="${qrDataUrl}" alt="QR Votify">
+        <img src="${qrData}" alt="QR para votar">
         <div class="links">
           <p><b>Clientes:</b><br><a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
           <p><b>TV:</b><br><a href="${tvUrl}" target="_blank">${tvUrl}</a></p>
 
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">
-            Copiar link clientes
-          </button>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">Copiar link clientes</button>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('${tvUrl}')">Copiar link TV</button>
         </div>
       </div>
     </div>

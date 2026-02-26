@@ -1,132 +1,461 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Votify TV</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Votify — TV</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-<style>
-:root{
-  --bg:#0d0f1a;
-  --card:#151829;
-  --border:#23263a;
-  --accent:#7c5cff;
-  --text:#ffffff;
-  --muted:#9aa0c3;
-}
+  <style>
+    :root{
+      --bg:#0a0b12;
+      --panel:#121428;
+      --line:#232643;
+      --txt:#fff;
+      --muted:#a9b0d1;
+      --accent:#7c5cff;
+      --accent2:#5a3fff;
+      --good:#2ee59d;
+      --bad:#ff3b3b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:radial-gradient(900px 500px at 20% 10%, #1b1e38 0%, transparent 60%),
+                 radial-gradient(900px 500px at 80% 20%, #14304a 0%, transparent 55%),
+                 linear-gradient(180deg, #080912, #0b0c16);
+      color:var(--txt);
+    }
+    .topbar{
+      padding:18px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .leftTop{display:flex;flex-direction:column;gap:8px}
+    .title{font-weight:800;font-size:22px}
+    .pills{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+    .dot.good{background:var(--good)}
+    .layout{
+      display:grid;
+      grid-template-columns: 1.4fr .9fr;
+      gap:18px;
+      padding:0 18px 18px 18px;
+    }
+    .card{
+      background:rgba(18,20,40,.78);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 12px 40px rgba(0,0,0,.35);
+      min-height:200px;
+    }
+    .cardHead{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .cardHead h2{margin:0;font-size:14px;color:var(--muted);font-weight:700}
+    .sub{font-size:12px;color:var(--muted)}
+    .playerWrap{
+      position:relative;
+      aspect-ratio:16/9;
+      background:#000;
+    }
+    #player{position:absolute;inset:0}
+    .soundOverlay{
+      position:absolute;inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.55);
+      z-index:50;
+    }
+    .soundBox{
+      background:rgba(18,20,40,.92);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:18px 16px;
+      text-align:center;
+      width:min(440px, 92%);
+    }
+    .soundBox h3{margin:0 0 6px 0;font-size:16px}
+    .soundBox p{margin:0 0 12px 0;color:var(--muted);font-size:13px}
+    .soundBox button{
+      border:none;border-radius:12px;
+      background:var(--accent);
+      color:#fff;font-weight:800;
+      padding:10px 14px;
+      cursor:pointer;
+    }
 
-*{box-sizing:border-box}
+    .qrTop{
+      display:flex;align-items:center;gap:14px;
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    #qrImg{
+      width:150px;height:150px;
+      background:#fff;border-radius:14px;
+      padding:10px;
+    }
+    .qrTitle{font-weight:800;margin-bottom:4px}
+    .qrLink{color:var(--muted);font-size:12px;word-break:break-all;line-height:1.2}
 
-body{
-  margin:0;
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(145deg,#0d0f1a,#121528);
-  color:var(--text);
-  height:100vh;
-  display:flex;
-}
+    .rankBody{padding:10px 10px 12px 10px}
+    .row{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      margin:8px 0;
+    }
+    .leftRow{display:flex;gap:12px;align-items:center}
+    .pos{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(124,92,255,.20);
+      border:1px solid rgba(124,92,255,.35);
+      font-weight:800;
+    }
+    .song{display:flex;flex-direction:column;gap:2px}
+    .song b{font-size:13px}
+    .song span{font-size:12px;color:var(--muted)}
+    .votes{
+      font-weight:800;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:6px 10px;border-radius:999px;
+      font-size:12px;
+      min-width:78px;text-align:center;
+    }
 
-.video-side{
-  flex:2;
-  background:black;
-}
+    .toast{
+      position:fixed;
+      left:18px;
+      bottom:18px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(18,20,40,.92);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      box-shadow:0 12px 40px rgba(0,0,0,.35);
+      display:none;
+      max-width:min(560px, 92vw);
+      font-size:13px;
+    }
 
-.sidebar{
-  flex:1;
-  background:var(--card);
-  padding:30px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-
-h2{margin:0;font-size:22px}
-
-.qr-card{
-  background:#0f1220;
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:16px;
-}
-
-.qr-box{
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-#voteLink{
-  margin-top:10px;
-  font-size:13px;
-  color:var(--muted);
-  word-break:break-all;
-}
-
-.small{
-  font-size:12px;
-  color:var(--muted);
-  opacity:.9;
-}
-</style>
+    @media (max-width: 1000px){
+      .layout{grid-template-columns:1fr}
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="video-side"></div>
-
-<div class="sidebar">
-  <h2>📱 Escanea para votar</h2>
-
-  <div class="qr-card">
-    <div class="qr-box">
-      <canvas id="qr" width="220" height="220"></canvas>
+  <div class="topbar">
+    <div class="leftTop">
+      <div class="title" id="nowTitle">Votify — TV</div>
+      <div class="pills">
+        <div class="pill" id="roomPill">Sala: —</div>
+        <div class="pill"><span>Modo: no repetir</span></div>
+        <div class="pill" id="statusPill"><span class="dot" id="dot"></span><span id="statusText">Conectando…</span></div>
+      </div>
     </div>
-    <div id="voteLink"></div>
-    <div class="small" id="roomInfo"></div>
+    <div class="pill">Siempre suena</div>
   </div>
 
-  <div class="small">
-    Si escaneas y dice “Restaurante no existe”, crea una sala NUEVA en <b>/admin</b> (en Render Free las salas se borran si el servidor reinicia).
+  <div class="layout">
+    <div class="card">
+      <div class="cardHead">
+        <h2>Reproducción</h2>
+        <div class="sub" id="playerSub">Auto-skip bloqueados • Sonido activo</div>
+      </div>
+
+      <div class="playerWrap">
+        <div id="player"></div>
+
+        <div class="soundOverlay" id="soundOverlay">
+          <div class="soundBox">
+            <h3>🔊 Toca para activar sonido</h3>
+            <p>Algunos navegadores bloquean el autoplay con audio. Un toque y queda sonando.</p>
+            <button id="soundBtn">Activar sonido</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead">
+        <h2>Top de votos</h2>
+        <div class="sub">En vivo</div>
+      </div>
+
+      <div class="qrTop">
+        <img id="qrImg" alt="QR Votify">
+        <div class="qrText">
+          <div class="qrTitle">📲 Escanea para votar</div>
+          <div class="qrLink" id="qrLinkText"></div>
+          <div class="qrLink" id="missingHint" style="margin-top:8px; display:none;">
+            Si te sale “Restaurante no existe”, crea una sala NUEVA en <b>/admin</b>.
+          </div>
+        </div>
+      </div>
+
+      <div class="rankBody" id="ranking"></div>
+    </div>
   </div>
-</div>
 
-<!-- ✅ Librería local (NO CDN) -->
-<script src="/vendor/qrcode.min.js"></script>
+  <div class="toast" id="toast"></div>
 
-<script>
-(function(){
-  // ✅ roomId seguro aunque la URL termine en / al final
-  const parts = window.location.pathname.split("/").filter(Boolean);
-  const roomId = parts[parts.length - 1];
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Si ya tienes vendor/qrcode.min.js, úsalo. Si no, esta línea no rompe nada (simplemente no genera QR) -->
+  <script src="/vendor/qrcode.min.js"></script>
 
-  const voteUrl = window.location.origin + "/r/" + roomId;
+  <script>
+    const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
+    const origin = location.origin;
+    const voteUrl = `${origin}/r/${room}`;
 
-  document.getElementById("voteLink").textContent = voteUrl;
-  document.getElementById("roomInfo").textContent = "Sala: " + roomId;
+    document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
+    document.getElementById("qrLinkText").textContent = voteUrl;
 
-  try {
-    if (!window.QRCode) throw new Error("QRCode library not loaded");
-    QRCode.toCanvas(document.getElementById("qr"), voteUrl, {
-      width: 220,
-      margin: 2,
-      errorCorrectionLevel: "M"
+    // ✅ QR (si existe QRCode en vendor)
+    (function renderQr(){
+      const img = document.getElementById("qrImg");
+      if (window.QRCode && typeof QRCode.toDataURL === "function") {
+        QRCode.toDataURL(voteUrl, { errorCorrectionLevel: "M", margin: 2, scale: 8 }, (err, url) => {
+          if (!err && url) img.src = url;
+        });
+      } else {
+        // fallback: solo texto (sin romper TV)
+        img.style.display = "none";
+      }
+    })();
+
+    const socket = io();
+    const dot = document.getElementById("dot");
+    const statusText = document.getElementById("statusText");
+
+    socket.on("connect", () => {
+      dot.classList.add("good");
+      statusText.textContent = "Conectado ✅";
+      socket.emit("room:join", { room });
     });
-  } catch (e) {
-    console.error(e);
-    document.getElementById("qr").replaceWith(
-      Object.assign(document.createElement("div"), {
-        innerText: "QR no disponible. Usa el link.",
-        style: "background:#fff;color:#000;padding:12px;border-radius:12px"
-      })
-    );
-  }
-})();
-</script>
+    socket.on("disconnect", () => {
+      dot.classList.remove("good");
+      statusText.textContent = "Desconectado";
+    });
 
+    let player;
+    let currentSongs = [];
+    let lastPlayedId = null;
+    let playedSet = new Set();
+
+    async function loadState(){
+      const res = await fetch(`/api/r/${room}/state`);
+      const data = await res.json();
+
+      if(!res.ok || data.ok === false){
+        document.getElementById("missingHint").style.display = "block";
+        document.getElementById("ranking").innerHTML = `
+          <div style="padding:12px;color:#fff">
+            ❌ ${data?.error || "Restaurante no existe"}<br>
+            <span style="color:rgba(255,255,255,.65)">Crea una sala NUEVA en /admin.</span>
+          </div>
+        `;
+        return;
+      }
+
+      currentSongs = Array.isArray(data.songs) ? data.songs : [];
+      renderRanking(currentSongs);
+      // si ya hay current en server, podrías usarlo (ahorita no)
+    }
+
+    function renderRanking(songs){
+      const container = document.getElementById("ranking");
+      if(!songs.length){
+        container.innerHTML = `<div style="padding:12px;color:rgba(255,255,255,.7)">Sin canciones.</div>`;
+        return;
+      }
+
+      const sorted = [...songs].sort((a,b)=> (b.votes||0) - (a.votes||0));
+      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>`
+        <div class="row">
+          <div class="leftRow">
+            <div class="pos">${idx+1}</div>
+            <div class="song">
+              <b>${escapeHtml(s.title || "—")}</b>
+              <span>${escapeHtml(s.artist || "")}</span>
+            </div>
+          </div>
+          <div class="votes">${(s.votes||0)} votos</div>
+        </div>
+      `).join("");
+    }
+
+    function pickNextSong(){
+      if(!currentSongs.length) return null;
+
+      // Orden por votos desc
+      const sorted = [...currentSongs].sort((a,b)=> (b.votes||0)-(a.votes||0));
+
+      // si "no repetir", evita repetidas hasta agotar
+      for(const s of sorted){
+        if(!playedSet.has(s.id)) return s;
+      }
+      // si ya se tocaron todas, reinicia set y vuelve a empezar
+      playedSet.clear();
+      return sorted[0];
+    }
+
+    function playSong(song){
+      if(!song || !song.youtubeId) return;
+
+      lastPlayedId = song.id;
+      playedSet.add(song.id);
+
+      document.getElementById("nowTitle").textContent = `${song.title} — ${song.artist || ""}`;
+
+      // carga en player
+      if(player && player.loadVideoById){
+        player.loadVideoById(song.youtubeId);
+      }
+
+      // avisa a clientes para sincronización (opcional)
+      const startedAt = Date.now();
+      socket.emit("song:start", { room, songId: song.id, startedAt, durationSec: 0 });
+    }
+
+    // SOCKET: cuando votan, actualiza ranking en vivo
+    socket.on("votes:update", ({ room: r, songs }) => {
+      if(r !== room) return;
+      if(Array.isArray(songs)){
+        currentSongs = songs;
+        renderRanking(currentSongs);
+      }
+    });
+
+    // Notificación bonita
+    socket.on("vote:notification", ({ room: r, voter, songTitle }) => {
+      if(r !== room) return;
+      showToast(`✅ ${escapeHtml(voter || "Alguien")} votó por “${escapeHtml(songTitle || "")}”`);
+    });
+
+    function showToast(msg){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(showToast._tm);
+      showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
+    }
+
+    // ===== YouTube IFrame API =====
+    function loadYouTubeApi(){
+      return new Promise((resolve) => {
+        if(window.YT && window.YT.Player) return resolve();
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(tag);
+        window.onYouTubeIframeAPIReady = () => resolve();
+      });
+    }
+
+    function createPlayer(){
+      return new Promise((resolve) => {
+        player = new YT.Player("player", {
+          height: "100%",
+          width: "100%",
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            rel: 0,
+            modestbranding: 1
+          },
+          events: {
+            onReady: () => resolve(),
+            onStateChange: onPlayerStateChange
+          }
+        });
+      });
+    }
+
+    // Si termina canción => reset votos + mover abajo
+    function onPlayerStateChange(e){
+      // ended
+      if(e.data === YT.PlayerState.ENDED){
+        socket.emit("song:ended", { room, songId: lastPlayedId });
+        // escoge siguiente
+        const next = pickNextSong();
+        if(next) playSong(next);
+      }
+      // autoplay bloqueado => muestra overlay
+      if(e.data === YT.PlayerState.UNSTARTED){
+        // algunos browsers bloquean audio
+        setTimeout(checkSoundBlocked, 600);
+      }
+    }
+
+    function checkSoundBlocked(){
+      try{
+        const vol = player.getVolume?.();
+        // si está en 0 no es problema; el problema es "autoplay not allowed"
+        // mostramos overlay de todos modos si no está PLAYING rápido
+        const state = player.getPlayerState?.();
+        if(state !== YT.PlayerState.PLAYING){
+          document.getElementById("soundOverlay").style.display = "flex";
+        }
+      }catch(_){}
+    }
+
+    document.getElementById("soundBtn").addEventListener("click", () => {
+      document.getElementById("soundOverlay").style.display = "none";
+      try{
+        player.playVideo?.();
+        player.unMute?.();
+      }catch(_){}
+    });
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ===== INIT =====
+    (async function init(){
+      if(!room){
+        document.getElementById("ranking").innerHTML = `<div style="padding:12px;color:#fff">Sala inválida</div>`;
+        return;
+      }
+
+      await loadState();
+
+      await loadYouTubeApi();
+      await createPlayer();
+
+      // arranca primera canción
+      const first = pickNextSong();
+      if(first) playSong(first);
+    })();
+  </script>
 </body>
 </html>
