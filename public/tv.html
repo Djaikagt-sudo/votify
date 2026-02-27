@@ -224,7 +224,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Si ya tienes vendor/qrcode.min.js, úsalo. Si no, esta línea no rompe nada (simplemente no genera QR) -->
   <script src="/vendor/qrcode.min.js"></script>
 
   <script>
@@ -235,7 +234,6 @@
     document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
     document.getElementById("qrLinkText").textContent = voteUrl;
 
-    // ✅ QR (si existe QRCode en vendor)
     (function renderQr(){
       const img = document.getElementById("qrImg");
       if (window.QRCode && typeof QRCode.toDataURL === "function") {
@@ -243,7 +241,6 @@
           if (!err && url) img.src = url;
         });
       } else {
-        // fallback: solo texto (sin romper TV)
         img.style.display = "none";
       }
     })();
@@ -267,6 +264,34 @@
     let lastPlayedId = null;
     let playedSet = new Set();
 
+    // --- Helpers: validar IDs y hacer auto-skip si YouTube bloquea/no disponible ---
+    let __skipLock = false;
+    let __consecutiveFails = 0;
+    const MAX_CONSECUTIVE_FAILS = 10;
+
+    function isValidYouTubeId(id){
+      return typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id.trim());
+    }
+
+    function skipToNext(reason){
+      if(__skipLock) return;
+      __skipLock = true;
+      console.log("⏭️ skip:", reason);
+
+      setTimeout(() => {
+        __skipLock = false;
+        __consecutiveFails++;
+
+        if(__consecutiveFails >= MAX_CONSECUTIVE_FAILS){
+          __consecutiveFails = 0;
+          showToast("⚠️ Muchos videos bloqueados/no disponibles. Revisa youtubeId.");
+        }
+
+        const next = pickNextSong();
+        if(next) playSong(next);
+      }, 650);
+    }
+
     async function loadState(){
       const res = await fetch(`/api/r/${room}/state`);
       const data = await res.json();
@@ -284,7 +309,6 @@
 
       currentSongs = Array.isArray(data.songs) ? data.songs : [];
       renderRanking(currentSongs);
-      // si ya hay current en server, podrías usarlo (ahorita no)
     }
 
     function renderRanking(songs){
@@ -325,7 +349,7 @@
     }
 
     function playSong(song){
-      if(!song || !song.youtubeId) return;
+      if(!song || !isValidYouTubeId(song.youtubeId)) return skipToNext("invalid-id");
 
       lastPlayedId = song.id;
       playedSet.add(song.id);
@@ -351,10 +375,49 @@
       }
     });
 
-    // Notificación bonita
-    socket.on("vote:notification", ({ room: r, voter, songTitle }) => {
-      if(r !== room) return;
-      showToast(`✅ ${escapeHtml(voter || "Alguien")} votó por “${escapeHtml(songTitle || "")}”`);
+    // Si termina canción => siguiente
+    function onPlayerStateChange(e){
+      if(e.data === YT.PlayerState.PLAYING){
+        __consecutiveFails = 0;
+      }
+
+      if(e.data === YT.PlayerState.ENDED){
+        socket.emit("song:ended", { room, songId: lastPlayedId });
+        const next = pickNextSong();
+        if(next) playSong(next);
+      }
+
+      // autoplay bloqueado / se queda UNSTARTED => overlay + si se atasca, skip
+      if(e.data === YT.PlayerState.UNSTARTED){
+        setTimeout(checkSoundBlocked, 600);
+        setTimeout(() => {
+          try{
+            const st = player?.getPlayerState?.();
+            if(st === YT.PlayerState.UNSTARTED){
+              skipToNext("unstarted-stuck");
+            }
+          }catch(_){
+            skipToNext("unstarted-error");
+          }
+        }, 6500);
+      }
+    }
+
+    function checkSoundBlocked(){
+      try{
+        const state = player.getPlayerState?.();
+        if(state !== YT.PlayerState.PLAYING){
+          document.getElementById("soundOverlay").style.display = "flex";
+        }
+      }catch(_){}
+    }
+
+    document.getElementById("soundBtn").addEventListener("click", () => {
+      document.getElementById("soundOverlay").style.display = "none";
+      try{
+        player.playVideo?.();
+        player.unMute?.();
+      }catch(_){}
     });
 
     function showToast(msg){
@@ -365,7 +428,6 @@
       showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
     }
 
-    // ===== YouTube IFrame API =====
     function loadYouTubeApi(){
       return new Promise((resolve) => {
         if(window.YT && window.YT.Player) return resolve();
@@ -385,51 +447,21 @@
             autoplay: 1,
             controls: 0,
             rel: 0,
-            modestbranding: 1
+            modestbranding: 1,
+            playsinline: 1,
+            origin: window.location.origin
           },
           events: {
             onReady: () => resolve(),
-            onStateChange: onPlayerStateChange
+            onStateChange: onPlayerStateChange,
+            onError: (ev) => {
+              // 2=invalid, 5=html5, 100=not found, 101/150=embed blocked
+              skipToNext(`yt-error:${ev?.data}`);
+            }
           }
         });
       });
     }
-
-    // Si termina canción => reset votos + mover abajo
-    function onPlayerStateChange(e){
-      // ended
-      if(e.data === YT.PlayerState.ENDED){
-        socket.emit("song:ended", { room, songId: lastPlayedId });
-        // escoge siguiente
-        const next = pickNextSong();
-        if(next) playSong(next);
-      }
-      // autoplay bloqueado => muestra overlay
-      if(e.data === YT.PlayerState.UNSTARTED){
-        // algunos browsers bloquean audio
-        setTimeout(checkSoundBlocked, 600);
-      }
-    }
-
-    function checkSoundBlocked(){
-      try{
-        const vol = player.getVolume?.();
-        // si está en 0 no es problema; el problema es "autoplay not allowed"
-        // mostramos overlay de todos modos si no está PLAYING rápido
-        const state = player.getPlayerState?.();
-        if(state !== YT.PlayerState.PLAYING){
-          document.getElementById("soundOverlay").style.display = "flex";
-        }
-      }catch(_){}
-    }
-
-    document.getElementById("soundBtn").addEventListener("click", () => {
-      document.getElementById("soundOverlay").style.display = "none";
-      try{
-        player.playVideo?.();
-        player.unMute?.();
-      }catch(_){}
-    });
 
     function escapeHtml(str){
       return String(str)
@@ -440,7 +472,6 @@
         .replaceAll("'","&#039;");
     }
 
-    // ===== INIT =====
     (async function init(){
       if(!room){
         document.getElementById("ranking").innerHTML = `<div style="padding:12px;color:#fff">Sala inválida</div>`;
@@ -448,13 +479,12 @@
       }
 
       await loadState();
-
       await loadYouTubeApi();
       await createPlayer();
 
-      // arranca primera canción
       const first = pickNextSong();
       if(first) playSong(first);
+      else showToast("⚠️ No hay canciones con youtubeId válido en esta sala.");
     })();
   </script>
 </body>
