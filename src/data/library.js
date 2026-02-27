@@ -5,7 +5,7 @@ export const library = {
   // =========================
   reggaetonNuevo: [
     { artist:"Bad Bunny", title:"MONACO", youtubeId:"QxPeRC82Uo0"},
-    { artist:"Feid", title:"Classy 101", youtubeId:"EaNvU9YvviY" },
+    { artist:"Blessd, Fuerza Regida", title:"Como Oreo", youtubeId:"VGsZdhqOcQ0" },
     { artist:"Karol G", title:"Provenza", youtubeId:"Fnaj2z8MDJM" },
     { artist:"Myke Towers", title:"LALA", youtubeId:"O3zCjYrdS7Q" },
     { artist:"Rauw Alejandro", title:"Todo De Ti", youtubeId:"b3FeNu4LTdY" },
