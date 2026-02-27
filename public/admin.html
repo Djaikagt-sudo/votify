@@ -109,7 +109,7 @@ button:hover{background:var(--accent2)}
 
       <label>Selecciona géneros</label>
       <div class="genres">
-        <!-- EXISTENTES -->
+        <!-- Base (si los tienes en library.js) -->
         <label class="genre-item"><input type="checkbox" value="pop"> Pop</label>
         <label class="genre-item"><input type="checkbox" value="rock"> Rock</label>
         <label class="genre-item"><input type="checkbox" value="electronic"> Electrónica</label>
@@ -119,21 +119,31 @@ button:hover{background:var(--accent2)}
         <label class="genre-item"><input type="checkbox" value="party"> Party Mix</label>
         <label class="genre-item"><input type="checkbox" value="indie"> Indie</label>
 
-        <!-- NUEVOS (solo agregados) -->
+        <!-- Nuevos -->
         <label class="genre-item"><input type="checkbox" value="banda"> Banda</label>
         <label class="genre-item"><input type="checkbox" value="corridos"> Corridos</label>
-        <label class="genre-item"><input type="checkbox" value="salsa"> Salsa</label>
-        <label class="genre-item"><input type="checkbox" value="popEnIngles"> Pop (Inglés)</label>
-        <label class="genre-item"><input type="checkbox" value="popEnEspanol"> Pop (Español)</label>
         <label class="genre-item"><input type="checkbox" value="duranguense"> Duranguense</label>
-        <label class="genre-item"><input type="checkbox" value="romanticas"> Románticas</label>
-        <label class="genre-item"><input type="checkbox" value="rockEnEspanol"> Rock en Español</label>
-        <label class="genre-item"><input type="checkbox" value="rockGuatemalteco"> Rock Guatemalteco</label>
+
+        <label class="genre-item"><input type="checkbox" value="salsa"> Salsa</label>
         <label class="genre-item"><input type="checkbox" value="cumbia"> Cumbia</label>
         <label class="genre-item"><input type="checkbox" value="merengue"> Merengue</label>
+
+        <label class="genre-item"><input type="checkbox" value="romanticas"> Románticas</label>
         <label class="genre-item"><input type="checkbox" value="baladasEnEspanol"> Baladas en Español</label>
+
+        <label class="genre-item"><input type="checkbox" value="popEnIngles"> Pop (Inglés)</label>
+        <label class="genre-item"><input type="checkbox" value="popEnEspanol"> Pop (Español)</label>
+
+        <label class="genre-item"><input type="checkbox" value="rockEnEspanol"> Rock en Español</label>
+        <label class="genre-item"><input type="checkbox" value="rockGuatemalteco"> Rock Guatemalteco</label>
+
         <label class="genre-item"><input type="checkbox" value="reggaetonAntiguo"> Reggaetón Antiguo</label>
         <label class="genre-item"><input type="checkbox" value="reggaetonNuevo"> Reggaetón Nuevo</label>
+
+        <!-- Si también los tienes en library.js -->
+        <label class="genre-item"><input type="checkbox" value="afroLatin"> Afro Latin</label>
+        <label class="genre-item"><input type="checkbox" value="latinHouse"> Latin House</label>
+        <label class="genre-item"><input type="checkbox" value="reggaeton"> Reggaetón</label>
       </div>
 
       <button onclick="createRoom()">Crear Sala</button>
@@ -148,46 +158,55 @@ button:hover{background:var(--accent2)}
   </div>
 
 <script>
-function createRoom(){
-  const name = document.getElementById("name").value.trim();
-  if(!name) return alert("Escribe el nombre.");
+async function createRoom(){
+  try{
+    const name = document.getElementById("name").value.trim();
+    if(!name) return alert("Escribe el nombre.");
 
-  const genres = [...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
-  if(genres.length===0) return alert("Selecciona al menos un género.");
+    const genres = [...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
+    if(genres.length===0) return alert("Selecciona al menos un género.");
 
-  const res = await fetch("/api/restaurants",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ name, genres })
-  });
+    const res = await fetch("/api/restaurants",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ name, genres })
+    });
 
-  const data = await res.json();
-  if(!data.ok) return alert(data.error || "Error creando sala");
+    const data = await res.json().catch(()=> ({}));
 
-  const voteUrl = data.restaurant?.urlsFull?.vote;
-  const tvUrl   = data.restaurant?.urlsFull?.tv;
-  const qrData  = data.restaurant?.qrDataUrl;
+    if(!res.ok || !data.ok){
+      console.log("Server response:", data);
+      return alert(data?.error || "Error creando sala (revisa logs en Render).");
+    }
 
-  if(!voteUrl || !tvUrl || !qrData){
-    console.log(data);
-    return alert("Respuesta incompleta del servidor (urlsFull/qrDataUrl). Revisa logs.");
-  }
+    const voteUrl = data.restaurant?.urlsFull?.vote;
+    const tvUrl   = data.restaurant?.urlsFull?.tv;
+    const qrData  = data.restaurant?.qrDataUrl;
 
-  document.getElementById("result").innerHTML = `
-    <div class="card result-card">
-      <h2>✅ Sala creada correctamente</h2>
-      <div class="qr-box">
-        <img src="${qrData}" alt="QR para votar">
-        <div class="links">
-          <p><b>Clientes:</b><br><a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
-          <p><b>TV:</b><br><a href="${tvUrl}" target="_blank">${tvUrl}</a></p>
+    if(!voteUrl || !tvUrl || !qrData){
+      console.log("Respuesta incompleta:", data);
+      return alert("Respuesta incompleta del servidor (urlsFull/qrDataUrl). Revisa logs.");
+    }
 
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">Copiar link clientes</button>
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('${tvUrl}')">Copiar link TV</button>
+    document.getElementById("result").innerHTML = `
+      <div class="card result-card">
+        <h2>✅ Sala creada correctamente</h2>
+        <div class="qr-box">
+          <img src="${qrData}" alt="QR para votar">
+          <div class="links">
+            <p><b>Clientes:</b><br><a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
+            <p><b>TV:</b><br><a href="${tvUrl}" target="_blank">${tvUrl}</a></p>
+
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">Copiar link clientes</button>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${tvUrl}')">Copiar link TV</button>
+          </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
+  }catch(err){
+    console.error(err);
+    alert("Error creando sala. Revisa consola del navegador y logs de Render.");
+  }
 }
 </script>
 
