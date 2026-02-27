@@ -11,7 +11,7 @@ export const library = {
     { artist:"Rauw Alejandro", title:"Todo De Ti", youtubeId:"b3FeNu4LTdY" },
     { artist:"Anuel AA", title:"China", youtubeId:"4Ml5JxRfZMo" },
     { artist:"Ozuna", title:"Caramelo", youtubeId:"Dsa7nZJTX4E" },
-    { artist:"J Balvin", title:"Rojo", youtubeId:"FddRpavjEaQ" },
+    { artist:"Shakira", title:"Me Enamoré", youtubeId:"NS3xJAIVdf0" },
 
     // Estaba repetido (apuntaba al mismo ID de Classy 101) => lo dejé vacío
     { artist:"Quevedo", title:"Columbia", youtubeId:"" },
