@@ -4,15 +4,19 @@ export const library = {
   // REGGAETON NUEVO
   // =========================
   reggaetonNuevo: [
-    { artist:"Bad Bunny", title:"MONACO", youtubeId:"_S3UjMZC0Tk" },
-    { artist:"Feid", title:"Classy 101", youtubeId:"lZiaYpD9ZrI" },
-    { artist:"Karol G", title:"Provenza", youtubeId:"F0B7HDiY-10" },
-    { artist:"Myke Towers", title:"LALA", youtubeId:"_tFz3rFfS3M" },
-    { artist:"Rauw Alejandro", title:"Todo De Ti", youtubeId:"CFPLIaMpGrY" },
-    { artist:"Anuel AA", title:"China", youtubeId:"0VR3dfZf9Yg" },
-    { artist:"Ozuna", title:"Caramelo", youtubeId:"q3xHk8i4e8o" },
-    { artist:"J Balvin", title:"Rojo", youtubeId:"1DpH-icPpl0" },
-    { artist:"Quevedo", title:"Columbia", youtubeId:"lZiaYpD9ZrI" },
+    { artist:"Bad Bunny", title:"MONACO", youtubeId:"QxPeRC82Uo0"},
+    { artist:"Feid", title:"Classy 101", youtubeId:"EaNvU9YvviY" },
+    { artist:"Karol G", title:"Provenza", youtubeId:"Fnaj2z8MDJM" },
+    { artist:"Myke Towers", title:"LALA", youtubeId:"O3zCjYrdS7Q" },
+    { artist:"Rauw Alejandro", title:"Todo De Ti", youtubeId:"b3FeNu4LTdY" },
+    { artist:"Anuel AA", title:"China", youtubeId:"4Ml5JxRfZMo" },
+    { artist:"Ozuna", title:"Caramelo", youtubeId:"Dsa7nZJTX4E" },
+    { artist:"J Balvin", title:"Rojo", youtubeId:"IWLmoKXX9_U" },
+
+    // Estaba repetido (apuntaba al mismo ID de Classy 101) => lo dejé vacío
+    { artist:"Quevedo", title:"Columbia", youtubeId:"" },
+
+    // Era inválido (no tiene 11 chars) => lo dejé vacío
     { artist:"Yandel", title:"Yandel 150", youtubeId:"" }
   ],
 
@@ -73,9 +77,10 @@ export const library = {
   // CORRIDOS
   // =========================
   corridos: [
-    { artist:"Peso Pluma", title:"Ella Baila Sola", youtubeId:"_S3UjMZC0Tk" },
-    { artist:"Natanael Cano", title:"Amor Tumbado", youtubeId:"Z6fX3xv2bLQ" },
-    { artist:"Fuerza Regida", title:"TQM", youtubeId:"lZiaYpD9ZrI" }
+    // Estos 3 estaban usando IDs repetidos de canciones de otros géneros => los dejé vacíos
+    { artist:"Peso Pluma", title:"Ella Baila Sola", youtubeId:"" },
+    { artist:"Natanael Cano", title:"Amor Tumbado", youtubeId:"" },
+    { artist:"Fuerza Regida", title:"TQM", youtubeId:"" }
   ],
 
   // =========================
