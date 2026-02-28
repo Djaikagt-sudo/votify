@@ -311,7 +311,7 @@
         </div>
         <div>
           <div class="brandTitle">Panel Admin — Votify</div>
-          <div class="brandSub">Crear salas y administrar géneros disponibles.</div>
+          <div class="brandSub">Crear salas y seleccionar géneros de tu library.js</div>
         </div>
       </div>
 
@@ -321,14 +321,14 @@
     </div>
 
     <div class="grid">
-      <!-- Izquierda: creación -->
+      <!-- Izquierda -->
       <section class="card">
         <div class="cardHead">
           <div>
             <h2 class="cardTitle">Crear sala</h2>
-            <p class="cardHint">Elegí un nombre, seleccioná géneros y generá el QR para que voten desde el teléfono.</p>
+            <p class="cardHint">Estos géneros son los que realmente existen en <b>src/data/library.js</b>.</p>
           </div>
-          <span class="pill">🔒 Admin</span>
+          <span class="pill">✅ Library Sync</span>
         </div>
 
         <div class="cardBody">
@@ -336,7 +336,7 @@
           <input id="nameInput" class="input" placeholder="Ej. Los Cuchos" />
 
           <div class="toolbar">
-            <input id="genreSearch" class="input" placeholder="Buscar género (ej. reggaeton, rock, house…)" />
+            <input id="genreSearch" class="input" placeholder="Buscar género…" />
             <button id="selectAllBtn" class="btn" type="button">Seleccionar todo</button>
             <button id="clearBtn" class="btn" type="button">Limpiar</button>
           </div>
@@ -351,29 +351,18 @@
         </div>
       </section>
 
-      <!-- Derecha: info / ayuda -->
+      <!-- Derecha -->
       <aside class="card">
         <div class="cardHead">
           <div>
-            <h2 class="cardTitle">Consejos rápidos</h2>
-            <p class="cardHint">Para que quede “modo DJ” sin fallas en el evento.</p>
+            <h2 class="cardTitle">Tips</h2>
+            <p class="cardHint">Si aparece “No hay canciones”, es porque el género no existe en library.js.</p>
           </div>
         </div>
         <div class="cardBody" style="color:var(--muted); font-size:13px; line-height:1.55;">
-          <ul style="margin:0; padding-left:18px;">
-            <li><b>Nombre claro</b>: poné el nombre como lo verá el cliente.</li>
-            <li><b>Géneros</b>: seleccioná solo los que vas a usar (mejor experiencia).</li>
-            <li><b>TV</b>: abrí el link de TV en pantalla completa.</li>
-            <li><b>QR</b>: imprimilo o ponelo grande en la TV para votar.</li>
-          </ul>
-
-          <div style="margin-top:16px; padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
-            <div style="font-weight:900; color:#fff; margin-bottom:6px;">Atajo</div>
-            <div>Si querés entrar directo:</div>
-            <div style="margin-top:8px;">
-              <span class="pill">/admin</span>
-              <span class="pill">/login.html</span>
-            </div>
+          <div style="padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
+            <div style="font-weight:900;color:#fff;margin-bottom:8px;">Géneros disponibles (library.js)</div>
+            <div id="genresList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           </div>
 
           <footer class="appFooter">© <span id="yearNow"></span> Charly García — Votify</footer>
@@ -389,13 +378,28 @@
   const resultBox = document.getElementById("resultBox");
   const chipsBox = document.getElementById("chipsBox");
   const genreSearch = document.getElementById("genreSearch");
+  const genresList = document.getElementById("genresList");
 
-  // Lista (igual que la tuya)
+  // ✅ ESTO DEBE COINCIDIR 1:1 CON src/data/library.js
   const GENRES = [
-    "reggaeton","pop","rock","electronica","corridos","cumbia","salsa","bachata",
-    "regional","trap","hiphop","rancheras","romanticas","boleros","disco","house",
-    "techno","dembow","dancehall","kpop","anime","instrumental"
+    { key: "reggaetonNuevo",     label: "Reggaetón Nuevo" },
+    { key: "reggaetonAntiguo",   label: "Reggaetón Antiguo" },
+    { key: "corridos",           label: "Corridos" },
+    { key: "banda",              label: "Banda" },
+    { key: "cumbia",             label: "Cumbia" },
+    { key: "salsa",              label: "Salsa" },
+    { key: "merengue",           label: "Merengue" },
+    { key: "rockEnEspanol",      label: "Rock en Español" },
+    { key: "rockGuatemalteco",   label: "Rock Guatemalteco" },
   ];
+
+  // Mostrar lista en la tarjeta derecha
+  GENRES.forEach(g=>{
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.textContent = g.label;
+    genresList.appendChild(pill);
+  });
 
   const selected = new Set();
 
@@ -412,19 +416,19 @@
     chipsBox.innerHTML = "";
 
     GENRES
-      .filter(g => !q || g.toLowerCase().includes(q))
+      .filter(g => !q || g.label.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
       .forEach((g) => {
         const chip = document.createElement("div");
-        chip.className = "chip" + (selected.has(g) ? " on" : "");
-        chip.setAttribute("data-genre", g);
+        chip.className = "chip" + (selected.has(g.key) ? " on" : "");
+        chip.setAttribute("data-genre", g.key);
         chip.innerHTML = `
           <div class="chipCheck">${checkIcon()}</div>
-          <div class="chipText">${g}</div>
+          <div class="chipText">${g.label}</div>
         `;
 
         chip.addEventListener("click", () => {
-          if (selected.has(g)) selected.delete(g);
-          else selected.add(g);
+          if (selected.has(g.key)) selected.delete(g.key);
+          else selected.add(g.key);
           chip.classList.toggle("on");
         });
 
@@ -439,7 +443,7 @@
   });
 
   document.getElementById("selectAllBtn").addEventListener("click", () => {
-    GENRES.forEach(g => selected.add(g));
+    GENRES.forEach(g => selected.add(g.key));
     renderChips(genreSearch.value);
   });
 
@@ -452,6 +456,7 @@
     const name = (document.getElementById("nameInput").value || "").trim();
     if (!name) return alert("Escribe el nombre del restaurante");
 
+    // ✅ Enviamos LAS LLAVES reales (key), no el label
     const genres = Array.from(selected);
     if (!genres.length) return alert("Selecciona al menos 1 género");
 
@@ -473,19 +478,25 @@
         return alert(data?.error || "Error creando sala");
       }
 
+      // según tu respuesta actual del server (restaurantRoutes.js)
+      const r = data.restaurant;
+      const voteUrl = r?.urlsFull?.vote || r?.urls?.vote || "";
+      const tvUrl = r?.urlsFull?.tv || r?.urls?.tv || "";
+      const qr = r?.qrDataUrl || "";
+
       resultBox.style.display = "block";
       resultBox.innerHTML = `
         <div style="font-weight:900; font-size:14px; margin-bottom:10px;">✅ Sala creada</div>
         <div class="resultRow">
           <div style="min-width:260px;">
             <div class="k">Votar</div>
-            <a class="link" href="${data.url}" target="_blank" rel="noreferrer">${data.url}</a>
+            <a class="link" href="${voteUrl}" target="_blank" rel="noreferrer">${voteUrl}</a>
 
             <div class="k" style="margin-top:10px;">TV</div>
-            <a class="link" href="${data.tvUrl}" target="_blank" rel="noreferrer">${data.tvUrl}</a>
+            <a class="link" href="${tvUrl}" target="_blank" rel="noreferrer">${tvUrl}</a>
           </div>
 
-          <img class="qr" src="${data.qrUrl}" alt="QR" />
+          ${qr ? `<img class="qr" src="${qr}" alt="QR" />` : ""}
         </div>
       `;
     }catch(err){
