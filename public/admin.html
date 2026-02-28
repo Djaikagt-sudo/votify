@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Votify Admin</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+ rel="stylesheet">
 
 <style>
 :root{
@@ -26,28 +27,28 @@ body{
   padding:40px 20px;
 }
 .container{max-width:900px;margin:auto}
-.header{margin-bottom:30px}
-.header h1{margin:0;font-size:28px;font-weight:800}
-.header p{margin:5px 0 0;color:var(--muted)}
+.header{margin-bottom:20px}
+h1{margin:0;font-size:28px}
+p{margin:8px 0;color:var(--muted)}
 .card{
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:25px;
-  box-shadow:0 20px 40px rgba(0,0,0,0.4);
-  margin-bottom:30px;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,.25);
+  margin-top:15px;
 }
-label{font-weight:600;font-size:14px;color:var(--muted)}
-input[type="text"]{
+label{display:block;margin:10px 0 6px;color:var(--muted);font-size:14px}
+input{
   width:100%;
-  padding:12px 14px;
+  padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#0f1220;
-  color:white;
-  margin:10px 0 20px;
-  font-size:14px;
+  color:var(--text);
+  outline:none;
 }
+input:focus{border-color:var(--accent)}
 .genres{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
@@ -68,147 +69,167 @@ input[type="text"]{
 .genre-item:hover{border-color:var(--accent)}
 .genre-item input{accent-color:var(--accent)}
 button{
-  background:var(--accent);
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
   border:none;
-  padding:12px 20px;
-  border-radius:12px;
-  font-weight:700;
+  padding:12px 18px;
+  border-radius:14px;
   cursor:pointer;
-  color:white;
-  font-size:14px;
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
   transition:0.2s;
 }
-button:hover{background:var(--accent2)}
-.result-card{animation:fadeIn 0.3s ease}
-.qr-box{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
-.qr-box img{width:220px;border-radius:14px;border:1px solid var(--border);background:#0f1220}
-.links a{color:var(--accent);text-decoration:none}
-.links a:hover{text-decoration:underline}
-.copy-btn{
-  margin-top:12px;
-  width:100%;
+button:hover{filter:brightness(1.05)}
+.result{
+  margin-top:15px;
+  padding:12px;
+  border-radius:14px;
   background:#0f1220;
   border:1px solid var(--border);
 }
-.copy-btn:hover{border-color:var(--accent)}
-.smallNote{color:var(--muted);font-size:12px;line-height:1.5;margin-top:12px}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result a{color:var(--accent);font-weight:700;text-decoration:none}
+.qrbox{
+  display:flex;
+  gap:20px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.qrbox img{
+  width:160px;
+  height:160px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#000;
+}
+
+/* ===== Global Loader (top purple bar) ===== */
+.topLoader{
+  position:fixed; top:0; left:0;
+  height:3px; width:0%;
+  z-index:9999;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  box-shadow:0 6px 18px rgba(124,92,255,.35);
+  transition: width .25s ease, opacity .35s ease;
+}
+.topLoader.on{ width:92%; }
+.topLoader.done{ width:100%; opacity:0; }
+
+.appFooter{
+  margin:18px 0 0 0;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(18,20,40,.35);
+  color: rgba(255,255,255,.72);
+  font-size:12px;
+  text-align:center;
+}
+
+.logoutBtn{
+  float:right;
+  border:none;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:900;
+  cursor:pointer;
+  color:#fff;
+  background: rgba(124,92,255,.92);
+  border:1px solid rgba(255,255,255,.14);
+}
+.logoutBtn:hover{filter:brightness(1.05)}
 </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Panel Admin</h1>
-      <p>Crea una sala, genera QR y links para clientes y TV.</p>
-    </div>
+<div id="topLoader" class="topLoader" aria-hidden="true"></div>
 
-    <div class="card">
-      <label>Nombre del restaurante</label>
-      <input id="name" type="text" placeholder="Ej: Los Cuchos">
-
-      <label>Selecciona géneros</label>
-      <div class="genres">
-        <!-- Base (si los tienes en library.js) -->
-        <label class="genre-item"><input type="checkbox" value="pop"> Pop</label>
-        <label class="genre-item"><input type="checkbox" value="rock"> Rock</label>
-        <label class="genre-item"><input type="checkbox" value="electronic"> Electrónica</label>
-        <label class="genre-item"><input type="checkbox" value="retro90s"> Dance 90s</label>
-        <label class="genre-item"><input type="checkbox" value="hiphop"> Hip Hop</label>
-        <label class="genre-item"><input type="checkbox" value="latinoRetro"> Latino Retro</label>
-        <label class="genre-item"><input type="checkbox" value="party"> Party Mix</label>
-        <label class="genre-item"><input type="checkbox" value="indie"> Indie</label>
-
-        <!-- Nuevos -->
-        <label class="genre-item"><input type="checkbox" value="banda"> Banda</label>
-        <label class="genre-item"><input type="checkbox" value="corridos"> Corridos</label>
-        <label class="genre-item"><input type="checkbox" value="duranguense"> Duranguense</label>
-
-        <label class="genre-item"><input type="checkbox" value="salsa"> Salsa</label>
-        <label class="genre-item"><input type="checkbox" value="cumbia"> Cumbia</label>
-        <label class="genre-item"><input type="checkbox" value="merengue"> Merengue</label>
-
-        <label class="genre-item"><input type="checkbox" value="romanticas"> Románticas</label>
-        <label class="genre-item"><input type="checkbox" value="baladasEnEspanol"> Baladas en Español</label>
-
-        <label class="genre-item"><input type="checkbox" value="popEnIngles"> Pop (Inglés)</label>
-        <label class="genre-item"><input type="checkbox" value="popEnEspanol"> Pop (Español)</label>
-
-        <label class="genre-item"><input type="checkbox" value="rockEnEspanol"> Rock en Español</label>
-        <label class="genre-item"><input type="checkbox" value="rockGuatemalteco"> Rock Guatemalteco</label>
-
-        <label class="genre-item"><input type="checkbox" value="reggaetonAntiguo"> Reggaetón Antiguo</label>
-        <label class="genre-item"><input type="checkbox" value="reggaetonNuevo"> Reggaetón Nuevo</label>
-
-        <!-- Si también los tienes en library.js -->
-        <label class="genre-item"><input type="checkbox" value="afroLatin"> Afro Latin</label>
-        <label class="genre-item"><input type="checkbox" value="latinHouse"> Latin House</label>
-        <label class="genre-item"><input type="checkbox" value="reggaeton"> Reggaetón</label>
-      </div>
-
-      <button onclick="createRoom()">Crear Sala</button>
-
-      <div class="smallNote">
-        Nota: En Render Free, si el servidor se duerme/reinicia, las salas en memoria se borran.
-        Si te sale “Restaurante no existe”, crea una sala NUEVA aquí.
-      </div>
-    </div>
-
-    <div id="result"></div>
+<div class="container">
+  <div class="header">
+    <button id="logoutBtn" class="logoutBtn" type="button">Salir</button>
+    <h1>🎛️ Panel Admin - Votify</h1>
+    <p>Crear salas para restaurantes y seleccionar géneros disponibles.</p>
   </div>
 
+  <div class="card">
+    <label>Nombre del restaurante</label>
+    <input id="nameInput" placeholder="Ej. Los Cuchos">
+
+    <label>Selecciona géneros</label>
+    <div class="genres" id="genresBox"></div>
+
+    <button id="createBtn">Crear sala</button>
+
+    <div class="result" id="resultBox" style="display:none;"></div>
+  </div>
+
+  <footer class="appFooter">© <span id="yearNow"></span> Charly García — Votify</footer>
+</div>
+
 <script>
-async function createRoom(){
-  try{
-    const name = document.getElementById("name").value.trim();
-    if(!name) return alert("Escribe el nombre.");
+document.getElementById("yearNow").textContent = new Date().getFullYear();
+const loader = document.getElementById("topLoader");
 
-    const genres = [...document.querySelectorAll(".genres input:checked")].map(c=>c.value);
-    if(genres.length===0) return alert("Selecciona al menos un género.");
+const GENRES = [
+  "reggaeton","pop","rock","electronica","corridos","cumbia","salsa","bachata",
+  "regional","trap","hiphop","rancheras","romanticas","boleros","disco","house",
+  "techno","dembow","dancehall","kpop","anime","instrumental"
+];
 
-    const res = await fetch("/api/restaurants",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ name, genres })
-    });
+const genresBox = document.getElementById("genresBox");
+const resultBox = document.getElementById("resultBox");
 
-    const data = await res.json().catch(()=> ({}));
+GENRES.forEach(g=>{
+  const item = document.createElement("label");
+  item.className="genre-item";
+  item.innerHTML = `<input type="checkbox" value="${g}"> <span>${g}</span>`;
+  item.addEventListener("click",(e)=>{
+    if(e.target.tagName!=="INPUT") item.querySelector("input").click();
+  });
+  genresBox.appendChild(item);
+});
 
-    if(!res.ok || !data.ok){
-      console.log("Server response:", data);
-      return alert(data?.error || "Error creando sala (revisa logs en Render).");
-    }
+document.getElementById("createBtn").addEventListener("click", async()=>{
+  const name = document.getElementById("nameInput").value.trim();
+  if(!name) return alert("Escribe el nombre del restaurante");
 
-    const voteUrl = data.restaurant?.urlsFull?.vote;
-    const tvUrl   = data.restaurant?.urlsFull?.tv;
-    const qrData  = data.restaurant?.qrDataUrl;
+  const selected = Array.from(genresBox.querySelectorAll("input:checked")).map(i=>i.value);
+  if(!selected.length) return alert("Selecciona al menos 1 género");
 
-    if(!voteUrl || !tvUrl || !qrData){
-      console.log("Respuesta incompleta:", data);
-      return alert("Respuesta incompleta del servidor (urlsFull/qrDataUrl). Revisa logs.");
-    }
+  loader.classList.add("on");
+  const res = await fetch("/api/restaurants",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ name, genres:selected })
+  });
 
-    document.getElementById("result").innerHTML = `
-      <div class="card result-card">
-        <h2>✅ Sala creada correctamente</h2>
-        <div class="qr-box">
-          <img src="${qrData}" alt="QR para votar">
-          <div class="links">
-            <p><b>Clientes:</b><br><a href="${voteUrl}" target="_blank">${voteUrl}</a></p>
-            <p><b>TV:</b><br><a href="${tvUrl}" target="_blank">${tvUrl}</a></p>
+  const data = await res.json();
+  loader.classList.remove("on");
+  loader.classList.add("done");
+  setTimeout(()=> loader.classList.remove("done"), 500);
 
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('${voteUrl}')">Copiar link clientes</button>
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('${tvUrl}')">Copiar link TV</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }catch(err){
-    console.error(err);
-    alert("Error creando sala. Revisa consola del navegador y logs de Render.");
+  if(!res.ok){
+    return alert(data?.error || "Error creando sala");
   }
-}
-</script>
 
+  resultBox.style.display="block";
+  resultBox.innerHTML = `
+    <div class="qrbox">
+      <div>
+        <div style="font-weight:800;font-size:16px;margin-bottom:8px;">✅ Sala creada</div>
+        <div>Votar: <a href="${data.url}" target="_blank">${data.url}</a></div>
+        <div>TV: <a href="${data.tvUrl}" target="_blank">${data.tvUrl}</a></div>
+      </div>
+      <img src="${data.qrUrl}" alt="QR">
+    </div>
+  `;
+});
+
+document.getElementById("logoutBtn")?.addEventListener("click", async ()=>{
+  try{
+    await fetch("/api/admin/logout",{method:"POST", headers:{"Content-Type":"application/json"}});
+  }catch(_){}
+  location.href = "/login.html";
+});
+</script>
 </body>
 </html>

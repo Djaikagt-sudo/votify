@@ -16,9 +16,7 @@ router.get("/r/:room", (req, res) => {
     return res.status(404).send("Restaurante no existe");
   }
 
-  return res.sendFile(
-    path.join(__dirname, "../../public/index.html")
-  );
+  return res.sendFile(path.join(__dirname, "../../public/index.html"));
 });
 
 router.get("/tv/:room", (req, res) => {
@@ -29,9 +27,11 @@ router.get("/tv/:room", (req, res) => {
     return res.status(404).send("Restaurante no existe");
   }
 
-  return res.sendFile(
-    path.join(__dirname, "../../public/tv.html")
-  );
+  return res.sendFile(path.join(__dirname, "../../public/tv.html"));
+});
+
+router.get("/login", (req, res) => {
+  return res.sendFile(path.join(__dirname, "../../public/login.html"));
 });
 
 export default router;

@@ -329,7 +329,395 @@
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Votify — Votar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0a0b12;
+      --card:#121428;
+      --card2:#0f1122;
+      --line:#232643;
+      --txt:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --acc:#7c5cff;
+      --good:#2dd4bf;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--txt);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(900px 500px at 85% 0%, rgba(45,212,191,.14), transparent 55%),
+        linear-gradient(180deg, #080912, #0a0b12 60%, #070810);
+      padding:18px;
+    }
+    .wrap{max-width:900px;margin:0 auto}
+    header{
+      border:1px solid var(--line);
+      background: rgba(18,20,40,.72);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+      margin-bottom:12px;
+    }
+    .top{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    h1{margin:0;font-size:18px;font-weight:800}
+    .muted{color:var(--muted);font-size:12px;margin-top:4px}
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding:6px 10px;
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .progressWrap{margin-top:12px}
+    .progressRow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .timeLeft{font-weight:800;font-size:12px;color:#e9e9ff}
+    .bar{
+      margin-top:8px;
+      height:10px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--acc), var(--good));
+      transition: width .35s linear;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .card{
+      border:1px solid var(--line);
+      background: rgba(18,20,40,.72);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.25);
+      color:#fff;
+      outline:none;
+      font-size:14px;
+    }
+    .list{margin-top:12px; display:grid; gap:10px}
+    .item{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:12px 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.20);
+    }
+    .meta{min-width:0}
+    .meta b{
+      display:block;
+      font-size:14px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .meta small{
+      display:block;
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .right{display:flex; align-items:center; gap:10px}
+    .badge{
+      font-weight:800;
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(124,92,255,.14);
+    }
+    button{
+      border:0;
+      cursor:pointer;
+      border-radius: 12px;
+      padding:10px 12px;
+      font-weight:800;
+      font-size:13px;
+      color:#fff;
+      background: var(--acc);
+    }
+    button:active{transform: translateY(1px)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .toast{
+      position:fixed;
+      left:50%; transform:translateX(-50%);
+      bottom:18px;
+      padding:12px 16px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(18,20,40,.85);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display:none;
+      max-width: min(720px, calc(100vw - 28px));
+      color:#fff;
+      font-weight:800;
+      text-align:center;
+    }
+    .toast span{color:rgba(255,255,255,.85); font-weight:600}
+  
+
+.loadBar{
+  position:fixed; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size:200% 100%;
+  animation: loadbar 1.1s linear infinite;
+  z-index:9999;
+}
+@keyframes loadbar{0%{background-position:0% 0}100%{background-position:200% 0}}
+.footer{
+  margin:18px 0 6px;
+  text-align:center;
+  color: rgba(183,185,214,.75);
+  font-size:12px;
+}
+.brandRow{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+}
+.brandLeft{display:flex; align-items:center; gap:12px}
+.logoMark{
+  width:46px; height:46px; border-radius:14px;
+  border:1px solid rgba(124,92,255,.35);
+  background: rgba(124,92,255,.12);
+  display:grid; place-items:center; overflow:hidden;
+  flex:0 0 auto;
+}
+.logoMark img{width:100%; height:100%; object-fit:contain}
+.logoutBtn{
+  border:1px solid var(--border);
+  background: rgba(13,15,26,.55);
+  color: var(--text);
+  padding:10px 12px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:700;
+}
+.logoutBtn:hover{border-color: rgba(124,92,255,.55)}
+
+header .top h1{margin:0}
+.titleRow{display:flex; align-items:center; gap:10px}
+.titleRow .logoMark{width:40px;height:40px;border-radius:14px}
+
+</style>
+</head>
+<body>
+<div class="loadBar" id="loadBar"></div>
+<div class="wrap">
+
+  <header>
+    <div class="top">
+      <div>
+        <div class="titleRow">
+          <div class="logoMark"><img src="/data/LOGOVOTIFY/icon.png" alt="Votify" onerror="this.style.display='none'; this.parentElement.textContent='V'"></div>
+          <h1 id="restTitle">Votify — Votar</h1>
+        </div>
+        <div class="muted" id="roomText">Sala: —</div>
+      </div>
+      <div class="pill" id="statusPill">Conectando…</div>
+    </div>
+
+    <div class="progressWrap">
+      <div class="progressRow">
+        <div class="pill" id="nowPill">Reproduciendo: —</div>
+        <div class="timeLeft" id="timeLeft">⏳ —</div>
+      </div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="muted" style="margin-bottom:8px">Tu nombre (aparece en la TV)</div>
+    <input class="input" id="nameInput" placeholder="Ej: Charly" maxlength="30">
+    <div class="list" id="songList"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="footer">© <span id="year"></span> Charly García. Todos los derechos reservados.</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const room = (location.pathname.split("/r/")[1] || "").split("/")[0];
+  document.getElementById("roomText").textContent = `Sala: ${room || "—"}`;
+  document.getElementById("year").textContent = new Date().getFullYear();
+  const lb=document.getElementById("loadBar");
+  window.addEventListener("load", ()=> setTimeout(()=> lb && (lb.style.display="none"), 500));
+
+  const socket = io();
+  const statusPill = document.getElementById("statusPill");
+  const listEl = document.getElementById("songList");
+  const toastEl = document.getElementById("toast");
+
+  let songs = [];
+
+  // Tiempo de canción (sincronizado desde TV)
+  let songStartedAt = 0;
+  let durationSec = 0;
+  let nowSongId = null;
+  let tick;
+
+  socket.on("connect", () => {
+    statusPill.textContent = "Conectado ✅";
+    socket.emit("room:join", { room });
+    loadState();
+  });
+
+  socket.on("disconnect", () => {
+    statusPill.textContent = "Desconectado…";
+  });
+
+  socket.on("votes:update", (payload) => {
+    if (!payload || payload.room !== room) return;
+    songs = payload.songs || [];
+    render();
+  });
+
+  // ✅ recibe el inicio de canción desde TV (vía server)
+  socket.on("song:update", (data) => {
+    if (!data || data.room !== room) return;
+    songStartedAt = Number(data.startedAt || 0);
+    durationSec = Number(data.durationSec || 0);
+    nowSongId = data.songId ?? null;
+
+    // Mostrar qué suena (si lo tenemos en lista)
+    const s = songs.find(x => x.id === nowSongId);
+    document.getElementById("nowPill").textContent = s
+      ? `Reproduciendo: ${s.artist} — ${s.title}`
+      : "Reproduciendo: —";
+
+    startTick();
+  });
+
+  async function loadState(){
+    const res = await fetch(`/api/r/${room}/state`);
+    const data = await res.json();
+    songs = data.songs || [];
+      if(data.name){ document.getElementById("restTitle").textContent = data.name; }
+    render();
+  }
+
+  function render(){
+    listEl.innerHTML = "";
+
+    const sorted = [...songs].sort((a,b)=> Number(b.votes||0) - Number(a.votes||0));
+
+    sorted.forEach((song) => {
+      const item = document.createElement("div");
+      item.className = "item";
+
+      item.innerHTML = `
+        <div class="meta">
+          <b>${escapeHtml(song.title || "")}</b>
+          <small>${escapeHtml(song.artist || "")}</small>
+        </div>
+        <div class="right">
+          <div class="badge">${Number(song.votes||0)} votos</div>
+          <button type="button">Votar</button>
+        </div>
+      `;
+
+      const btn = item.querySelector("button");
+      btn.addEventListener("click", () => vote(song.id));
+
+      listEl.appendChild(item);
+    });
+  }
+
+  async function vote(songId){
+    const voter = (document.getElementById("nameInput").value || "Alguien").trim();
+
+    try {
+      const res = await fetch(`/api/r/${room}/vote/${songId}`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ voter })
+      });
+
+      if (!res.ok) {
+        showToast("❌ ", "No se pudo votar");
+        return;
+      }
+      showToast("✅ ", "Voto enviado");
+    } catch (e) {
+      showToast("❌ ", "Sin conexión");
+    }
+  }
+
+  function startTick(){
+    clearInterval(tick);
+    tick = setInterval(() => {
+      if (!songStartedAt || !durationSec) return;
+
+      const elapsed = (Date.now() - songStartedAt) / 1000;
+      const remaining = Math.max(0, Math.ceil(durationSec - elapsed));
+
+      document.getElementById("timeLeft").textContent = `⏳ ${formatTime(remaining)}`;
+
+      const pct = Math.max(0, Math.min(100, (elapsed / durationSec) * 100));
+      document.getElementById("fill").style.width = pct + "%";
+    }, 350);
+  }
+
+  function formatTime(sec){
+    const m = Math.floor(sec/60);
+    const s = Math.floor(sec%60);
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  function showToast(bold, rest){
+    toastEl.innerHTML = `${bold}<span>${rest}</span>`;
+    toastEl.style.display = "block";
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.style.display="none", 1600);
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
       .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+</script>
+</body>
+</html>
       .replaceAll("'","&#039;");
   }
 </script>
