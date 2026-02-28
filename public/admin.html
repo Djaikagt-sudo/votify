@@ -1,235 +1,503 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Votify Admin</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
- rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
 
 <style>
-:root{
-  --bg:#0d0f1a;
-  --card:#151829;
-  --border:#23263a;
-  --accent:#7c5cff;
-  --accent2:#5a3fff;
-  --text:#ffffff;
-  --muted:#9aa0c3;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:'Inter',sans-serif;
-  background:linear-gradient(145deg,#0d0f1a,#121528);
-  color:var(--text);
-  padding:40px 20px;
-}
-.container{max-width:900px;margin:auto}
-.header{margin-bottom:20px}
-h1{margin:0;font-size:28px}
-p{margin:8px 0;color:var(--muted)}
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,.25);
-  margin-top:15px;
-}
-label{display:block;margin:10px 0 6px;color:var(--muted);font-size:14px}
-input{
-  width:100%;
-  padding:12px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#0f1220;
-  color:var(--text);
-  outline:none;
-}
-input:focus{border-color:var(--accent)}
-.genres{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
-  margin-bottom:20px;
-}
-.genre-item{
-  background:#0f1220;
-  border:1px solid var(--border);
-  padding:12px;
-  border-radius:12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  cursor:pointer;
-  transition:0.2s;
-}
-.genre-item:hover{border-color:var(--accent)}
-.genre-item input{accent-color:var(--accent)}
-button{
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  border:none;
-  padding:12px 18px;
-  border-radius:14px;
-  cursor:pointer;
-  color:#fff;
-  font-weight:800;
-  font-size:15px;
-  transition:0.2s;
-}
-button:hover{filter:brightness(1.05)}
-.result{
-  margin-top:15px;
-  padding:12px;
-  border-radius:14px;
-  background:#0f1220;
-  border:1px solid var(--border);
-}
-.result a{color:var(--accent);font-weight:700;text-decoration:none}
-.qrbox{
-  display:flex;
-  gap:20px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.qrbox img{
-  width:160px;
-  height:160px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  background:#000;
-}
+  :root{
+    --bg:#0a0b12;
+    --panel: rgba(18,20,40,.78);
+    --card: rgba(12,13,25,.62);
+    --line: rgba(255,255,255,.10);
+    --line2: rgba(255,255,255,.14);
+    --txt:#ffffff;
+    --muted: rgba(255,255,255,.70);
+    --muted2: rgba(255,255,255,.55);
 
-/* ===== Global Loader (top purple bar) ===== */
-.topLoader{
-  position:fixed; top:0; left:0;
-  height:3px; width:0%;
-  z-index:9999;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  box-shadow:0 6px 18px rgba(124,92,255,.35);
-  transition: width .25s ease, opacity .35s ease;
-}
-.topLoader.on{ width:92%; }
-.topLoader.done{ width:100%; opacity:0; }
+    /* Paleta morada */
+    --accent:#7c5cff;
+    --accent2:#5a3fff;
 
-.appFooter{
-  margin:18px 0 0 0;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(18,20,40,.35);
-  color: rgba(255,255,255,.72);
-  font-size:12px;
-  text-align:center;
-}
+    --shadow: 0 18px 60px rgba(0,0,0,.45);
+    --radius: 22px;
+  }
 
-.logoutBtn{
-  float:right;
-  border:none;
-  border-radius:12px;
-  padding:10px 12px;
-  font-weight:900;
-  cursor:pointer;
-  color:#fff;
-  background: rgba(124,92,255,.92);
-  border:1px solid rgba(255,255,255,.14);
-}
-.logoutBtn:hover{filter:brightness(1.05)}
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    color: var(--txt);
+    background:
+      radial-gradient(900px 500px at 15% 10%, rgba(124,92,255,.20), transparent 60%),
+      radial-gradient(900px 500px at 80% 80%, rgba(90,63,255,.16), transparent 60%),
+      var(--bg);
+  }
+
+  /* Top loader */
+  .topLoader{
+    position:fixed; top:0; left:0;
+    height:3px; width:0%;
+    z-index:9999;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    box-shadow:0 6px 18px rgba(124,92,255,.35);
+    transition: width .25s ease, opacity .35s ease;
+  }
+  .topLoader.on{ width:92%; }
+  .topLoader.done{ width:100%; opacity:0; }
+
+  .wrap{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 18px 22px;
+  }
+
+  /* Header */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom: 16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width: 260px;
+  }
+  .logo{
+    width:44px;height:44px;border-radius:14px;
+    display:grid;place-items:center;
+    overflow:hidden;
+    background: rgba(124,92,255,.16);
+    border: 1px solid rgba(124,92,255,.35);
+  }
+  .logo img{ width:100%; height:100%; object-fit:contain; padding:7px; }
+  .brandTitle{
+    font-weight: 900;
+    letter-spacing:.2px;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+  .brandSub{
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .btn{
+    border:none;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-weight: 900;
+    cursor:pointer;
+    color:#fff;
+    background: rgba(255,255,255,.08);
+    border:1px solid var(--line);
+    backdrop-filter: blur(10px);
+  }
+  .btn:hover{ filter: brightness(1.06); }
+  .btnPrimary{
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 12px 34px rgba(124,92,255,.22);
+  }
+  .btnGhost{
+    background: rgba(124,92,255,.12);
+    border: 1px solid rgba(124,92,255,.25);
+  }
+
+  /* Layout main */
+  .grid{
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 14px;
+  }
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--panel), rgba(12,13,25,.55));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .cardHead{
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .cardTitle{
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing:.2px;
+    margin:0;
+  }
+  .cardHint{
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.4;
+  }
+  .cardBody{ padding: 16px; }
+
+  label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .input{
+    width:100%;
+    padding: 12px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line2);
+    background: rgba(10,11,18,.55);
+    color:#fff;
+    outline:none;
+    font-size: 14px;
+  }
+  .input:focus{
+    border-color: rgba(124,92,255,.55);
+    box-shadow: 0 0 0 4px rgba(124,92,255,.12);
+  }
+
+  /* Genres */
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar .input{
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(10,11,18,.40);
+    cursor:pointer;
+    user-select:none;
+    transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+  }
+  .chip:hover{ filter: brightness(1.06); border-color: rgba(124,92,255,.25); }
+  .chip:active{ transform: scale(.99); }
+
+  .chipCheck{
+    width:18px;height:18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.20);
+    background: rgba(255,255,255,.06);
+    display:grid;
+    place-items:center;
+    flex: 0 0 auto;
+  }
+  .chipCheck svg{ opacity:0; transform: scale(.85); transition: .12s ease; }
+  .chip.on{
+    border-color: rgba(124,92,255,.40);
+    background: rgba(124,92,255,.14);
+  }
+  .chip.on .chipCheck{
+    border-color: rgba(124,92,255,.55);
+    background: rgba(124,92,255,.22);
+  }
+  .chip.on .chipCheck svg{
+    opacity:1;
+    transform: scale(1);
+  }
+  .chipText{
+    font-weight: 800;
+    letter-spacing:.2px;
+    font-size: 13px;
+  }
+
+  /* Result */
+  .result{
+    display:none;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(10,11,18,.45);
+  }
+  .resultRow{
+    display:flex;
+    gap: 14px;
+    align-items:center;
+    flex-wrap: wrap;
+  }
+  .qr{
+    width: 160px;
+    height: 160px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: #000;
+    object-fit: cover;
+  }
+  .k{
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .link{
+    color: #fff;
+    font-weight: 900;
+    text-decoration:none;
+    word-break: break-all;
+  }
+  .link:hover{ text-decoration: underline; }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border-radius: 999px;
+    padding: 8px 10px;
+    border: 1px solid rgba(124,92,255,.25);
+    background: rgba(124,92,255,.12);
+    font-size: 12px;
+    font-weight: 900;
+    color:#fff;
+  }
+
+  /* Footer */
+  .appFooter{
+    margin: 16px 0 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(18,20,40,.35);
+    color: rgba(255,255,255,.72);
+    font-size: 12px;
+    text-align:center;
+  }
 </style>
 </head>
 
 <body>
-<div id="topLoader" class="topLoader" aria-hidden="true"></div>
+  <div id="topLoader" class="topLoader" aria-hidden="true"></div>
 
-<div class="container">
-  <div class="header">
-    <button id="logoutBtn" class="logoutBtn" type="button">Salir</button>
-    <h1>🎛️ Panel Admin - Votify</h1>
-    <p>Crear salas para restaurantes y seleccionar géneros disponibles.</p>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img src="/data/LOGOVOTIFY/icon.png" alt="" onerror="this.remove()">
+          <div id="fallbackV" style="font-weight:900;color:var(--accent);">V</div>
+        </div>
+        <div>
+          <div class="brandTitle">Panel Admin — Votify</div>
+          <div class="brandSub">Crear salas y administrar géneros disponibles.</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="logoutBtn" class="btn btnGhost" type="button">Salir</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Izquierda: creación -->
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Crear sala</h2>
+            <p class="cardHint">Elegí un nombre, seleccioná géneros y generá el QR para que voten desde el teléfono.</p>
+          </div>
+          <span class="pill">🔒 Admin</span>
+        </div>
+
+        <div class="cardBody">
+          <label for="nameInput">Nombre del restaurante</label>
+          <input id="nameInput" class="input" placeholder="Ej. Los Cuchos" />
+
+          <div class="toolbar">
+            <input id="genreSearch" class="input" placeholder="Buscar género (ej. reggaeton, rock, house…)" />
+            <button id="selectAllBtn" class="btn" type="button">Seleccionar todo</button>
+            <button id="clearBtn" class="btn" type="button">Limpiar</button>
+          </div>
+
+          <div id="chipsBox" class="chips"></div>
+
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="createBtn" class="btn btnPrimary" type="button">Crear sala</button>
+          </div>
+
+          <div id="resultBox" class="result"></div>
+        </div>
+      </section>
+
+      <!-- Derecha: info / ayuda -->
+      <aside class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Consejos rápidos</h2>
+            <p class="cardHint">Para que quede “modo DJ” sin fallas en el evento.</p>
+          </div>
+        </div>
+        <div class="cardBody" style="color:var(--muted); font-size:13px; line-height:1.55;">
+          <ul style="margin:0; padding-left:18px;">
+            <li><b>Nombre claro</b>: poné el nombre como lo verá el cliente.</li>
+            <li><b>Géneros</b>: seleccioná solo los que vas a usar (mejor experiencia).</li>
+            <li><b>TV</b>: abrí el link de TV en pantalla completa.</li>
+            <li><b>QR</b>: imprimilo o ponelo grande en la TV para votar.</li>
+          </ul>
+
+          <div style="margin-top:16px; padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
+            <div style="font-weight:900; color:#fff; margin-bottom:6px;">Atajo</div>
+            <div>Si querés entrar directo:</div>
+            <div style="margin-top:8px;">
+              <span class="pill">/admin</span>
+              <span class="pill">/login.html</span>
+            </div>
+          </div>
+
+          <footer class="appFooter">© <span id="yearNow"></span> Charly García — Votify</footer>
+        </div>
+      </aside>
+    </div>
   </div>
-
-  <div class="card">
-    <label>Nombre del restaurante</label>
-    <input id="nameInput" placeholder="Ej. Los Cuchos">
-
-    <label>Selecciona géneros</label>
-    <div class="genres" id="genresBox"></div>
-
-    <button id="createBtn">Crear sala</button>
-
-    <div class="result" id="resultBox" style="display:none;"></div>
-  </div>
-
-  <footer class="appFooter">© <span id="yearNow"></span> Charly García — Votify</footer>
-</div>
 
 <script>
-document.getElementById("yearNow").textContent = new Date().getFullYear();
-const loader = document.getElementById("topLoader");
+  document.getElementById("yearNow").textContent = new Date().getFullYear();
 
-const GENRES = [
-  "reggaeton","pop","rock","electronica","corridos","cumbia","salsa","bachata",
-  "regional","trap","hiphop","rancheras","romanticas","boleros","disco","house",
-  "techno","dembow","dancehall","kpop","anime","instrumental"
-];
+  const loader = document.getElementById("topLoader");
+  const resultBox = document.getElementById("resultBox");
+  const chipsBox = document.getElementById("chipsBox");
+  const genreSearch = document.getElementById("genreSearch");
 
-const genresBox = document.getElementById("genresBox");
-const resultBox = document.getElementById("resultBox");
+  // Lista (igual que la tuya)
+  const GENRES = [
+    "reggaeton","pop","rock","electronica","corridos","cumbia","salsa","bachata",
+    "regional","trap","hiphop","rancheras","romanticas","boleros","disco","house",
+    "techno","dembow","dancehall","kpop","anime","instrumental"
+  ];
 
-GENRES.forEach(g=>{
-  const item = document.createElement("label");
-  item.className="genre-item";
-  item.innerHTML = `<input type="checkbox" value="${g}"> <span>${g}</span>`;
-  item.addEventListener("click",(e)=>{
-    if(e.target.tagName!=="INPUT") item.querySelector("input").click();
-  });
-  genresBox.appendChild(item);
-});
+  const selected = new Set();
 
-document.getElementById("createBtn").addEventListener("click", async()=>{
-  const name = document.getElementById("nameInput").value.trim();
-  if(!name) return alert("Escribe el nombre del restaurante");
-
-  const selected = Array.from(genresBox.querySelectorAll("input:checked")).map(i=>i.value);
-  if(!selected.length) return alert("Selecciona al menos 1 género");
-
-  loader.classList.add("on");
-  const res = await fetch("/api/restaurants",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ name, genres:selected })
-  });
-
-  const data = await res.json();
-  loader.classList.remove("on");
-  loader.classList.add("done");
-  setTimeout(()=> loader.classList.remove("done"), 500);
-
-  if(!res.ok){
-    return alert(data?.error || "Error creando sala");
+  function checkIcon(){
+    return `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
   }
 
-  resultBox.style.display="block";
-  resultBox.innerHTML = `
-    <div class="qrbox">
-      <div>
-        <div style="font-weight:800;font-size:16px;margin-bottom:8px;">✅ Sala creada</div>
-        <div>Votar: <a href="${data.url}" target="_blank">${data.url}</a></div>
-        <div>TV: <a href="${data.tvUrl}" target="_blank">${data.tvUrl}</a></div>
-      </div>
-      <img src="${data.qrUrl}" alt="QR">
-    </div>
-  `;
-});
+  function renderChips(filter=""){
+    const q = (filter || "").trim().toLowerCase();
+    chipsBox.innerHTML = "";
 
-document.getElementById("logoutBtn")?.addEventListener("click", async ()=>{
-  try{
-    await fetch("/api/admin/logout",{method:"POST", headers:{"Content-Type":"application/json"}});
-  }catch(_){}
-  location.href = "/login.html";
-});
+    GENRES
+      .filter(g => !q || g.toLowerCase().includes(q))
+      .forEach((g) => {
+        const chip = document.createElement("div");
+        chip.className = "chip" + (selected.has(g) ? " on" : "");
+        chip.setAttribute("data-genre", g);
+        chip.innerHTML = `
+          <div class="chipCheck">${checkIcon()}</div>
+          <div class="chipText">${g}</div>
+        `;
+
+        chip.addEventListener("click", () => {
+          if (selected.has(g)) selected.delete(g);
+          else selected.add(g);
+          chip.classList.toggle("on");
+        });
+
+        chipsBox.appendChild(chip);
+      });
+  }
+
+  renderChips("");
+
+  genreSearch.addEventListener("input", (e) => {
+    renderChips(e.target.value);
+  });
+
+  document.getElementById("selectAllBtn").addEventListener("click", () => {
+    GENRES.forEach(g => selected.add(g));
+    renderChips(genreSearch.value);
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    selected.clear();
+    renderChips(genreSearch.value);
+  });
+
+  document.getElementById("createBtn").addEventListener("click", async () => {
+    const name = (document.getElementById("nameInput").value || "").trim();
+    if (!name) return alert("Escribe el nombre del restaurante");
+
+    const genres = Array.from(selected);
+    if (!genres.length) return alert("Selecciona al menos 1 género");
+
+    loader.classList.add("on");
+    try{
+      const res = await fetch("/api/restaurants", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ name, genres })
+      });
+
+      const data = await res.json().catch(()=> ({}));
+
+      loader.classList.remove("on");
+      loader.classList.add("done");
+      setTimeout(()=> loader.classList.remove("done"), 500);
+
+      if (!res.ok) {
+        return alert(data?.error || "Error creando sala");
+      }
+
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        <div style="font-weight:900; font-size:14px; margin-bottom:10px;">✅ Sala creada</div>
+        <div class="resultRow">
+          <div style="min-width:260px;">
+            <div class="k">Votar</div>
+            <a class="link" href="${data.url}" target="_blank" rel="noreferrer">${data.url}</a>
+
+            <div class="k" style="margin-top:10px;">TV</div>
+            <a class="link" href="${data.tvUrl}" target="_blank" rel="noreferrer">${data.tvUrl}</a>
+          </div>
+
+          <img class="qr" src="${data.qrUrl}" alt="QR" />
+        </div>
+      `;
+    }catch(err){
+      loader.classList.remove("on");
+      alert("No se pudo crear la sala.");
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    try { await fetch("/api/admin/logout", { method:"POST", headers:{ "Content-Type":"application/json" } }); } catch(_){}
+    location.href = "/login.html";
+  });
 </script>
 </body>
 </html>
