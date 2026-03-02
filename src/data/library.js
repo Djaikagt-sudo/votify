@@ -7,7 +7,7 @@ export const library = {
     { artist:"Bad Bunny", title:"MONACO", youtubeId:"QxPeRC82Uo0"},
     { artist:"Blessd, Fuerza Regida", title:"Como Oreo", youtubeId:"VGsZdhqOcQ0" },
     { artist:"Karol G", title:"Provenza", youtubeId:"Fnaj2z8MDJM" },
-    { artist:"Myke Towers", title:"LALA", youtubeId:"O3zCjYrdS7Q" },
+    { artist:"J Balvin, Ryan Castro Ft Dj Snake", title:"Tonto", youtubeId:"ne7p6iHVSVQ" },
     { artist:"Rauw Alejandro", title:"Todo De Ti", youtubeId:"b3FeNu4LTdY" },
     { artist:"Anuel AA", title:"China", youtubeId:"4Ml5JxRfZMo" },
     { artist:"Ozuna", title:"Caramelo", youtubeId:"Dsa7nZJTX4E" },

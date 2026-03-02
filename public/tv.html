@@ -12,11 +12,13 @@
   <style>
     :root{
       --bg:#0a0b12;
-      --panel:#121428;
       --txt:#fff;
       --muted:#a9b0d1;
-      --accent:#7c5cff;
-      --accent2:#5a3fff;
+
+      /* ✅ morado más claro */
+      --accent:#a98bff;
+      --accent2:#7c5cff;
+
       --good:#2ee59d;
       --bad:#ff3b3b;
     }
@@ -24,15 +26,17 @@
     body{
       margin:0;
       font-family:Inter,system-ui,Arial,sans-serif;
-      background:radial-gradient(900px 500px at 20% 10%, #1b1e38 0%, transparent 60%),
-                 radial-gradient(900px 500px at 80% 20%, #14304a 0%, transparent 55%),
-                 linear-gradient(180deg, #080912, #0b0c16);
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(169,139,255,.18) 0%, transparent 60%),
+        radial-gradient(900px 500px at 80% 20%, rgba(20,48,74,.55) 0%, transparent 55%),
+        linear-gradient(180deg, #080912, #0b0c16);
       color:var(--txt);
     }
+
     .topbar{
       padding:18px 22px;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
       gap:14px;
     }
@@ -54,15 +58,32 @@
     .dot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 4px rgba(255,59,59,.12)}
     .dot.ok{background:var(--good);box-shadow:0 0 0 4px rgba(46,229,157,.12)}
 
+    /* ✅ Nombre arriba derecha */
+    .rightTop{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:10px;
+      min-width:240px;
+    }
+    #restaurantName{
+      font-weight:900;
+      letter-spacing:.6px;
+      font-size:22px;
+      text-transform:uppercase;
+      color:#fff;
+      text-shadow:0 12px 40px rgba(169,139,255,.22);
+    }
+
     .layout{
       display:flex;
       gap:18px;
       padding:0 18px 18px 18px;
-      height: calc(100vh - 86px);
+      height: calc(100vh - 92px);
       align-items: stretch;
     }
     .layout > .card:first-child{ flex: 2; min-width: 0; }
-    .layout > .card:last-child{ flex: 1; min-width: 320px; }
+    .layout > .card:last-child{ flex: 1; min-width: 340px; }
 
     .card{
       background:linear-gradient(180deg, rgba(18,20,40,.9), rgba(12,13,25,.65));
@@ -99,6 +120,42 @@
     }
     #player{ position:absolute; inset:0; }
 
+    /* Botón sonido */
+    .soundCorner{
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:60;
+      border:none;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:800;
+      cursor:pointer;
+      color:#fff;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(10px);
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    .soundCorner:hover{ filter: brightness(1.05); }
+
+    /* ✅ Logo abajo izquierda del video */
+    .logoCorner{
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      z-index:60;
+      width:42px;height:42px;
+      border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .logoCorner img{width:100%;height:100%;object-fit:contain;padding:8px}
+
     .qrTop{
       display:flex;
       gap:14px;
@@ -107,10 +164,11 @@
       align-items:center;
     }
     #qrImg{
-      width:110px;height:110px;
-      border-radius:14px;
+      width:118px;height:118px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.12);
       background:#000;
+      object-fit:cover;
     }
     .qrText{min-width:0}
     .qrTitle{font-weight:800}
@@ -119,6 +177,12 @@
       font-size:12px;
       color:rgba(255,255,255,.70);
       word-break:break-all;
+    }
+    .qrHint{
+      margin-top:8px;
+      font-size:12px;
+      color:rgba(255,255,255,.62);
+      display:none;
     }
 
     .rankBody{
@@ -142,8 +206,8 @@
       width:28px;height:28px;border-radius:10px;
       display:grid;place-items:center;
       font-weight:800;font-size:12px;
-      background:rgba(124,92,255,.20);
-      border:1px solid rgba(124,92,255,.35);
+      background:rgba(169,139,255,.18);
+      border:1px solid rgba(169,139,255,.35);
       color:#fff;
       flex:0 0 auto;
     }
@@ -160,24 +224,6 @@
       border-radius:999px;
       flex:0 0 auto;
     }
-
-    .soundCorner{
-      position:absolute;
-      top:12px;
-      right:12px;
-      z-index:60;
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-      cursor:pointer;
-      color:#fff;
-      background: rgba(124,92,255,.92);
-      border:1px solid rgba(255,255,255,.14);
-      backdrop-filter: blur(10px);
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    .soundCorner:hover{ filter: brightness(1.05); }
 
     .toast{
       position:fixed;
@@ -198,6 +244,7 @@
     @media (max-width: 760px){
       .layout{flex-direction:column; height:auto;}
       .layout > .card:last-child{min-width:0}
+      #restaurantName{font-size:18px}
     }
   </style>
 </head>
@@ -210,10 +257,14 @@
       <div class="pills">
         <div class="pill" id="roomPill">Sala: —</div>
         <div class="pill"><span>Modo: no repetir</span></div>
-        <div class="pill" id="statusPill"><span class="dot" id="dot"></span><span id="statusText">Conectando…</span></div>
+        <div class="pill"><span class="dot" id="dot"></span><span id="statusText">Conectando…</span></div>
       </div>
     </div>
-    <div class="pill">Siempre suena</div>
+
+    <div class="rightTop">
+      <div id="restaurantName">—</div>
+      <div class="pill">Siempre suena</div>
+    </div>
   </div>
 
   <div class="layout">
@@ -225,6 +276,11 @@
 
       <div class="playerWrap">
         <div id="player"></div>
+
+        <div class="logoCorner" title="Votify">
+          <img src="/data/LOGOVOTIFY/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
+        </div>
+
         <button class="soundCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>
       </div>
     </div>
@@ -240,6 +296,7 @@
         <div class="qrText">
           <div class="qrTitle">📲 Escanea para votar</div>
           <div class="qrLink" id="qrLinkText"></div>
+          <div class="qrHint" id="qrHint">No se encontró imagen del QR. Igual podés votar con el link.</div>
         </div>
       </div>
 
@@ -249,7 +306,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ✅ IMPORTANTÍSIMO: socket.io ANTES del script principal -->
+  <!-- ✅ socket.io primero -->
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
@@ -273,17 +330,13 @@
       return typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id.trim());
     }
 
-    // ===== Room + QR =====
+    // ===== Room + Link =====
     const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
     const origin = location.origin;
     const voteUrl = `${origin}/r/${room}`;
 
     document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
     document.getElementById("qrLinkText").textContent = voteUrl;
-
-    const qrImg = document.getElementById("qrImg");
-    qrImg.src = `${origin}/qrcodes/${room}.png`;
-    qrImg.onerror = () => { qrImg.style.opacity = "0.25"; };
 
     // ===== Estado canciones =====
     let currentSongs = [];
@@ -329,6 +382,33 @@
       `).join("");
     }
 
+    function setQrFromState(data){
+      const img = document.getElementById("qrImg");
+      const hint = document.getElementById("qrHint");
+      hint.style.display = "none";
+
+      // 1) Si el API ya manda un QR en base64 (lo más confiable)
+      const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
+      if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
+        img.src = qrDataUrl;
+        return;
+      }
+
+      // 2) Si manda una URL directa al PNG
+      const qrUrl = data?.qrUrl || data?.qr_url || "";
+      if(typeof qrUrl === "string" && qrUrl.length > 0){
+        img.src = qrUrl;
+        return;
+      }
+
+      // 3) Fallback: intentar archivo público por id de sala
+      img.src = `${origin}/qrcodes/${room}.png`;
+      img.onerror = () => {
+        img.style.opacity = "0.25";
+        hint.style.display = "block";
+      };
+    }
+
     async function loadState(){
       const res = await fetch(`/api/r/${room}/state`);
       const data = await res.json().catch(()=> ({}));
@@ -342,6 +422,12 @@
         `;
         return false;
       }
+
+      // ✅ nombre arriba derecha
+      document.getElementById("restaurantName").textContent = (data.name || "").trim() || "—";
+
+      // ✅ QR
+      setQrFromState(data);
 
       currentSongs = Array.isArray(data.songs) ? data.songs : [];
       renderRanking(currentSongs);
@@ -381,6 +467,7 @@
 
       lastPlayedId = song.id;
       playedSet.add(song.id);
+
       document.getElementById("nowTitle").textContent = `${song.title} — ${song.artist || ""}`;
 
       try{
@@ -395,7 +482,6 @@
         __consecutiveFails = 0;
       }
       if(e.data === YT.PlayerState.ENDED){
-        // cuando termina -> siguiente
         const next = pickNextSong();
         if(next) playSong(next);
       }
@@ -465,7 +551,7 @@
       });
     }
 
-    // ===== Socket =====
+    // ===== Socket + fallback =====
     let socket = null;
     let fallbackTimer = null;
 
@@ -482,7 +568,6 @@
     }
 
     function startFallbackPolling(){
-      // Si socket no conecta, igual actualiza votos para que no se quede “muerto”
       if(fallbackTimer) return;
       fallbackTimer = setInterval(async () => {
         await loadState();
@@ -496,7 +581,6 @@
     }
 
     function initSocket(){
-      // Si por alguna razón io no existe
       if(typeof window.io !== "function"){
         setConnectedUI(false);
         showToast("⚠️ socket.io no cargó. Usando modo fallback.");
@@ -526,7 +610,6 @@
       });
     }
 
-    // ===== Init =====
     (async function init(){
       if(!room){
         document.getElementById("ranking").innerHTML = `<div style="padding:12px;color:#fff">Sala inválida</div>`;
