@@ -10,11 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
-
     :root{
       --bg:#0a0b12;
       --panel:#121428;
-      --line:#232643;
       --txt:#fff;
       --muted:#a9b0d1;
       --accent:#7c5cff;
@@ -91,10 +89,7 @@
       letter-spacing:.2px;
       color:rgba(255,255,255,.92);
     }
-    .sub{
-      font-size:12px;
-      color:rgba(255,255,255,.65);
-    }
+    .sub{font-size:12px;color:rgba(255,255,255,.65);}
 
     .playerWrap{
       position:relative;
@@ -102,10 +97,7 @@
       min-height:0;
       background:#000;
     }
-    #player{
-      position:absolute;
-      inset:0;
-    }
+    #player{ position:absolute; inset:0; }
 
     .qrTop{
       display:flex;
@@ -169,23 +161,6 @@
       flex:0 0 auto;
     }
 
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:18px;
-      transform:translateX(-50%);
-      background:rgba(18,20,40,.92);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;
-      padding:10px 12px;
-      color:#fff;
-      font-size:13px;
-      display:none;
-      z-index:999;
-      box-shadow:0 16px 60px rgba(0,0,0,.35);
-    }
-
-    /* Botón pequeño para “activar sonido” */
     .soundCorner{
       position:absolute;
       top:12px;
@@ -204,13 +179,29 @@
     }
     .soundCorner:hover{ filter: brightness(1.05); }
 
-    /* responsive */
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(18,20,40,.92);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      padding:10px 12px;
+      color:#fff;
+      font-size:13px;
+      display:none;
+      z-index:999;
+      box-shadow:0 16px 60px rgba(0,0,0,.35);
+    }
+
     @media (max-width: 760px){
       .layout{flex-direction:column; height:auto;}
       .layout > .card:last-child{min-width:0}
     }
   </style>
 </head>
+
 <body>
 
   <div class="topbar">
@@ -226,11 +217,10 @@
   </div>
 
   <div class="layout">
-    <!-- IZQUIERDA: VIDEO -->
     <div class="card">
       <div class="cardHead">
         <h2>Reproducción</h2>
-        <div class="sub" id="playerSub">Auto-skip bloqueados • Sonido activo</div>
+        <div class="sub">Auto-skip bloqueados • Sonido activo</div>
       </div>
 
       <div class="playerWrap">
@@ -239,7 +229,6 @@
       </div>
     </div>
 
-    <!-- DERECHA: VOTOS + QR -->
     <div class="card">
       <div class="cardHead">
         <h2>Top de votos</h2>
@@ -251,9 +240,6 @@
         <div class="qrText">
           <div class="qrTitle">📲 Escanea para votar</div>
           <div class="qrLink" id="qrLinkText"></div>
-          <div class="qrLink" id="missingHint" style="margin-top:8px; display:none;">
-            Si te sale “Restaurante no existe”, crea una sala NUEVA en <b>/admin</b>.
-          </div>
         </div>
       </div>
 
@@ -263,7 +249,31 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- ✅ IMPORTANTÍSIMO: socket.io ANTES del script principal -->
+  <script src="/socket.io/socket.io.js"></script>
+
   <script>
+    // ===== Helpers =====
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function showToast(msg){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(showToast._tm);
+      showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
+    }
+    function isValidYouTubeId(id){
+      return typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id.trim());
+    }
+
+    // ===== Room + QR =====
     const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
     const origin = location.origin;
     const voteUrl = `${origin}/r/${room}`;
@@ -271,49 +281,71 @@
     document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
     document.getElementById("qrLinkText").textContent = voteUrl;
 
-    (function renderQr(){
-      const img = document.getElementById("qrImg");
-      if (window.QRCode){
-        img.src = "";
-        // fallback, se llenará con ruta si la tenés
-      }
-      // Si tu backend ya te genera PNG, podés setearlo en loadState si lo devolvés.
-      // Mientras: usa el texto para que el usuario copie el link, y el QR del admin.
-      img.src = `${origin}/qrcodes/${room}.png`; // si no existe, no pasa nada
-      img.onerror = () => {
-        // no rompas la UI si no existe
-        img.style.opacity = "0.25";
-      };
-    })();
+    const qrImg = document.getElementById("qrImg");
+    qrImg.src = `${origin}/qrcodes/${room}.png`;
+    qrImg.onerror = () => { qrImg.style.opacity = "0.25"; };
 
-    // Estado
+    // ===== Estado canciones =====
     let currentSongs = [];
     let playedSet = new Set();
     let lastPlayedId = null;
 
-    // Player
+    // ===== Player =====
     let player = null;
-
-    // anti loops
     let __skipLock = false;
     let __resetOnNext = false;
+
     let __consecutiveFails = 0;
     const MAX_CONSECUTIVE_FAILS = 6;
 
-    // Socket
-    const socket = io(origin, { transports:["websocket","polling"] });
-    socket.on("connect", () => {
-      document.getElementById("dot").classList.add("ok");
-      document.getElementById("statusText").textContent = "Conectado ✅";
-      socket.emit("room:join", { room });
-    });
-    socket.on("disconnect", () => {
-      document.getElementById("dot").classList.remove("ok");
-      document.getElementById("statusText").textContent = "Desconectado…";
-    });
+    function pickNextSong(){
+      if(!currentSongs.length) return null;
+      const sorted = [...currentSongs].sort((a,b)=> (b.votes||0)-(a.votes||0));
+      for(const s of sorted){
+        if(!playedSet.has(s.id)) return s;
+      }
+      playedSet.clear();
+      return sorted[0];
+    }
 
-    function isValidYouTubeId(id){
-      return typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id.trim());
+    function renderRanking(songs){
+      const container = document.getElementById("ranking");
+      if(!songs.length){
+        container.innerHTML = `<div style="padding:12px;color:rgba(255,255,255,.7)">Sin canciones.</div>`;
+        return;
+      }
+      const sorted = [...songs].sort((a,b)=> (b.votes||0)-(a.votes||0));
+      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>`
+        <div class="row">
+          <div class="leftRow">
+            <div class="pos">${idx+1}</div>
+            <div class="song">
+              <b>${escapeHtml(s.title || "—")}</b>
+              <span>${escapeHtml(s.artist || "")}</span>
+            </div>
+          </div>
+          <div class="votes">${(s.votes||0)} votos</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadState(){
+      const res = await fetch(`/api/r/${room}/state`);
+      const data = await res.json().catch(()=> ({}));
+
+      if(!res.ok || data.ok === false){
+        document.getElementById("ranking").innerHTML = `
+          <div style="padding:12px;color:#fff">
+            ❌ ${escapeHtml(data?.error || "Restaurante no existe")}
+            <div style="color:rgba(255,255,255,.65);margin-top:8px">Crea una sala nueva en /admin.</div>
+          </div>
+        `;
+        return false;
+      }
+
+      currentSongs = Array.isArray(data.songs) ? data.songs : [];
+      renderRanking(currentSongs);
+      return true;
     }
 
     function skipToNext(reason){
@@ -333,7 +365,6 @@
         const next = pickNextSong();
         if(!next) return;
 
-        // Si el error fue embed-blocked, reiniciamos el player antes de cargar el siguiente
         if(__resetOnNext){
           __resetOnNext = false;
           try{ player?.destroy?.(); }catch(_){}
@@ -345,114 +376,35 @@
       }, 650);
     }
 
-    async function loadState(){
-      const res = await fetch(`/api/r/${room}/state`);
-      const data = await res.json();
-
-      if(!res.ok || data.ok === false){
-        document.getElementById("missingHint").style.display = "block";
-        document.getElementById("ranking").innerHTML = `
-          <div style="padding:12px;color:#fff">
-            ❌ ${data?.error || "Restaurante no existe"}<br>
-            <span style="color:rgba(255,255,255,.65)">Crea una sala NUEVA en /admin.</span>
-          </div>
-        `;
-        return;
-      }
-
-      currentSongs = Array.isArray(data.songs) ? data.songs : [];
-      renderRanking(currentSongs);
-    }
-
-    function renderRanking(songs){
-      const container = document.getElementById("ranking");
-      if(!songs.length){
-        container.innerHTML = `<div style="padding:12px;color:rgba(255,255,255,.7)">Sin canciones.</div>`;
-        return;
-      }
-
-      const sorted = [...songs].sort((a,b)=> (b.votes||0) - (a.votes||0));
-      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>`
-        <div class="row">
-          <div class="leftRow">
-            <div class="pos">${idx+1}</div>
-            <div class="song">
-              <b>${escapeHtml(s.title || "—")}</b>
-              <span>${escapeHtml(s.artist || "")}</span>
-            </div>
-          </div>
-          <div class="votes">${(s.votes||0)} votos</div>
-        </div>
-      `).join("");
-    }
-
-    function pickNextSong(){
-      if(!currentSongs.length) return null;
-
-      // Orden por votos desc
-      const sorted = [...currentSongs].sort((a,b)=> (b.votes||0)-(a.votes||0));
-
-      // si "no repetir", evita repetidas hasta agotar
-      for(const s of sorted){
-        if(!playedSet.has(s.id)) return s;
-      }
-      // si ya se tocaron todas, reinicia set y vuelve a empezar
-      playedSet.clear();
-      return sorted[0];
-    }
-
     function playSong(song){
       if(!song || !isValidYouTubeId(song.youtubeId)) return skipToNext("invalid-id");
 
       lastPlayedId = song.id;
       playedSet.add(song.id);
-
       document.getElementById("nowTitle").textContent = `${song.title} — ${song.artist || ""}`;
 
-      // carga en player
-      if(player && player.loadVideoById){
-        try{
-          player.loadVideoById(song.youtubeId);
-        }catch(_){
-          skipToNext("loadVideoById-failed");
-        }
+      try{
+        player.loadVideoById(song.youtubeId);
+      }catch(_){
+        skipToNext("load-failed");
       }
-
-      // avisa a clientes para sincronización (opcional)
-      const startedAt = Date.now();
-      socket.emit("song:start", { room, songId: song.id, startedAt, durationSec: 0 });
     }
 
-    // SOCKET: cuando votan, actualiza ranking en vivo
-    socket.on("votes:update", ({ room: r, songs }) => {
-      if(r !== room) return;
-      if(Array.isArray(songs)){
-        currentSongs = songs;
-        renderRanking(currentSongs);
-      }
-    });
-
-    // Si termina canción => siguiente
     function onPlayerStateChange(e){
       if(e.data === YT.PlayerState.PLAYING){
         __consecutiveFails = 0;
       }
-
       if(e.data === YT.PlayerState.ENDED){
-        socket.emit("song:ended", { room, songId: lastPlayedId });
+        // cuando termina -> siguiente
         const next = pickNextSong();
         if(next) playSong(next);
       }
-
-      // autoplay bloqueado / se queda UNSTARTED => botón + si se atasca, skip
       if(e.data === YT.PlayerState.UNSTARTED){
         setTimeout(checkSoundBlocked, 600);
         setTimeout(() => {
           try{
             const st = player?.getPlayerState?.();
-            if(st === YT.PlayerState.UNSTARTED){
-              skipToNext("unstarted-stuck");
-            }
+            if(st === YT.PlayerState.UNSTARTED) skipToNext("unstarted-stuck");
           }catch(_){
             skipToNext("unstarted-error");
           }
@@ -476,14 +428,6 @@
         player?.playVideo?.();
       }catch(_){}
     });
-
-    function showToast(msg){
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.style.display = "block";
-      clearTimeout(showToast._tm);
-      showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
-    }
 
     function loadYouTubeApi(){
       return new Promise((resolve) => {
@@ -513,10 +457,7 @@
             onStateChange: onPlayerStateChange,
             onError: (ev) => {
               const code = ev?.data;
-              // 2=invalid, 5=html5, 100=not found, 101/150=embed blocked
-              if(code === 101 || code === 150){
-                __resetOnNext = true;
-              }
+              if(code === 101 || code === 150) __resetOnNext = true;
               skipToNext(`yt-error:${code}`);
             }
           }
@@ -524,22 +465,80 @@
       });
     }
 
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    // ===== Socket =====
+    let socket = null;
+    let fallbackTimer = null;
+
+    function setConnectedUI(ok){
+      const dot = document.getElementById("dot");
+      const txt = document.getElementById("statusText");
+      if(ok){
+        dot.classList.add("ok");
+        txt.textContent = "Conectado ✅";
+      }else{
+        dot.classList.remove("ok");
+        txt.textContent = "Conectando…";
+      }
     }
 
+    function startFallbackPolling(){
+      // Si socket no conecta, igual actualiza votos para que no se quede “muerto”
+      if(fallbackTimer) return;
+      fallbackTimer = setInterval(async () => {
+        await loadState();
+      }, 2500);
+    }
+
+    function stopFallbackPolling(){
+      if(!fallbackTimer) return;
+      clearInterval(fallbackTimer);
+      fallbackTimer = null;
+    }
+
+    function initSocket(){
+      // Si por alguna razón io no existe
+      if(typeof window.io !== "function"){
+        setConnectedUI(false);
+        showToast("⚠️ socket.io no cargó. Usando modo fallback.");
+        startFallbackPolling();
+        return;
+      }
+
+      socket = window.io({ transports:["websocket","polling"] });
+
+      socket.on("connect", () => {
+        setConnectedUI(true);
+        stopFallbackPolling();
+        socket.emit("room:join", { room });
+      });
+
+      socket.on("disconnect", () => {
+        setConnectedUI(false);
+        startFallbackPolling();
+      });
+
+      socket.on("votes:update", ({ room: r, songs }) => {
+        if(r !== room) return;
+        if(Array.isArray(songs)){
+          currentSongs = songs;
+          renderRanking(currentSongs);
+        }
+      });
+    }
+
+    // ===== Init =====
     (async function init(){
       if(!room){
         document.getElementById("ranking").innerHTML = `<div style="padding:12px;color:#fff">Sala inválida</div>`;
         return;
       }
 
-      await loadState();
+      setConnectedUI(false);
+      initSocket();
+
+      const ok = await loadState();
+      if(!ok) return;
+
       await loadYouTubeApi();
       await createPlayer();
 
@@ -548,9 +547,6 @@
       else showToast("⚠️ No hay canciones con youtubeId válido en esta sala.");
     })();
   </script>
-
-  <!-- socket.io (si ya lo cargas en otro lugar, dejalo como está en tu proyecto) -->
-  <script src="/socket.io/socket.io.js"></script>
 
 </body>
 </html>
