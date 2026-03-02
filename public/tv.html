@@ -5,19 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Votify — TV</title>
 
+  <!-- ✅ Favicon -->
+  <link rel="icon" type="image/png" href="/icon.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#0a0b12;
+      /* ✅ Paleta oficial Votify */
+      --primary:#9E1AAD;
+      --dark:#1B0426;
+      --accent:#FF14E4;
+
+      --bg: var(--dark);
       --txt:#fff;
       --muted:#a9b0d1;
-
-      /* ✅ morado más claro */
-      --accent:#a98bff;
-      --accent2:#7c5cff;
 
       --good:#2ee59d;
       --bad:#ff3b3b;
@@ -27,9 +31,9 @@
       margin:0;
       font-family:Inter,system-ui,Arial,sans-serif;
       background:
-        radial-gradient(900px 500px at 20% 10%, rgba(169,139,255,.18) 0%, transparent 60%),
-        radial-gradient(900px 500px at 80% 20%, rgba(20,48,74,.55) 0%, transparent 55%),
-        linear-gradient(180deg, #080912, #0b0c16);
+        radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
+        radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
+        linear-gradient(180deg, #120018, var(--bg));
       color:var(--txt);
     }
 
@@ -72,7 +76,7 @@
       font-size:22px;
       text-transform:uppercase;
       color:#fff;
-      text-shadow:0 12px 40px rgba(169,139,255,.22);
+      text-shadow:0 12px 40px rgba(158,26,173,.20);
     }
 
     .layout{
@@ -86,7 +90,7 @@
     .layout > .card:last-child{ flex: 1; min-width: 340px; }
 
     .card{
-      background:linear-gradient(180deg, rgba(18,20,40,.9), rgba(12,13,25,.65));
+      background:linear-gradient(180deg, rgba(27,4,38,.88), rgba(12,13,25,.65));
       border:1px solid rgba(255,255,255,.10);
       border-radius:18px;
       overflow:hidden;
@@ -132,7 +136,7 @@
       font-weight:800;
       cursor:pointer;
       color:#fff;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: linear-gradient(90deg, var(--primary), var(--accent));
       border:1px solid rgba(255,255,255,.14);
       backdrop-filter: blur(10px);
       box-shadow:0 10px 30px rgba(0,0,0,.35);
@@ -153,6 +157,7 @@
       place-items:center;
       overflow:hidden;
       backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(158,26,173,.18);
     }
     .logoCorner img{width:100%;height:100%;object-fit:contain;padding:8px}
 
@@ -206,8 +211,8 @@
       width:28px;height:28px;border-radius:10px;
       display:grid;place-items:center;
       font-weight:800;font-size:12px;
-      background:rgba(169,139,255,.18);
-      border:1px solid rgba(169,139,255,.35);
+      background:rgba(158,26,173,.18);
+      border:1px solid rgba(255,20,228,.20);
       color:#fff;
       flex:0 0 auto;
     }
@@ -230,7 +235,7 @@
       left:50%;
       bottom:18px;
       transform:translateX(-50%);
-      background:rgba(18,20,40,.92);
+      background:rgba(27,4,38,.92);
       border:1px solid rgba(255,255,255,.12);
       border-radius:14px;
       padding:10px 12px;
@@ -278,7 +283,8 @@
         <div id="player"></div>
 
         <div class="logoCorner" title="Votify">
-          <img src="/data/LOGOVOTIFY/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
+          <!-- ✅ Ruta correcta del logo -->
+          <img src="/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
         </div>
 
         <button class="soundCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>

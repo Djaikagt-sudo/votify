@@ -1,0 +1,89 @@
+:root {
+  --primary: #9E1AAD;
+  --dark: #1B0426;
+  --accent: #FF14E4;
+  --white: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, var(--dark), #120018);
+  color: var(--white);
+  min-height: 100vh;
+}
+
+/* HEADER GLOBAL */
+.header {
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,20,228,0.2);
+}
+
+.logo {
+  height: 60px;
+}
+
+/* CONTENEDOR */
+.container {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* BOTONES */
+button {
+  background: var(--primary);
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+button:hover {
+  background: var(--accent);
+  transform: scale(1.05);
+}
+
+/* INPUTS */
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  background: #120018;
+  color: white;
+  margin: 10px 0;
+}
+
+/* TARJETAS */
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,20,228,0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  backdrop-filter: blur(6px);
+}
+
+/* TV TOP LIST */
+.song-item {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,20,228,0.1);
+}
+
+.song-item.active {
+  color: var(--accent);
+  font-weight: bold;
+}
