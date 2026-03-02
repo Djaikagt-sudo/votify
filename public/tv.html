@@ -532,30 +532,49 @@
     }
 
     function createPlayer(){
-      return new Promise((resolve) => {
-        player = new YT.Player("player", {
-          height: "100%",
-          width: "100%",
-          playerVars: {
-            autoplay: 1,
-            controls: 0,
-            rel: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            origin: window.location.origin
-          },
-          events: {
-            onReady: () => resolve(),
-            onStateChange: onPlayerStateChange,
-            onError: (ev) => {
-              const code = ev?.data;
-              if(code === 101 || code === 150) __resetOnNext = true;
-              skipToNext(`yt-error:${code}`);
-            }
-          }
-        });
-      });
-    }
+  return new Promise((resolve) => {
+    player = new YT.Player("player", {
+      height: "100%",
+      width: "100%",
+      // ✅ ayuda con restricciones de tracking / autoplay
+      host: "https://www.youtube-nocookie.com",
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        origin: window.location.origin
+      },
+      events: {
+        onReady: () => {
+          // ✅ Safari/TV: autoplay SOLO confiable si está en mute
+          try {
+            player.mute();
+            player.playVideo();
+          } catch (_) {}
+
+          // ✅ mostramos el botón para que el usuario active sonido
+          const sb = document.getElementById("soundBtn");
+          if (sb) sb.style.display = "block";
+
+          resolve();
+        },
+        onStateChange: onPlayerStateChange,
+        onError: (ev) => {
+          const code = ev?.data;
+
+          // ✅ cualquier error: reinicia el iframe en el próximo intento
+          __resetOnNext = true;
+
+          // 101/150 = embebido bloqueado (normal)
+          // otros (2,5,100) también pasan -> saltamos igual
+          skipToNext(`yt-error:${code}`);
+        }
+      }
+    });
+  });
+}
 
     // ===== Socket + fallback =====
     let socket = null;
