@@ -39,6 +39,7 @@ app.use("/qrcodes", express.static(path.join(__dirname, "../public/qrcodes")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/landing.html"));
 });
+
 // =====================================================
 // ✅ ADMIN USERS
 // =====================================================
@@ -169,13 +170,6 @@ io.on("connection", (socket) => {
 app.set("io", io);
 
 // =====================================================
-// 🏠 LANDING PAGE (HOME) — SIEMPRE /
-// =====================================================
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/landing.html"));
-});
-
-// =====================================================
 // 🔐 LOGIN API
 // =====================================================
 app.post("/api/admin/login", (req, res) => {
@@ -219,7 +213,6 @@ app.post("/api/admin/logout", (req, res) => {
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/admin.html"));
 });
-
 app.get("/admin.html", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/admin.html"));
 });
@@ -227,10 +220,12 @@ app.get("/admin.html", requireAdmin, (req, res) => {
 // =====================================================
 // 📄 PAGES & API
 // =====================================================
-// ✅ OJO: sin "/" aquí. Así no se pelea con app.get("/") de la landing.
 app.use(restaurantPagesRoutes);
 
+// ✅ crear salas (protegido)
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
+
+// ✅ estado sala, votar, etc (público)
 app.use("/api/r", restaurantApiRoutes);
 
 // =====================================================

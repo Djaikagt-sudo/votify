@@ -1,64 +1,67 @@
-// src/data/store.js
-// Store único en memoria (multi-restaurante)
+import crypto from "crypto";
+import { buildSongsFromGenres } from "./songBuilder.js";
 
-export const store = {
-  restaurants: new Map(), // key: rid -> restaurant
-};
+const restaurants = new Map();
 
-export function createRestaurant({ id, name, songs }) {
+/**
+ * Crear sala con canciones ya cargadas desde géneros seleccionados (aleatorio).
+ */
+export function createRestaurant({ name, genres = [], totalSongs = 40 }){
+  const id = crypto.randomUUID();
+
+  const songs = buildSongsFromGenres({
+    genres,
+    total: Number(totalSongs) || 40
+  });
+
   const restaurant = {
     id,
-    name,
+    name: (name || "Votify").trim(),
+    genres,
+    songs,
     createdAt: new Date().toISOString(),
-    songs: songs.map((s, i) => ({
-      id: i + 1,
-      title: s.title,
-      artist: s.artist,
-      youtubeId: s.youtubeId,
-      votes: 0,
-      lastPlayedAt: 0, // para información extra si la quieres luego
-    })),
-    current: {
-      currentSongId: null,
-      songStartTime: 0,
-    },
   };
 
-  store.restaurants.set(id, restaurant);
+  restaurants.set(id, restaurant);
   return restaurant;
 }
 
-export function getRestaurant(id) {
-  return store.restaurants.get(id) || null;
+export function getRestaurant(id){
+  return restaurants.get(id);
+}
+
+export function getRestaurants(){
+  return [...restaurants.values()];
 }
 
 /**
- * ✅ Cuando una canción terminó:
- * - votes = 0 para que baje del top
- * - se mueve al final del array para que quede abajo
+ * Mover una canción al final después de reproducirse (para "no repetir" y rotación).
+ * Resetea votos a 0 cuando baja, para que no se quede arriba.
  */
-export function moveSongToBottomAfterPlayed(roomId, songId) {
-  const restaurant = getRestaurant(roomId);
-  if (!restaurant) return null;
+export function moveSongToBottomAfterPlayed(roomId, songId){
+  const r = restaurants.get(roomId);
+  if(!r) return null;
 
-  const idx = restaurant.songs.findIndex((s) => Number(s.id) === Number(songId));
-  if (idx === -1) return null;
+  const idx = r.songs.findIndex(s => String(s.id) === String(songId));
+  if(idx < 0) return r;
 
-  const song = restaurant.songs[idx];
+  const [song] = r.songs.splice(idx, 1);
+  song.votes = 0; // ✅ opcional: baja sin votos
+  r.songs.push(song);
 
-  // 1) bajar del top
-  song.votes = 0;
+  return r;
+}
 
-  // 2) marcar como reproducida (opcional)
-  song.lastPlayedAt = Date.now();
+/**
+ * Votar canción
+ */
+export function voteSong(roomId, songId){
+  const r = restaurants.get(roomId);
+  if(!r) return null;
 
-  // 3) mover al final del array
-  restaurant.songs.splice(idx, 1);
-  restaurant.songs.push(song);
+  const s = r.songs.find(x => String(x.id) === String(songId));
+  if(!s) return r;
 
-  // 4) guardar current (opcional)
-  restaurant.current.currentSongId = song.id;
-  restaurant.current.songStartTime = Date.now();
-
-  return restaurant;
+  s.votes = (s.votes || 0) + 1;
+  return r;
 }

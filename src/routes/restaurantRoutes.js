@@ -1,86 +1,50 @@
 import express from "express";
-import crypto from "crypto";
 import QRCode from "qrcode";
-import { createRestaurant } from "../data/store.js";
-import { library } from "../data/library.js";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+import { createRestaurant, getRestaurants } from "../data/store.js";
 
 const router = express.Router();
 
-function getPublicBaseUrl(req) {
-  // Render / proxies: usar forwarded headers primero
-  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http")
-    .split(",")[0]
-    .trim();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  const host = (req.headers["x-forwarded-host"] || req.headers.host || req.get("host"))
-    .split(",")[0]
-    .trim();
+router.get("/", (req, res) => {
+  res.json({ ok: true, restaurants: getRestaurants() });
+});
 
-  return `${proto}://${host}`;
-}
-
+/**
+ * POST /api/restaurants
+ * body: { name, genres: ["salsa","reggaetonNuevo"], totalSongs: 50 }
+ */
 router.post("/", async (req, res) => {
-  try {
-    const { name, genres } = req.body;
+  const { name, genres, totalSongs } = req.body || {};
 
-    if (!name || !Array.isArray(genres) || genres.length === 0) {
-      return res
-        .status(400)
-        .json({ ok: false, error: "Nombre y géneros requeridos" });
-    }
+  const restaurant = createRestaurant({
+    name,
+    genres: Array.isArray(genres) ? genres : [],
+    totalSongs: Number(totalSongs) || 40
+  });
 
-    let songs = [];
-    for (const g of genres) {
-      if (library[g]) songs = songs.concat(library[g]);
-    }
+  const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
+  const host = req.get("host");
+  const url = `${proto}://${host}/r/${restaurant.id}`;
 
-    if (songs.length === 0) {
-      return res
-        .status(400)
-        .json({ ok: false, error: "No hay canciones en esos géneros" });
-    }
+  // guardar QR
+  const qrDir = path.join(__dirname, "../../public/qrcodes");
+  if(!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
 
-    const id = crypto.randomUUID();
-    const restaurant = createRestaurant({ id, name, songs });
+  const qrFile = path.join(qrDir, `${restaurant.id}.png`);
+  await QRCode.toFile(qrFile, url);
 
-    // ✅ Base URL real detrás de proxy (Render)
-    const baseUrl = getPublicBaseUrl(req);
-
-    const votePath = `/r/${id}`;
-    const tvPath = `/tv/${id}`;
-    const apiStatePath = `/api/r/${id}/state`;
-
-    const voteFull = `${baseUrl}${votePath}`;
-    const tvFull = `${baseUrl}${tvPath}`;
-
-    // ✅ QR como DataURL (sin depender de disco)
-    const qrDataUrl = await QRCode.toDataURL(voteFull, {
-      errorCorrectionLevel: "M",
-      margin: 2,
-      scale: 8,
-    });
-
-    return res.json({
-      ok: true,
-      restaurant: {
-        id: restaurant.id,
-        name: restaurant.name,
-        urls: {
-          vote: votePath,
-          tv: tvPath,
-          apiState: apiStatePath,
-        },
-        urlsFull: {
-          vote: voteFull,
-          tv: tvFull,
-        },
-        qrDataUrl,
-      },
-    });
-  } catch (err) {
-    console.error("ERROR creando restaurante:", err);
-    return res.status(500).json({ ok: false, error: "Error creando restaurante" });
-  }
+  res.json({
+    ok: true,
+    ...restaurant,
+    url,
+    qrUrl: `/qrcodes/${restaurant.id}.png`
+  });
 });
 
 export default router;
