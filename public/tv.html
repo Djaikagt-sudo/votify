@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Votify — TV</title>
 
-  <!-- ✅ Favicon -->
   <link rel="icon" type="image/png" href="/icon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,14 +13,12 @@
 
   <style>
     :root{
-      /* ✅ Paleta oficial Votify */
       --primary:#9E1AAD;
       --dark:#1B0426;
       --accent:#FF14E4;
 
       --bg: var(--dark);
       --txt:#fff;
-      --muted:#a9b0d1;
 
       --good:#2ee59d;
       --bad:#ff3b3b;
@@ -62,7 +59,6 @@
     .dot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 4px rgba(255,59,59,.12)}
     .dot.ok{background:var(--good);box-shadow:0 0 0 4px rgba(46,229,157,.12)}
 
-    /* ✅ Nombre arriba derecha */
     .rightTop{
       display:flex;
       flex-direction:column;
@@ -124,8 +120,7 @@
     }
     #player{ position:absolute; inset:0; }
 
-    /* Botón sonido */
-    .soundCorner{
+    .btnCorner{
       position:absolute;
       top:12px;
       right:12px;
@@ -141,9 +136,14 @@
       backdrop-filter: blur(10px);
       box-shadow:0 10px 30px rgba(0,0,0,.35);
     }
-    .soundCorner:hover{ filter: brightness(1.05); }
+    .btnCorner:hover{ filter: brightness(1.05); }
 
-    /* ✅ Logo abajo izquierda del video */
+    /* botón iniciar (lado izquierdo) */
+    .btnStart{
+      left:12px;
+      right:auto;
+    }
+
     .logoCorner{
       position:absolute;
       left:12px;
@@ -255,7 +255,6 @@
 </head>
 
 <body>
-
   <div class="topbar">
     <div class="leftTop">
       <div class="title" id="nowTitle">Votify — TV</div>
@@ -276,17 +275,21 @@
     <div class="card">
       <div class="cardHead">
         <h2>Reproducción</h2>
-        <div class="sub">Auto-skip bloqueados • Sonido activo</div>
+        <div class="sub">Auto-skip solo por error real • Start si autoplay bloqueado</div>
       </div>
 
       <div class="playerWrap">
         <div id="player"></div>
 
+        <!-- ✅ Botón iniciar (para TVs que bloquean autoplay) -->
+        <button class="btnCorner btnStart" id="startBtn" style="display:none">▶ Iniciar reproducción</button>
+
+        <!-- ✅ Botón sonido -->
+        <button class="btnCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>
+
         <div class="logoCorner" title="Votify">
           <img src="/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
         </div>
-
-        <button class="soundCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>
       </div>
     </div>
 
@@ -312,7 +315,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="/socket.io/socket.io.js"></script>
-
   <script>
     // ===== Helpers =====
     function escapeHtml(str){
@@ -328,14 +330,13 @@
       t.textContent = msg;
       t.style.display = "block";
       clearTimeout(showToast._tm);
-      showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
+      showToast._tm = setTimeout(()=> t.style.display = "none", 2800);
     }
 
-    // ✅ Acepta ID o URL (youtu.be / watch?v=)
+    // ✅ ID o URL → ID
     function normalizeYouTubeId(input){
       if(input == null) return null;
       const s = String(input).trim();
-
       if(/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
 
       try{
@@ -350,9 +351,6 @@
         return null;
       }
     }
-    function isValidYouTubeId(id){
-      return /^[a-zA-Z0-9_-]{11}$/.test(String(id||"").trim());
-    }
 
     // ===== Room + Link =====
     const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
@@ -365,7 +363,6 @@
     // ===== Estado canciones =====
     let currentSongs = [];
     let playedSet = new Set();
-    let lastPlayedId = null;
 
     // ===== Player =====
     let player = null;
@@ -374,6 +371,9 @@
 
     let __consecutiveFails = 0;
     const MAX_CONSECUTIVE_FAILS = 6;
+
+    const startBtn = document.getElementById("startBtn");
+    const soundBtn = document.getElementById("soundBtn");
 
     function pickNextSong(){
       if(!currentSongs.length) return null;
@@ -457,12 +457,11 @@
       __skipLock = true;
       console.log("⏭️ skip:", reason);
 
-      // mini debug (no spam)
       if(String(reason||"").startsWith("yt-error")){
-        showToast(`⚠️ YouTube bloqueó este video (${reason}). Saltando…`);
+        showToast(`⚠️ YouTube error ${reason}. Saltando…`);
       }
       if(reason === "invalid-id"){
-        showToast("⚠️ youtubeId inválido (ID de 11 caracteres o URL de YouTube).");
+        showToast("⚠️ youtubeId inválido. Saltando…");
       }
 
       setTimeout(async () => {
@@ -471,7 +470,7 @@
 
         if(__consecutiveFails >= MAX_CONSECUTIVE_FAILS){
           __consecutiveFails = 0;
-          showToast("⚠️ Muchos videos bloqueados/no disponibles. Revisa youtubeId.");
+          showToast("⚠️ Muchos videos fallando (posible bloqueo embed).");
         }
 
         const next = pickNextSong();
@@ -489,60 +488,54 @@
     }
 
     function playSong(song){
-      const ytId = normalizeYouTubeId(song?.youtubeId);
-      if(!song || !ytId) return skipToNext("invalid-id");
+  const ytId = normalizeYouTubeId(song?.youtubeId);
+  if(!song || !ytId) return skipToNext("invalid-id");
 
-      lastPlayedId = song.id;
-      playedSet.add(song.id);
+  lastPlayedId = song.id;
+  playedSet.add(song.id);
 
-      document.getElementById("nowTitle").textContent =
-        `${song.title}${song.artist ? " — " + song.artist : ""}`;
+  document.getElementById("nowTitle").textContent =
+    `${song.title}${song.artist ? " — " + song.artist : ""}`;
 
-      try{
-        player.loadVideoById(ytId);
-      }catch(_){
-        skipToNext("load-failed");
-      }
-    }
+  try{
+    player.loadVideoById({
+      videoId: ytId,
+      startSeconds: 0
+    });
+  }catch(_){
+    skipToNext("load-failed");
+  }
+}
 
     function onPlayerStateChange(e){
-      if(e.data === YT.PlayerState.PLAYING){
-        __consecutiveFails = 0;
-      }
-      if(e.data === YT.PlayerState.ENDED){
-        const next = pickNextSong();
-        if(next) playSong(next);
-      }
 
-      // ✅ UNSTARTED puede ser normal al inicio; damos más tiempo y no lo matamos tan rápido
-      if(e.data === YT.PlayerState.UNSTARTED){
-        setTimeout(checkSoundBlocked, 600);
+  // Cuando empieza a reproducir
+  if(e.data === YT.PlayerState.PLAYING){
+    __consecutiveFails = 0;
+    return;
+  }
 
-        setTimeout(() => {
-          try{
-            const st = player?.getPlayerState?.();
-            // si sigue UNSTARTED luego de 12s, ahí sí skip
-            if(st === YT.PlayerState.UNSTARTED) skipToNext("unstarted-stuck");
-          }catch(_){
-            skipToNext("unstarted-error");
-          }
-        }, 12000);
-      }
-    }
+  // Cuando termina realmente
+  if(e.data === YT.PlayerState.ENDED){
+    const next = pickNextSong();
+    if(next) playSong(next);
+    return;
+  }
 
-    function checkSoundBlocked(){
-      try{
-        const state = player?.getPlayerState?.();
-        if(state !== YT.PlayerState.PLAYING){
-          document.getElementById("soundBtn").style.display = "block";
-        }
-      }catch(_){}
-    }
+  // IGNORAMOS UNSTARTED COMPLETAMENTE
+  // Porque YouTube lo usa como estado interno normal
+}
 
-    document.getElementById("soundBtn").addEventListener("click", () => {
-      document.getElementById("soundBtn").style.display = "none";
+    startBtn.addEventListener("click", () => {
+      startBtn.style.display = "none";
+      try{ player?.playVideo?.(); }catch(_){}
+    });
+
+    soundBtn.addEventListener("click", () => {
+      soundBtn.style.display = "none";
       try{
         player?.unMute?.();
+        player?.setVolume?.(100);
         player?.playVideo?.();
       }catch(_){}
     });
@@ -558,42 +551,42 @@
     }
 
     function createPlayer(){
-      return new Promise((resolve) => {
-        player = new YT.Player("player", {
-          height: "100%",
-          width: "100%",
-          host: "https://www.youtube-nocookie.com",
-          playerVars: {
-            autoplay: 1,
-            controls: 0,
-            rel: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            origin: window.location.origin,
-            enablejsapi: 1
-          },
-          events: {
-            onReady: () => {
-              // ✅ Safari/TV: autoplay más confiable si está en mute
-              try {
-                player.mute();
-                player.playVideo();
-              } catch (_) {}
+  return new Promise((resolve) => {
+    player = new YT.Player("player", {
+      height: "100%",
+      width: "100%",
+      host: "https://www.youtube-nocookie.com",
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        origin: window.location.origin,
+        enablejsapi: 1
+      },
+      events: {
+        onReady: () => {
+          // ✅ Importante: SOLO mute aquí. NO playVideo todavía.
+          // El play lo hace playSong() cuando cargamos un video real.
+          try { player.mute(); } catch(_) {}
 
-              const sb = document.getElementById("soundBtn");
-              if (sb) sb.style.display = "block";
-              resolve();
-            },
-            onStateChange: onPlayerStateChange,
-            onError: (ev) => {
-              const code = ev?.data;
-              __resetOnNext = true; // reinicia iframe en el próximo intento
-              skipToNext(`yt-error:${code}`);
-            }
-          }
-        });
-      });
-    }
+          // Si usas botones:
+          if (typeof startBtn !== "undefined" && startBtn) startBtn.style.display = "block";
+          if (typeof soundBtn !== "undefined" && soundBtn) soundBtn.style.display = "block";
+
+          resolve();
+        },
+        onStateChange: onPlayerStateChange,
+        onError: (ev) => {
+          const code = ev?.data;
+          __resetOnNext = true;
+          skipToNext(`yt-error:${code}`);
+        }
+      }
+    });
+  });
+}
 
     // ===== Socket + fallback =====
     let socket = null;
@@ -627,7 +620,7 @@
     function initSocket(){
       if(typeof window.io !== "function"){
         setConnectedUI(false);
-        showToast("⚠️ socket.io no cargó. Usando modo fallback.");
+        showToast("⚠️ socket.io no cargó. Fallback activo.");
         startFallbackPolling();
         return;
       }
@@ -671,9 +664,8 @@
 
       const first = pickNextSong();
       if(first) playSong(first);
-      else showToast("⚠️ No hay canciones con youtubeId válido en esta sala.");
+      else showToast("⚠️ No hay canciones en la sala.");
     })();
   </script>
-
 </body>
 </html>
