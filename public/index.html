@@ -5,26 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Votify — Votar</title>
 
-  <!-- ✅ Favicon -->
   <link rel="icon" type="image/png" href="/icon.png">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      /* ✅ Paleta oficial */
       --primary:#9E1AAD;
       --dark:#1B0426;
       --accent:#FF14E4;
-
       --card:#121428;
       --line:#232643;
       --txt:#ffffff;
       --muted:rgba(255,255,255,.72);
-      --good:#2dd4bf;
-
       --shadow: 0 18px 50px rgba(0,0,0,.45);
       --radius:18px;
     }
@@ -40,8 +34,6 @@
       padding:18px;
     }
     .wrap{max-width:900px;margin:0 auto}
-
-    /* Loader superior */
     .loadBar{
       position:fixed; top:0; left:0; right:0; height:3px;
       background: linear-gradient(90deg, transparent, var(--accent), transparent);
@@ -50,7 +42,6 @@
       z-index:9999;
     }
     @keyframes loadbar{0%{background-position:0% 0}100%{background-position:200% 0}}
-
     header{
       border:1px solid var(--line);
       background: rgba(18,20,40,.72);
@@ -60,25 +51,18 @@
       padding:14px;
       margin-bottom:12px;
     }
-    .top{
-      display:flex; align-items:flex-start; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-    }
-
-    .titleRow{display:flex; align-items:center; gap:10px}
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .titleRow{display:flex;align-items:center;gap:10px}
     .logoMark{
-      width:40px; height:40px; border-radius:14px;
+      width:40px;height:40px;border-radius:14px;
       border:1px solid rgba(255,20,228,.20);
       background: rgba(158,26,173,.12);
-      display:grid; place-items:center; overflow:hidden;
-      flex:0 0 auto;
+      display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
       box-shadow: 0 10px 30px rgba(158,26,173,.14);
     }
-    .logoMark img{width:100%; height:100%; object-fit:contain; padding:7px}
-
+    .logoMark img{width:100%;height:100%;object-fit:contain;padding:7px}
     h1{margin:0;font-size:18px;font-weight:800}
     .muted{color:var(--muted);font-size:12px;margin-top:4px}
-
     .pill{
       border:1px solid var(--line);
       background: rgba(255,255,255,.03);
@@ -88,26 +72,20 @@
       font-size:12px;
       white-space:nowrap;
     }
-
     .progressWrap{margin-top:12px}
     .progressRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
     .timeLeft{font-weight:800;font-size:12px;color:#e9e9ff}
-
     .bar{
-      margin-top:8px;
-      height:10px;
+      margin-top:8px;height:10px;
       background: rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.08);
-      border-radius:999px;
-      overflow:hidden;
+      border-radius:999px;overflow:hidden;
     }
     .fill{
-      height:100%;
-      width:0%;
+      height:100%;width:0%;
       background: linear-gradient(90deg, var(--primary), var(--accent));
       transition: width .35s linear;
     }
-
     .card{
       border:1px solid var(--line);
       background: rgba(18,20,40,.72);
@@ -127,7 +105,6 @@
       font-size:14px;
     }
     .list{margin-top:12px; display:grid; gap:10px}
-
     .item{
       display:grid;
       grid-template-columns: 1fr auto;
@@ -139,42 +116,25 @@
       background: rgba(0,0,0,.20);
     }
     .meta{min-width:0}
-    .meta b{
-      display:block;
-      font-size:14px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .meta small{
-      display:block;
-      margin-top:2px;
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .right{display:flex; align-items:center; gap:10px}
-
+    .meta b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .meta small{display:block;margin-top:2px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .right{display:flex;align-items:center;gap:10px}
     .badge{
-      font-weight:800;
-      font-size:12px;
-      padding:7px 10px;
-      border-radius:999px;
+      font-weight:800;font-size:12px;
+      padding:7px 10px;border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(158,26,173,.14);
     }
     button{
-      border:0;
-      cursor:pointer;
+      border:0;cursor:pointer;
       border-radius: 12px;
       padding:10px 12px;
-      font-weight:800;
-      font-size:13px;
-      color:#fff;
+      font-weight:800;font-size:13px;color:#fff;
       background: linear-gradient(90deg, var(--primary), var(--accent));
       box-shadow: 0 12px 34px rgba(158,26,173,.18);
     }
     button:active{transform: translateY(1px)}
     button:disabled{opacity:.55;cursor:not-allowed}
-
     .toast{
       position:fixed;
       left:50%; transform:translateX(-50%);
@@ -190,9 +150,9 @@
       color:#fff;
       font-weight:800;
       text-align:center;
+      z-index:999;
     }
     .toast span{color:rgba(255,255,255,.85); font-weight:600}
-
     .footer{
       margin:18px 0 6px;
       text-align:center;
@@ -201,17 +161,15 @@
     }
   </style>
 </head>
-<body>
 
+<body>
 <div class="loadBar" id="loadBar"></div>
 
 <div class="wrap">
-
   <header>
     <div class="top">
       <div>
         <div class="titleRow">
-          <!-- ✅ Logo correcto -->
           <div class="logoMark">
             <img src="/icon.png" alt="Votify" onerror="this.style.display='none'; this.parentElement.textContent='V'">
           </div>
@@ -236,7 +194,6 @@
     <input class="input" id="nameInput" placeholder="Ej: Charly" maxlength="30">
     <div class="list" id="songList"></div>
   </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
@@ -244,21 +201,27 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const room = (location.pathname.split("/r/")[1] || "").split("/")[0];
+  // room robusto: /r/:room
+  const room = (() => {
+    const parts = location.pathname.split("/").filter(Boolean);
+    const i = parts.indexOf("r");
+    return i >= 0 ? (parts[i + 1] || "") : "";
+  })();
+
   document.getElementById("roomText").textContent = `Sala: ${room || "—"}`;
   document.getElementById("year").textContent = new Date().getFullYear();
 
   const lb = document.getElementById("loadBar");
   window.addEventListener("load", ()=> setTimeout(()=> lb && (lb.style.display="none"), 500));
 
-  const socket = io();
+  const socket = io({ transports: ["websocket","polling"] });
   const statusPill = document.getElementById("statusPill");
   const listEl = document.getElementById("songList");
   const toastEl = document.getElementById("toast");
 
   let songs = [];
 
-  // Tiempo de canción (sincronizado desde TV)
+  // Tiempo de canción (si lo emites desde TV)
   let songStartedAt = 0;
   let durationSec = 0;
   let nowSongId = null;
@@ -266,7 +229,7 @@
 
   socket.on("connect", () => {
     statusPill.textContent = "Conectado ✅";
-    socket.emit("room:join", { room });
+    if (room) socket.emit("room:join", { room });
     loadState();
   });
 
@@ -280,14 +243,13 @@
     render();
   });
 
-  // ✅ recibe el inicio de canción desde TV (vía server)
   socket.on("song:update", (data) => {
     if (!data || data.room !== room) return;
     songStartedAt = Number(data.startedAt || 0);
     durationSec = Number(data.durationSec || 0);
     nowSongId = data.songId ?? null;
 
-    const s = songs.find(x => x.id === nowSongId);
+    const s = songs.find(x => String(x.id) === String(nowSongId));
     document.getElementById("nowPill").textContent = s
       ? `Reproduciendo: ${s.artist} — ${s.title}`
       : "Reproduciendo: —";
@@ -296,11 +258,30 @@
   });
 
   async function loadState(){
-    const res = await fetch(`/api/r/${room}/state`);
-    const data = await res.json().catch(()=> ({}));
-    songs = data.songs || [];
-    if(data.name){ document.getElementById("restTitle").textContent = data.name; }
-    render();
+    if (!room) {
+      showToast("❌ ", "Sala inválida");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/r/${encodeURIComponent(room)}/state`, { cache: "no-store" });
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!res.ok) {
+        showToast("❌ ", `State ${res.status} ${data?.error || ""}`.trim());
+        return;
+      }
+
+      songs = data.songs || [];
+      if (data.name) document.getElementById("restTitle").textContent = data.name;
+
+      render();
+      statusPill.textContent = "Listo ✅";
+    } catch (e) {
+      showToast("❌ ", "No se pudo cargar estado");
+      statusPill.textContent = "Error…";
+    }
   }
 
   function render(){
@@ -323,7 +304,11 @@
       `;
 
       const btn = item.querySelector("button");
-      btn.addEventListener("click", () => vote(song.id));
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        await vote(song.id);
+        btn.disabled = false;
+      });
 
       listEl.appendChild(item);
     });
@@ -331,21 +316,35 @@
 
   async function vote(songId){
     const voter = (document.getElementById("nameInput").value || "Alguien").trim();
+    const url = `/api/r/${encodeURIComponent(room)}/vote/${encodeURIComponent(songId)}`;
 
     try {
-      const res = await fetch(`/api/r/${room}/vote/${songId}`,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ voter })
       });
 
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch {}
+
       if (!res.ok) {
-        showToast("❌ ", "No se pudo votar");
+        showToast("❌ ", `Voto ${res.status} ${data?.error || ""}`.trim());
         return;
       }
+
+      // ✅ update optimista (por si el server aún no emite socket)
+      const s = songs.find(x => String(x.id) === String(songId));
+      if (s) s.votes = Number(s.votes || 0) + 1;
+      render();
+
+      // ✅ source of truth
+      loadState();
+
       showToast("✅ ", "Voto enviado");
     } catch (e) {
-      showToast("❌ ", "Sin conexión");
+      showToast("❌ ", "Sin conexión / fetch bloqueado");
     }
   }
 
@@ -371,10 +370,10 @@
   }
 
   function showToast(bold, rest){
-    toastEl.innerHTML = `${bold}<span>${rest}</span>`;
+    toastEl.innerHTML = `${bold}<span>${escapeHtml(rest)}</span>`;
     toastEl.style.display = "block";
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=> toastEl.style.display="none", 1600);
+    showToast._t = setTimeout(()=> toastEl.style.display="none", 1800);
   }
 
   function escapeHtml(str){
