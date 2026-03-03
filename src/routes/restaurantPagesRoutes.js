@@ -44,7 +44,7 @@ router.get("/votar", (req, res) => {
 });
 
 // =====================================================
-// 🔐 LOGIN
+// 🔐 LOGIN (ruta bonita)
 // =====================================================
 router.get("/login", (req, res) => {
   return res.sendFile(path.join(__dirname, "../../public/login.html"));

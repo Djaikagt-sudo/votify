@@ -163,7 +163,7 @@ io.on("connection", (socket) => {
 app.set("io", io);
 
 // =====================================================
-// 🏠 LANDING PAGE (HOME)
+// 🏠 LANDING PAGE (HOME) — SIEMPRE /
 // =====================================================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/landing.html"));
@@ -221,7 +221,9 @@ app.get("/admin.html", requireAdmin, (req, res) => {
 // =====================================================
 // 📄 PAGES & API
 // =====================================================
-app.use("/", restaurantPagesRoutes);
+// ✅ OJO: sin "/" aquí. Así no se pelea con app.get("/") de la landing.
+app.use(restaurantPagesRoutes);
+
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
 app.use("/api/r", restaurantApiRoutes);
 
