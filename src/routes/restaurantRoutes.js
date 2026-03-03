@@ -15,10 +15,6 @@ router.get("/", (req, res) => {
   res.json({ ok: true, restaurants: getRestaurants() });
 });
 
-/**
- * POST /api/restaurants
- * body: { name, genres: ["salsa","reggaetonNuevo"], totalSongs: 50 }
- */
 router.post("/", async (req, res) => {
   const { name, genres, totalSongs } = req.body || {};
 
@@ -32,7 +28,6 @@ router.post("/", async (req, res) => {
   const host = req.get("host");
   const url = `${proto}://${host}/r/${restaurant.id}`;
 
-  // guardar QR
   const qrDir = path.join(__dirname, "../../public/qrcodes");
   if(!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
 

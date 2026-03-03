@@ -16,8 +16,6 @@ function normalizeId(s){
 
 /**
  * Construye lista de canciones aleatoria desde géneros seleccionados.
- * - Mezcla géneros parejo (round-robin aleatorio)
- * - Ignora youtubeId inválidos/vacíos
  */
 export function buildSongsFromGenres({ genres = [], total = 40 } = {}){
   const allGenres = Object.keys(library);

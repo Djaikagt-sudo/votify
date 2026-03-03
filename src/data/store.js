@@ -3,9 +3,6 @@ import { buildSongsFromGenres } from "./songBuilder.js";
 
 const restaurants = new Map();
 
-/**
- * Crear sala con canciones ya cargadas desde géneros seleccionados (aleatorio).
- */
 export function createRestaurant({ name, genres = [], totalSongs = 40 }){
   const id = crypto.randomUUID();
 
@@ -34,10 +31,6 @@ export function getRestaurants(){
   return [...restaurants.values()];
 }
 
-/**
- * Mover una canción al final después de reproducirse (para "no repetir" y rotación).
- * Resetea votos a 0 cuando baja, para que no se quede arriba.
- */
 export function moveSongToBottomAfterPlayed(roomId, songId){
   const r = restaurants.get(roomId);
   if(!r) return null;
@@ -46,15 +39,12 @@ export function moveSongToBottomAfterPlayed(roomId, songId){
   if(idx < 0) return r;
 
   const [song] = r.songs.splice(idx, 1);
-  song.votes = 0; // ✅ opcional: baja sin votos
+  song.votes = 0;
   r.songs.push(song);
 
   return r;
 }
 
-/**
- * Votar canción
- */
 export function voteSong(roomId, songId){
   const r = restaurants.get(roomId);
   if(!r) return null;

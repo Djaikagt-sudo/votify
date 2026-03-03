@@ -17,32 +17,21 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
-// ====== __dirname fix (ES modules) ======
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// =====================================================
-// 🔥 MIDDLEWARES
-// =====================================================
 app.use(express.json());
 app.set("trust proxy", true);
 
-// =====================================================
-// ✅ ARCHIVOS ESTÁTICOS (SOLO UNA VEZ)
-// =====================================================
 app.use(express.static(path.join(__dirname, "../public"), { index: false }));
 app.use("/qrcodes", express.static(path.join(__dirname, "../public/qrcodes")));
 
-// =====================================================
-// 🏠 LANDING PAGE (HOME)
-// =====================================================
+// LANDING
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/landing.html"));
 });
 
-// =====================================================
-// ✅ ADMIN USERS
-// =====================================================
+// ADMIN USERS
 const ADMIN_USERS = [
   { email: "djaika.gt@gmail.com", password: "2212" },
   { email: "pruebas@gmail.com", password: "1234" },
@@ -50,11 +39,9 @@ const ADMIN_USERS = [
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "dev_secret_change_me";
 const sessions = new Map();
-const SESSION_MS = 1000 * 60 * 60 * 12; // 12 horas
+const SESSION_MS = 1000 * 60 * 60 * 12;
 
-// =====================================================
-// 🔐 AUTH HELPERS
-// =====================================================
+// AUTH HELPERS
 function parseCookies(req) {
   const header = req.headers.cookie || "";
   const out = {};
@@ -82,13 +69,10 @@ function verifySignedToken(signed) {
   const expected = crypto.createHmac("sha256", ADMIN_SECRET).update(token).digest("hex");
 
   try {
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
-      return null;
-    }
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   } catch {
     return null;
   }
-
   return token;
 }
 
@@ -124,15 +108,11 @@ function isAuthed(req) {
 
 function requireAdmin(req, res, next) {
   if (isAuthed(req)) return next();
-  if (req.path.startsWith("/api/")) {
-    return res.status(401).json({ ok: false, error: "No autorizado" });
-  }
+  if (req.path.startsWith("/api/")) return res.status(401).json({ ok: false, error: "No autorizado" });
   return res.redirect("/login.html");
 }
 
-// =====================================================
-// 🔥 SOCKET.IO
-// =====================================================
+// SOCKET.IO
 const io = new Server(server, {
   cors: { origin: true, credentials: true },
   transports: ["websocket", "polling"],
@@ -169,9 +149,7 @@ io.on("connection", (socket) => {
 
 app.set("io", io);
 
-// =====================================================
-// 🔐 LOGIN API
-// =====================================================
+// LOGIN API
 app.post("/api/admin/login", (req, res) => {
   const { email, password } = req.body || {};
   const e = String(email || "").toLowerCase().trim();
@@ -189,11 +167,7 @@ app.post("/api/admin/login", (req, res) => {
   }
 
   const token = crypto.randomBytes(24).toString("hex");
-  sessions.set(token, {
-    createdAt: Date.now(),
-    expiresAt: Date.now() + SESSION_MS,
-    email: e,
-  });
+  sessions.set(token, { createdAt: Date.now(), expiresAt: Date.now() + SESSION_MS, email: e });
 
   setAuthCookie(res, signToken(token));
   return res.json({ ok: true });
@@ -207,9 +181,7 @@ app.post("/api/admin/logout", (req, res) => {
   return res.json({ ok: true });
 });
 
-// =====================================================
-// 🔐 ADMIN PAGE PROTECTION
-// =====================================================
+// ADMIN PROTECTION
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/admin.html"));
 });
@@ -217,27 +189,13 @@ app.get("/admin.html", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/admin.html"));
 });
 
-// =====================================================
-// 📄 PAGES & API
-// =====================================================
+// PAGES & API
 app.use(restaurantPagesRoutes);
-
-// ✅ crear salas (protegido)
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
-
-// ✅ estado sala, votar, etc (público)
 app.use("/api/r", restaurantApiRoutes);
 
-// =====================================================
-// ❤️ HEALTH CHECK
-// =====================================================
-app.get("/health", (req, res) => {
-  res.json({ ok: true });
-});
+app.get("/health", (req, res) => res.json({ ok: true }));
 
-// =====================================================
-// 🚀 START SERVER
-// =====================================================
 server.listen(PORT, "0.0.0.0", () => {
   console.log("🔥 Servidor corriendo en puerto", PORT);
 });

@@ -3,9 +3,6 @@ import { getRestaurant, voteSong } from "../data/store.js";
 
 const router = express.Router();
 
-/**
- * GET /api/r/:room/state
- */
 router.get("/:room/state", (req, res) => {
   const { room } = req.params;
   const restaurant = getRestaurant(room);
@@ -24,9 +21,6 @@ router.get("/:room/state", (req, res) => {
   });
 });
 
-/**
- * POST /api/r/:room/vote/:songId
- */
 router.post("/:room/vote/:songId", (req, res) => {
   const { room, songId } = req.params;
 
