@@ -283,7 +283,6 @@
         <div id="player"></div>
 
         <div class="logoCorner" title="Votify">
-          <!-- ✅ Ruta correcta del logo -->
           <img src="/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
         </div>
 
@@ -312,7 +311,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ✅ socket.io primero -->
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
@@ -332,8 +330,28 @@
       clearTimeout(showToast._tm);
       showToast._tm = setTimeout(()=> t.style.display = "none", 2500);
     }
+
+    // ✅ Acepta ID o URL (youtu.be / watch?v=)
+    function normalizeYouTubeId(input){
+      if(input == null) return null;
+      const s = String(input).trim();
+
+      if(/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+
+      try{
+        const u = new URL(s);
+        if(u.hostname.includes("youtu.be")){
+          const id = u.pathname.replace("/", "");
+          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
+        }
+        const v = u.searchParams.get("v");
+        return /^[a-zA-Z0-9_-]{11}$/.test(v || "") ? v : null;
+      }catch(_){
+        return null;
+      }
+    }
     function isValidYouTubeId(id){
-      return typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id.trim());
+      return /^[a-zA-Z0-9_-]{11}$/.test(String(id||"").trim());
     }
 
     // ===== Room + Link =====
@@ -393,21 +411,18 @@
       const hint = document.getElementById("qrHint");
       hint.style.display = "none";
 
-      // 1) Si el API ya manda un QR en base64 (lo más confiable)
       const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
       if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
         img.src = qrDataUrl;
         return;
       }
 
-      // 2) Si manda una URL directa al PNG
       const qrUrl = data?.qrUrl || data?.qr_url || "";
       if(typeof qrUrl === "string" && qrUrl.length > 0){
         img.src = qrUrl;
         return;
       }
 
-      // 3) Fallback: intentar archivo público por id de sala
       img.src = `${origin}/qrcodes/${room}.png`;
       img.onerror = () => {
         img.style.opacity = "0.25";
@@ -429,10 +444,7 @@
         return false;
       }
 
-      // ✅ nombre arriba derecha
       document.getElementById("restaurantName").textContent = (data.name || "").trim() || "—";
-
-      // ✅ QR
       setQrFromState(data);
 
       currentSongs = Array.isArray(data.songs) ? data.songs : [];
@@ -444,6 +456,14 @@
       if(__skipLock) return;
       __skipLock = true;
       console.log("⏭️ skip:", reason);
+
+      // mini debug (no spam)
+      if(String(reason||"").startsWith("yt-error")){
+        showToast(`⚠️ YouTube bloqueó este video (${reason}). Saltando…`);
+      }
+      if(reason === "invalid-id"){
+        showToast("⚠️ youtubeId inválido (ID de 11 caracteres o URL de YouTube).");
+      }
 
       setTimeout(async () => {
         __skipLock = false;
@@ -469,15 +489,17 @@
     }
 
     function playSong(song){
-      if(!song || !isValidYouTubeId(song.youtubeId)) return skipToNext("invalid-id");
+      const ytId = normalizeYouTubeId(song?.youtubeId);
+      if(!song || !ytId) return skipToNext("invalid-id");
 
       lastPlayedId = song.id;
       playedSet.add(song.id);
 
-      document.getElementById("nowTitle").textContent = `${song.title} — ${song.artist || ""}`;
+      document.getElementById("nowTitle").textContent =
+        `${song.title}${song.artist ? " — " + song.artist : ""}`;
 
       try{
-        player.loadVideoById(song.youtubeId);
+        player.loadVideoById(ytId);
       }catch(_){
         skipToNext("load-failed");
       }
@@ -491,16 +513,20 @@
         const next = pickNextSong();
         if(next) playSong(next);
       }
+
+      // ✅ UNSTARTED puede ser normal al inicio; damos más tiempo y no lo matamos tan rápido
       if(e.data === YT.PlayerState.UNSTARTED){
         setTimeout(checkSoundBlocked, 600);
+
         setTimeout(() => {
           try{
             const st = player?.getPlayerState?.();
+            // si sigue UNSTARTED luego de 12s, ahí sí skip
             if(st === YT.PlayerState.UNSTARTED) skipToNext("unstarted-stuck");
           }catch(_){
             skipToNext("unstarted-error");
           }
-        }, 6500);
+        }, 12000);
       }
     }
 
@@ -532,49 +558,42 @@
     }
 
     function createPlayer(){
-  return new Promise((resolve) => {
-    player = new YT.Player("player", {
-      height: "100%",
-      width: "100%",
-      // ✅ ayuda con restricciones de tracking / autoplay
-      host: "https://www.youtube-nocookie.com",
-      playerVars: {
-        autoplay: 1,
-        controls: 0,
-        rel: 0,
-        modestbranding: 1,
-        playsinline: 1,
-        origin: window.location.origin
-      },
-      events: {
-        onReady: () => {
-          // ✅ Safari/TV: autoplay SOLO confiable si está en mute
-          try {
-            player.mute();
-            player.playVideo();
-          } catch (_) {}
+      return new Promise((resolve) => {
+        player = new YT.Player("player", {
+          height: "100%",
+          width: "100%",
+          host: "https://www.youtube-nocookie.com",
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            origin: window.location.origin,
+            enablejsapi: 1
+          },
+          events: {
+            onReady: () => {
+              // ✅ Safari/TV: autoplay más confiable si está en mute
+              try {
+                player.mute();
+                player.playVideo();
+              } catch (_) {}
 
-          // ✅ mostramos el botón para que el usuario active sonido
-          const sb = document.getElementById("soundBtn");
-          if (sb) sb.style.display = "block";
-
-          resolve();
-        },
-        onStateChange: onPlayerStateChange,
-        onError: (ev) => {
-          const code = ev?.data;
-
-          // ✅ cualquier error: reinicia el iframe en el próximo intento
-          __resetOnNext = true;
-
-          // 101/150 = embebido bloqueado (normal)
-          // otros (2,5,100) también pasan -> saltamos igual
-          skipToNext(`yt-error:${code}`);
-        }
-      }
-    });
-  });
-}
+              const sb = document.getElementById("soundBtn");
+              if (sb) sb.style.display = "block";
+              resolve();
+            },
+            onStateChange: onPlayerStateChange,
+            onError: (ev) => {
+              const code = ev?.data;
+              __resetOnNext = true; // reinicia iframe en el próximo intento
+              skipToNext(`yt-error:${code}`);
+            }
+          }
+        });
+      });
+    }
 
     // ===== Socket + fallback =====
     let socket = null;
