@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Votify Admin</title>
 
-<!-- ✅ Favicon (pestaña) -->
 <link rel="icon" type="image/png" href="/icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,12 +13,10 @@
 
 <style>
   :root{
-    /* ✅ Tu paleta oficial */
-    --primary:#9E1AAD;     /* morado principal */
-    --dark:#1B0426;        /* fondo oscuro */
-    --accent:#FF14E4;      /* acento */
+    --primary:#9E1AAD;
+    --dark:#1B0426;
+    --accent:#FF14E4;
 
-    /* Base UI (mantengo tu estructura) */
     --bg: var(--dark);
     --panel: rgba(27,4,38,.86);
     --card: rgba(12,13,25,.62);
@@ -28,9 +25,6 @@
     --txt:#ffffff;
     --muted: rgba(255,255,255,.70);
     --muted2: rgba(255,255,255,.55);
-
-    /* Antes tenías 2 morados; ahora los alineamos a tu paleta */
-    --accent2: var(--primary);
 
     --shadow: 0 18px 60px rgba(0,0,0,.45);
     --radius: 22px;
@@ -48,7 +42,6 @@
       var(--bg);
   }
 
-  /* Top loader */
   .topLoader{
     position:fixed; top:0; left:0;
     height:3px; width:0%;
@@ -66,7 +59,6 @@
     padding: 28px 18px 22px;
   }
 
-  /* Header */
   .topbar{
     display:flex;
     align-items:center;
@@ -130,7 +122,6 @@
     border: 1px solid rgba(255,20,228,.20);
   }
 
-  /* Layout main */
   .grid{
     display:grid;
     grid-template-columns: 1.05fr .95fr;
@@ -185,7 +176,6 @@
     box-shadow: 0 0 0 4px rgba(255,20,228,.12);
   }
 
-  /* Genres */
   .toolbar{
     display:flex;
     align-items:center;
@@ -247,7 +237,6 @@
     font-size: 13px;
   }
 
-  /* Result */
   .result{
     display:none;
     margin-top: 14px;
@@ -295,7 +284,6 @@
     color:#fff;
   }
 
-  /* Footer */
   .appFooter{
     margin: 16px 0 0;
     padding: 12px 14px;
@@ -316,7 +304,6 @@
     <div class="topbar">
       <div class="brand">
         <div class="logo" aria-hidden="true">
-          <!-- ✅ AQUÍ estaba el error: ruta incorrecta -->
           <img src="/icon.png" alt="Votify" onerror="this.remove()">
           <div id="fallbackV" style="font-weight:900;color:var(--accent);">V</div>
         </div>
@@ -332,19 +319,25 @@
     </div>
 
     <div class="grid">
-      <!-- Izquierda -->
       <section class="card">
         <div class="cardHead">
           <div>
             <h2 class="cardTitle">Crear sala</h2>
-            <p class="cardHint">Estos géneros son los que realmente existen en <b>src/data/library.js</b>.</p>
+            <p class="cardHint">Selecciona géneros y define cuántas canciones cargar (aleatorio).</p>
           </div>
-          <span class="pill">✅ Library Sync</span>
+          <span class="pill">✅ Seed automático</span>
         </div>
 
         <div class="cardBody">
           <label for="nameInput">Nombre del restaurante</label>
           <input id="nameInput" class="input" placeholder="Ej. Los Cuchos" />
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div style="flex:1; min-width:220px;">
+              <label for="totalSongs">Cantidad de canciones</label>
+              <input id="totalSongs" class="input" type="number" min="5" max="300" value="60" />
+            </div>
+          </div>
 
           <div class="toolbar">
             <input id="genreSearch" class="input" placeholder="Buscar género…" />
@@ -362,17 +355,16 @@
         </div>
       </section>
 
-      <!-- Derecha -->
       <aside class="card">
         <div class="cardHead">
           <div>
-            <h2 class="cardTitle">Tips</h2>
-            <p class="cardHint">Si aparece “No hay canciones”, es porque el género no existe en library.js.</p>
+            <h2 class="cardTitle">Géneros</h2>
+            <p class="cardHint">Estos deben coincidir con las llaves de tu <b>library.js</b>.</p>
           </div>
         </div>
         <div class="cardBody" style="color:var(--muted); font-size:13px; line-height:1.55;">
           <div style="padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
-            <div style="font-weight:900;color:#fff;margin-bottom:8px;">Géneros disponibles (library.js)</div>
+            <div style="font-weight:900;color:#fff;margin-bottom:8px;">Disponibles</div>
             <div id="genresList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           </div>
 
@@ -390,8 +382,8 @@
   const chipsBox = document.getElementById("chipsBox");
   const genreSearch = document.getElementById("genreSearch");
   const genresList = document.getElementById("genresList");
+  const totalSongsEl = document.getElementById("totalSongs");
 
-  // ✅ ESTO DEBE COINCIDIR 1:1 CON src/data/library.js
   const GENRES = [
     { key: "reggaetonNuevo",     label: "Reggaetón Nuevo" },
     { key: "reggaetonAntiguo",   label: "Reggaetón Antiguo" },
@@ -404,7 +396,6 @@
     { key: "rockGuatemalteco",   label: "Rock Guatemalteco" },
   ];
 
-  // Mostrar lista en la tarjeta derecha
   GENRES.forEach(g=>{
     const pill = document.createElement("span");
     pill.className = "pill";
@@ -467,16 +458,17 @@
     const name = (document.getElementById("nameInput").value || "").trim();
     if (!name) return alert("Escribe el nombre del restaurante");
 
-    // ✅ Enviamos LAS LLAVES reales (key), no el label
     const genres = Array.from(selected);
     if (!genres.length) return alert("Selecciona al menos 1 género");
+
+    const totalSongs = Math.max(5, Math.min(300, Number(totalSongsEl.value || 60)));
 
     loader.classList.add("on");
     try{
       const res = await fetch("/api/restaurants", {
         method: "POST",
         headers: { "Content-Type":"application/json" },
-        body: JSON.stringify({ name, genres })
+        body: JSON.stringify({ name, genres, totalSongs })
       });
 
       const data = await res.json().catch(()=> ({}));
@@ -485,18 +477,24 @@
       loader.classList.add("done");
       setTimeout(()=> loader.classList.remove("done"), 500);
 
-      if (!res.ok) {
+      if (!res.ok || data.ok === false) {
         return alert(data?.error || "Error creando sala");
       }
 
-      const r = data.restaurant;
-      const voteUrl = r?.urlsFull?.vote || r?.urls?.vote || "";
-      const tvUrl = r?.urlsFull?.tv || r?.urls?.tv || "";
-      const qr = r?.qrDataUrl || "";
+      const room = data.id;
+      const base = location.origin;
+
+      const voteUrl = `${base}/r/${room}`;
+      const tvUrl   = `${base}/tv/${room}`;
+      const qrUrl   = `${base}${data.qrUrl || ""}`;
+
+      const countSongs = Array.isArray(data.songs) ? data.songs.length : 0;
 
       resultBox.style.display = "block";
       resultBox.innerHTML = `
-        <div style="font-weight:900; font-size:14px; margin-bottom:10px;">✅ Sala creada</div>
+        <div style="font-weight:900; font-size:14px; margin-bottom:10px;">
+          ✅ Sala creada — <span style="color:rgba(255,255,255,.7)">(${countSongs} canciones cargadas)</span>
+        </div>
         <div class="resultRow">
           <div style="min-width:260px;">
             <div class="k">Votar</div>
@@ -506,7 +504,7 @@
             <a class="link" href="${tvUrl}" target="_blank" rel="noreferrer">${tvUrl}</a>
           </div>
 
-          ${qr ? `<img class="qr" src="${qr}" alt="QR" />` : ""}
+          <img class="qr" src="${qrUrl}" alt="QR" onerror="this.style.display='none'"/>
         </div>
       `;
     }catch(err){
