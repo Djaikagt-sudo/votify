@@ -4,113 +4,213 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Votify | Votación musical en tiempo real</title>
-  <meta name="description" content="Permite que tus clientes voten canciones en tiempo real desde un QR. Ideal para restaurantes, bares y DJs." />
+  <meta name="description" content="Votify permite que tus clientes voten canciones en tiempo real desde un código QR. Ideal para restaurantes, bares y eventos." />
 
   <style>
     :root{
-      --bg1:#12001f;--bg2:#2a003f;
-      --p:#9d4edd;--p2:#7b2cff;
+      --bg1:#12001f;
+      --bg2:#2a003f;
+      --primary:#9d4edd;
+      --primary2:#7b2cff;
+      --textSoft:rgba(255,255,255,.8);
       --card:rgba(255,255,255,.06);
-      --b:rgba(255,255,255,.12);
-      --t:rgba(255,255,255,.86);
+      --border:rgba(255,255,255,.12);
     }
+
     *{box-sizing:border-box}
+
     body{
       margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,system-ui,Segoe UI,Roboto,Arial;
+      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
       color:#fff;
       background:
-        radial-gradient(1000px 600px at 20% 10%, rgba(157,78,221,.35), transparent 60%),
-        radial-gradient(900px 500px at 90% 30%, rgba(123,44,255,.25), transparent 60%),
+        radial-gradient(800px 400px at 20% 0%, rgba(157,78,221,.35), transparent 60%),
+        radial-gradient(800px 500px at 90% 30%, rgba(123,44,255,.25), transparent 60%),
         linear-gradient(135deg,var(--bg1),var(--bg2));
-      min-height:100vh;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:56px 18px}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:42px}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.2px}
-    .mark{
-      width:38px;height:38px;border-radius:14px;
-      background:linear-gradient(90deg,var(--p),var(--p2));
-      display:grid;place-items:center;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
+
+    .container{
+      max-width:1100px;
+      margin:auto;
+      padding:60px 20px;
     }
-    .mark svg{width:18px;height:18px}
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:80px;
+    }
+
+    .logo{
+      font-size:24px;
+      font-weight:900;
+      letter-spacing:1px;
+    }
+
+    .hero{
+      text-align:center;
+      margin-bottom:80px;
+    }
+
+    .hero h1{
+      font-size:52px;
+      margin-bottom:20px;
+      background:linear-gradient(90deg,#d9a3ff,var(--primary2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .hero p{
+      font-size:20px;
+      color:var(--textSoft);
+      max-width:700px;
+      margin:auto;
+      margin-bottom:40px;
+      line-height:1.6;
+    }
+
     .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;
-      padding:12px 16px;border-radius:14px;text-decoration:none;
-      font-weight:800;border:1px solid var(--b);
-      background:rgba(255,255,255,.04);color:#fff;transition:.18s;
+      display:inline-block;
+      padding:14px 28px;
+      border-radius:14px;
+      font-weight:700;
+      text-decoration:none;
+      transition:.2s;
+      margin:8px;
     }
-    .btn.primary{background:linear-gradient(90deg,var(--p),var(--p2));border-color:transparent}
-    .btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
-    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:stretch}
-    @media(max-width:900px){.hero{grid-template-columns:1fr}}
-    h1{
-      margin:0 0 12px;
-      font-size:54px;line-height:1.05;
-      background:linear-gradient(90deg,#e6c4ff,var(--p2));
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+
+    .btn-primary{
+      background:linear-gradient(90deg,var(--primary),var(--primary2));
+      color:#fff;
     }
-    p{margin:0 0 18px;color:var(--t);font-size:18px;max-width:60ch}
-    .card{border:1px solid var(--b);background:var(--card);border-radius:18px;padding:18px}
-    .k{font-size:12px;opacity:.75;text-transform:uppercase;letter-spacing:.14em}
-    .v{margin-top:6px;font-size:16px;font-weight:700;color:rgba(255,255,255,.92)}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
-    @media(max-width:900px){.features{grid-template-columns:1fr}}
-    .feat{border:1px solid var(--b);background:rgba(0,0,0,.18);border-radius:16px;padding:14px}
-    footer{margin-top:34px;opacity:.55;font-size:13px}
+
+    .btn-outline{
+      border:1px solid var(--border);
+      color:#fff;
+    }
+
+    .btn:hover{
+      transform:translateY(-2px);
+      filter:brightness(1.05);
+    }
+
+    .section{
+      margin-top:80px;
+    }
+
+    .features{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+      margin-top:40px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:25px;
+      border-radius:18px;
+      text-align:center;
+    }
+
+    .card h3{
+      margin-bottom:10px;
+    }
+
+    .card p{
+      color:var(--textSoft);
+      font-size:15px;
+      line-height:1.5;
+    }
+
+    footer{
+      margin-top:100px;
+      text-align:center;
+      opacity:.5;
+      font-size:14px;
+    }
+
+    @media(max-width:900px){
+      .features{
+        grid-template-columns:1fr;
+      }
+
+      .hero h1{
+        font-size:38px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <div class="mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M9 8l8 4-8 4V8z" fill="white"/></svg>
-        </div>
-        Votify
-      </div>
-      <a class="btn" href="/admin">Admin</a>
-    </div>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">Votify</div>
+      <a href="/login" class="btn btn-outline">Iniciar sesión</a>
+    </header>
 
     <section class="hero">
-      <div class="card">
-        <h1>Vota la música. En tiempo real.</h1>
-        <p>Los clientes escanean un QR, votan canciones y la TV se actualiza al instante. Ideal para restaurantes, bares, eventos y DJs.</p>
+      <h1>La música la eligen tus clientes</h1>
+      <p>
+        Votify es una plataforma de votación musical en tiempo real.
+        Tus clientes escanean un código QR, votan canciones desde su teléfono
+        y la pantalla del local se actualiza automáticamente.
+      </p>
 
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <a class="btn primary" href="/admin">Entrar al panel</a>
-          <a class="btn" href="/votar">Demo votar</a>
-          <a class="btn" href="/login">Login</a>
+      <a href="/login" class="btn btn-primary">Acceder al Panel</a>
+      <a href="/votar" class="btn btn-outline">Ver Demo</a>
+    </section>
+
+    <section class="section">
+      <h2 style="text-align:center;">¿Cómo funciona?</h2>
+
+      <div class="features">
+        <div class="card">
+          <h3>1️⃣ Escanean el QR</h3>
+          <p>Los clientes ingresan a la sala desde su teléfono en segundos.</p>
         </div>
 
-        <div class="features">
-          <div class="feat"><div class="k">QR</div><div class="v">Votar desde el teléfono</div></div>
-          <div class="feat"><div class="k">Realtime</div><div class="v">Socket.IO sincronizado</div></div>
-          <div class="feat"><div class="k">Admin</div><div class="v">Control total</div></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="k">Cómo usar (rápido)</div>
-        <div class="v" style="font-weight:650;margin-top:10px">
-          1) Crea una sala en el panel<br/>
-          2) Muestra el QR<br/>
-          3) Tus clientes votan 🎶
+        <div class="card">
+          <h3>2️⃣ Votan canciones</h3>
+          <p>Eligen su música favorita y compiten en el ranking en tiempo real.</p>
         </div>
 
-        <div style="margin-top:14px" class="k">Rutas</div>
-        <div class="grid">
-          <a class="btn" href="/admin" style="width:100%">/admin</a>
-          <a class="btn" href="/login" style="width:100%">/login</a>
-          <a class="btn" href="/votar" style="width:100%">/votar</a>
-          <a class="btn" href="/health" style="width:100%">/health</a>
+        <div class="card">
+          <h3>3️⃣ La TV se actualiza</h3>
+          <p>Las canciones más votadas suben automáticamente en la lista.</p>
         </div>
       </div>
     </section>
 
-    <footer>© 2026 Votify — Dj Aika</footer>
+    <section class="section">
+      <h2 style="text-align:center;">Ideal para</h2>
+
+      <div class="features">
+        <div class="card">
+          <h3>🍽 Restaurantes</h3>
+          <p>Mejora la experiencia del cliente y aumenta el tiempo de permanencia.</p>
+        </div>
+
+        <div class="card">
+          <h3>🍺 Bares</h3>
+          <p>Ambiente interactivo donde todos participan en la música.</p>
+        </div>
+
+        <div class="card">
+          <h3>🎧 DJs & Eventos</h3>
+          <p>Controla la energía del evento con votaciones en vivo.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © 2026 Votify — Dj Aika
+    </footer>
+
   </div>
+
 </body>
 </html>
