@@ -30,9 +30,15 @@ app.set("trust proxy", true);
 // =====================================================
 // ✅ ARCHIVOS ESTÁTICOS (SOLO UNA VEZ)
 // =====================================================
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public"), { index: false }));
 app.use("/qrcodes", express.static(path.join(__dirname, "../public/qrcodes")));
 
+// =====================================================
+// 🏠 LANDING PAGE (HOME)
+// =====================================================
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/landing.html"));
+});
 // =====================================================
 // ✅ ADMIN USERS
 // =====================================================
