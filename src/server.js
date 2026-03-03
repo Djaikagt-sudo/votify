@@ -60,10 +60,7 @@ function parseCookies(req) {
 }
 
 function signToken(token) {
-  const h = crypto
-    .createHmac("sha256", ADMIN_SECRET)
-    .update(token)
-    .digest("hex");
+  const h = crypto.createHmac("sha256", ADMIN_SECRET).update(token).digest("hex");
   return `${token}.${h}`;
 }
 
@@ -75,15 +72,10 @@ function verifySignedToken(signed) {
   const token = signed.slice(0, idx);
   const sig = signed.slice(idx + 1);
 
-  const expected = crypto
-    .createHmac("sha256", ADMIN_SECRET)
-    .update(token)
-    .digest("hex");
+  const expected = crypto.createHmac("sha256", ADMIN_SECRET).update(token).digest("hex");
 
   try {
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
-      return null;
-    }
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   } catch {
     return null;
   }
@@ -94,9 +86,7 @@ function verifySignedToken(signed) {
 function setAuthCookie(res, signedToken) {
   const isProd = process.env.NODE_ENV === "production";
   res.setHeader("Set-Cookie", [
-    `votify_admin=${encodeURIComponent(
-      signedToken
-    )}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(
+    `votify_admin=${encodeURIComponent(signedToken)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(
       SESSION_MS / 1000
     )}${isProd ? "; Secure" : ""}`,
   ]);
@@ -105,9 +95,7 @@ function setAuthCookie(res, signedToken) {
 function clearAuthCookie(res) {
   const isProd = process.env.NODE_ENV === "production";
   res.setHeader("Set-Cookie", [
-    `votify_admin=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${
-      isProd ? "; Secure" : ""
-    }`,
+    `votify_admin=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isProd ? "; Secure" : ""}`,
   ]);
 }
 
@@ -153,12 +141,7 @@ io.on("connection", (socket) => {
 
   socket.on("song:start", ({ room, songId, startedAt, durationSec }) => {
     if (!room) return;
-    io.to(room).emit("song:update", {
-      room,
-      songId,
-      startedAt,
-      durationSec,
-    });
+    io.to(room).emit("song:update", { room, songId, startedAt, durationSec });
   });
 
   socket.on("song:ended", ({ room, songId }) => {
@@ -167,10 +150,7 @@ io.on("connection", (socket) => {
     const restaurant = moveSongToBottomAfterPlayed(room, songId);
     if (!restaurant) return;
 
-    io.to(room).emit("votes:update", {
-      room,
-      songs: restaurant.songs,
-    });
+    io.to(room).emit("votes:update", { room, songs: restaurant.songs });
   });
 
   socket.on("disconnect", () => {
@@ -179,6 +159,22 @@ io.on("connection", (socket) => {
 });
 
 app.set("io", io);
+
+// =====================================================
+// 🏠 LANDING PAGE (HOME)
+// =====================================================
+// Ahora / abre una landing bonita
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/landing.html"));
+});
+
+// =====================================================
+// 🎵 PANTALLA "VOTAR" (ANTES ERA /)
+// =====================================================
+// Si tu pantalla de votar era public/index.html, aquí la dejamos en /votar
+app.get("/votar", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
 
 // =====================================================
 // 🔐 LOGIN API
@@ -192,12 +188,7 @@ app.post("/api/admin/login", (req, res) => {
   if (!user) return res.status(401).json({ ok: false });
 
   try {
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(p),
-        Buffer.from(String(user.password))
-      )
-    ) {
+    if (!crypto.timingSafeEqual(Buffer.from(p), Buffer.from(String(user.password)))) {
       return res.status(401).json({ ok: false });
     }
   } catch {
@@ -237,6 +228,8 @@ app.get("/admin.html", requireAdmin, (req, res) => {
 // =====================================================
 // 📄 PAGES & API
 // =====================================================
+// OJO: dejamos tus rutas actuales intactas (QR, /r/:id, etc.)
+// Solo que ahora / ya lo maneja landing y /votar maneja index.html
 app.use("/", restaurantPagesRoutes);
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
 app.use("/api/r", restaurantApiRoutes);
