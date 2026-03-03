@@ -75,7 +75,9 @@ function verifySignedToken(signed) {
   const expected = crypto.createHmac("sha256", ADMIN_SECRET).update(token).digest("hex");
 
   try {
-    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+      return null;
+    }
   } catch {
     return null;
   }
@@ -163,17 +165,8 @@ app.set("io", io);
 // =====================================================
 // 🏠 LANDING PAGE (HOME)
 // =====================================================
-// Ahora / abre una landing bonita
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/landing.html"));
-});
-
-// =====================================================
-// 🎵 PANTALLA "VOTAR" (ANTES ERA /)
-// =====================================================
-// Si tu pantalla de votar era public/index.html, aquí la dejamos en /votar
-app.get("/votar", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
 // =====================================================
@@ -228,8 +221,6 @@ app.get("/admin.html", requireAdmin, (req, res) => {
 // =====================================================
 // 📄 PAGES & API
 // =====================================================
-// OJO: dejamos tus rutas actuales intactas (QR, /r/:id, etc.)
-// Solo que ahora / ya lo maneja landing y /votar maneja index.html
 app.use("/", restaurantPagesRoutes);
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
 app.use("/api/r", restaurantApiRoutes);

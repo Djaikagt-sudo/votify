@@ -8,6 +8,9 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// =====================================================
+// 🎵 VOTAR POR QR (requiere room)
+// =====================================================
 router.get("/r/:room", (req, res) => {
   const { room } = req.params;
   const restaurant = getRestaurant(room);
@@ -19,6 +22,9 @@ router.get("/r/:room", (req, res) => {
   return res.sendFile(path.join(__dirname, "../../public/index.html"));
 });
 
+// =====================================================
+// 📺 TV POR ROOM
+// =====================================================
 router.get("/tv/:room", (req, res) => {
   const { room } = req.params;
   const restaurant = getRestaurant(room);
@@ -30,6 +36,16 @@ router.get("/tv/:room", (req, res) => {
   return res.sendFile(path.join(__dirname, "../../public/tv.html"));
 });
 
+// =====================================================
+// 🎵 DEMO VOTAR SIN ROOM (opcional)
+// =====================================================
+router.get("/votar", (req, res) => {
+  return res.sendFile(path.join(__dirname, "../../public/index.html"));
+});
+
+// =====================================================
+// 🔐 LOGIN
+// =====================================================
 router.get("/login", (req, res) => {
   return res.sendFile(path.join(__dirname, "../../public/login.html"));
 });
