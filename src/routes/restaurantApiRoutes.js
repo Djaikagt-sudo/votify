@@ -24,25 +24,32 @@ router.get("/:room/state", (req, res) => {
 router.post("/:room/vote/:songId", (req, res) => {
   const { room, songId } = req.params;
 
-  // ✅ por si tu store usa ids numéricos
-  const parsedSongId = Number.isNaN(Number(songId)) ? songId : Number(songId);
+  const deviceId =
+    req.headers["x-device-id"] ||
+    req.headers["x-votify-device"] ||
+    req.body?.deviceId ||
+    "";
 
-  const restaurant = voteSong(room, parsedSongId);
+  const result = voteSong(room, songId, deviceId);
 
-  if (!restaurant) {
+  if (!result || !result.restaurant) {
     return res.status(404).json({ ok: false, error: "Restaurante no existe" });
   }
 
-  // ✅ CLAVE: emitir actualización a todos en esa sala
+  if (result.status !== 200) {
+    return res.status(result.status).json({ ok: false, error: result.error || "No se pudo votar" });
+  }
+
+  // emitir actualización a todos en esa sala
   const io = req.app.get("io");
   if (io) {
     io.to(room).emit("votes:update", {
       room,
-      songs: restaurant.songs,
+      songs: result.restaurant.songs,
     });
   }
 
-  return res.json({ ok: true, songs: restaurant.songs });
+  return res.json({ ok: true, songs: result.restaurant.songs });
 });
 
 export default router;

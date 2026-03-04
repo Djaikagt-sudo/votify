@@ -167,9 +167,9 @@ export const library = {
     { artist:"Banda MS", title:"Cuál Adiós", youtubeId:"HgY21fIPkSk"},
     { artist:"Julion Alvarez", title:"Cero Empatía", youtubeId:"3rev122nSSo" },
     { artist:"Grupo Firme, Luis Alfonso Partida", title:"Que Te Quieran Bonito", youtubeId:"FC1TFZvGQRE" },
-    { artist:"Banda MS", title:"Cuál Adiós", youtubeId:"HgY21fIPkSk"},
-    { artist:"Julion Alvarez", title:"Cero Empatía", youtubeId:"3rev122nSSo" },
-    { artist:"Grupo Firme, Luis Alfonso Partida", title:"Que Te Quieran Bonito", youtubeId:"qtlb5xu1XBw" }
+    { artist:"Lenin Ramírez, Fuerza Regida", title:"Se Acabó", youtubeId:"4fCiOy6XtKA"},
+    { artist:"Julion Alvarez", title:"La Sonrisa Obligatoria", youtubeId:"OJZksSlIeeI" },
+    { artist:"La Receta", title:"Lo Que Hay X Aquí", youtubeId:"xTdQKbhACDQ" }
 
   ],
 
