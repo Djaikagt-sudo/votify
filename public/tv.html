@@ -59,6 +59,22 @@
     .dot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 4px rgba(255,59,59,.12)}
     .dot.ok{background:var(--good);box-shadow:0 0 0 4px rgba(46,229,157,.12)}
 
+    /* ✅ Barra progreso morada (TV) */
+    .progBar{
+      height:10px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;
+      overflow:hidden;
+      max-width:520px;
+    }
+    .progFill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width .35s linear;
+    }
+
     .rightTop{
       display:flex;
       flex-direction:column;
@@ -138,13 +154,11 @@
     }
     .btnCorner:hover{ filter: brightness(1.05); }
 
-    /* botón iniciar (lado izquierdo) */
     .btnStart{
       left:12px;
       right:auto;
     }
 
-    /* ✅ LOGO MÁS GRANDE */
     .logoCorner{
       position:absolute;
       left:12px;
@@ -162,7 +176,6 @@
     }
     .logoCorner img{width:100%;height:100%;object-fit:contain;padding:10px}
 
-    /* ✅ QR MÁS GRANDE + TEXTO */
     .qrTop{
       display:flex;
       gap:14px;
@@ -223,6 +236,7 @@
       background:rgba(10,11,18,.35);
       margin-bottom:10px;
     }
+    .row.blocked{ opacity:.72; }
     .leftRow{display:flex;gap:10px;align-items:center;min-width:0}
     .pos{
       width:28px;height:28px;border-radius:10px;
@@ -245,6 +259,7 @@
       padding:7px 10px;
       border-radius:999px;
       flex:0 0 auto;
+      text-align:right;
     }
 
     .toast{
@@ -280,6 +295,9 @@
         <div class="pill"><span>Modo: no repetir</span></div>
         <div class="pill"><span class="dot" id="dot"></span><span id="statusText">Conectando…</span></div>
       </div>
+
+      <!-- ✅ Barra progreso -->
+      <div class="progBar"><div class="progFill" id="tvFill"></div></div>
     </div>
 
     <div class="rightTop">
@@ -298,10 +316,7 @@
       <div class="playerWrap">
         <div id="player"></div>
 
-        <!-- ✅ Botón iniciar (para TVs que bloquean autoplay) -->
         <button class="btnCorner btnStart" id="startBtn" style="display:none">▶ Iniciar reproducción</button>
-
-        <!-- ✅ Botón sonido -->
         <button class="btnCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>
 
         <div class="logoCorner" title="Votify">
@@ -316,7 +331,6 @@
         <div class="sub">En vivo</div>
       </div>
 
-      <!-- ✅ QR ARRIBA DEL TOP + TEXTO -->
       <div class="qrTop">
         <img id="qrImg" alt="QR Votify">
         <div class="qrText">
@@ -335,7 +349,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // ===== Helpers =====
     function escapeHtml(str){
       return String(str)
         .replaceAll("&","&amp;")
@@ -352,7 +365,6 @@
       showToast._tm = setTimeout(()=> t.style.display = "none", 2800);
     }
 
-    // ✅ ID o URL → ID
     function normalizeYouTubeId(input){
       if(input == null) return null;
       const s = String(input).trim();
@@ -371,7 +383,6 @@
       }
     }
 
-    // ===== Room + Link =====
     const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
     const origin = location.origin;
     const voteUrl = `${origin}/r/${room}`;
@@ -379,11 +390,9 @@
     document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
     document.getElementById("qrLinkText").textContent = voteUrl;
 
-    // ===== Estado canciones =====
     let currentSongs = [];
     let playedSet = new Set();
 
-    // ===== Player =====
     let player = null;
     let __skipLock = false;
     let __resetOnNext = false;
@@ -391,17 +400,54 @@
     let __consecutiveFails = 0;
     const MAX_CONSECUTIVE_FAILS = 6;
 
+    // ✅ progreso TV
+    let tvStartedAt = 0;
+    let tvDurationSec = 0;
+    let tvTick = null;
+    function startTvTick(){
+      clearInterval(tvTick);
+      tvTick = setInterval(() => {
+        if(!tvStartedAt || !tvDurationSec) return;
+        const elapsed = (Date.now() - tvStartedAt) / 1000;
+        const pct = Math.max(0, Math.min(100, (elapsed / tvDurationSec) * 100));
+        const fill = document.getElementById("tvFill");
+        if(fill) fill.style.width = pct + "%";
+      }, 350);
+    }
+    function resetTvBar(){
+      const fill = document.getElementById("tvFill");
+      if(fill) fill.style.width = "0%";
+    }
+
     const startBtn = document.getElementById("startBtn");
     const soundBtn = document.getElementById("soundBtn");
 
+    // ✅ id actual
+    let lastPlayedId = null;
+
     function pickNextSong(){
       if(!currentSongs.length) return null;
-      const sorted = [...currentSongs].sort((a,b)=> (b.votes||0)-(a.votes||0));
+
+      // ✅ bloqueadas al final; luego por votos
+      const sorted = [...currentSongs].sort((a,b)=>{
+        const ab = a?.blocked ? 1 : 0;
+        const bb = b?.blocked ? 1 : 0;
+        if(ab !== bb) return ab - bb;
+        return (b.votes||0)-(a.votes||0);
+      });
+
       for(const s of sorted){
+        if(s.blocked) continue;
         if(!playedSet.has(s.id)) return s;
       }
+
       playedSet.clear();
-      return sorted[0];
+
+      for(const s of sorted){
+        if(s.blocked) continue;
+        return s;
+      }
+      return null;
     }
 
     function renderRanking(songs){
@@ -410,19 +456,30 @@
         container.innerHTML = `<div style="padding:12px;color:rgba(255,255,255,.7)">Sin canciones.</div>`;
         return;
       }
-      const sorted = [...songs].sort((a,b)=> (b.votes||0)-(a.votes||0));
-      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>`
-        <div class="row">
-          <div class="leftRow">
-            <div class="pos">${idx+1}</div>
-            <div class="song">
-              <b>${escapeHtml(s.title || "—")}</b>
-              <span>${escapeHtml(s.artist || "")}</span>
+
+      // ✅ bloqueadas al final; luego por votos
+      const sorted = [...songs].sort((a,b)=>{
+        const ab = a?.blocked ? 1 : 0;
+        const bb = b?.blocked ? 1 : 0;
+        if(ab !== bb) return ab - bb;
+        return (b.votes||0)-(a.votes||0);
+      });
+
+      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>{
+        const note = s.blocked ? `⛔ ${escapeHtml(s.blockReason || "PENDIENTE DE LINK CORRECTO")}` : "";
+        return `
+          <div class="row ${s.blocked ? "blocked":""}">
+            <div class="leftRow">
+              <div class="pos">${idx+1}</div>
+              <div class="song">
+                <b>${escapeHtml(s.title || "—")}</b>
+                <span>${escapeHtml(s.artist || "")}${note ? " • " + note : ""}</span>
+              </div>
             </div>
+            <div class="votes">${(s.votes||0)} votos</div>
           </div>
-          <div class="votes">${(s.votes||0)} votos</div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     function setQrFromState(data){
@@ -513,6 +570,8 @@
       lastPlayedId = song.id;
       playedSet.add(song.id);
 
+      resetTvBar();
+
       document.getElementById("nowTitle").textContent =
         `${song.title}${song.artist ? " — " + song.artist : ""}`;
 
@@ -527,21 +586,38 @@
     }
 
     function onPlayerStateChange(e){
-      // Cuando empieza a reproducir
       if(e.data === YT.PlayerState.PLAYING){
         __consecutiveFails = 0;
+
+        // ✅ emitir progreso a todos (TV + votar)
+        try{
+          const dur = Number(player.getDuration?.() || 0) || 0;
+          tvDurationSec = dur > 0 ? dur : (tvDurationSec || 0);
+          tvStartedAt = Date.now();
+
+          socket?.emit?.("song:start", {
+            room,
+            songId: lastPlayedId,
+            startedAt: tvStartedAt,
+            durationSec: tvDurationSec || 0
+          });
+
+          startTvTick();
+        }catch(_){}
+
         return;
       }
 
-      // Cuando termina realmente
       if(e.data === YT.PlayerState.ENDED){
+        // ✅ manda al fondo + cooldown + reset votos
+        try{
+          socket?.emit?.("song:ended", { room, songId: lastPlayedId });
+        }catch(_){}
+
         const next = pickNextSong();
         if(next) playSong(next);
         return;
       }
-
-      // IGNORAMOS UNSTARTED COMPLETAMENTE
-      // Porque YouTube lo usa como estado interno normal
     }
 
     startBtn.addEventListener("click", () => {
@@ -585,19 +661,26 @@
           },
           events: {
             onReady: () => {
-              // ✅ Importante: SOLO mute aquí. NO playVideo todavía.
-              // El play lo hace playSong() cuando cargamos un video real.
               try { player.mute(); } catch(_) {}
 
-              // Si usas botones:
-              if (typeof startBtn !== "undefined" && startBtn) startBtn.style.display = "block";
-              if (typeof soundBtn !== "undefined" && soundBtn) soundBtn.style.display = "block";
+              if (startBtn) startBtn.style.display = "block";
+              if (soundBtn) soundBtn.style.display = "block";
 
               resolve();
             },
             onStateChange: onPlayerStateChange,
             onError: (ev) => {
               const code = ev?.data;
+
+              // ✅ bloquear canción por link malo y mandarla al fondo
+              try{
+                socket?.emit?.("song:block", {
+                  room,
+                  songId: lastPlayedId,
+                  reason: "PENDIENTE DE LINK CORRECTO"
+                });
+              }catch(_){}
+
               __resetOnNext = true;
               skipToNext(`yt-error:${code}`);
             }
@@ -606,7 +689,6 @@
       });
     }
 
-    // ===== Socket + fallback =====
     let socket = null;
     let fallbackTimer = null;
 
