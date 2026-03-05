@@ -186,7 +186,9 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="/vendor/socket.io.min.js"></script>
+  <!-- ✅ FIX: usa el cliente oficial de socket.io que sí sirve tu server -->
+  <script src="/socket.io/socket.io.js"></script>
+
   <script>
   function escapeHtml(str){
     return String(str)
@@ -219,7 +221,6 @@
     const key = "votify_device_id";
     let id = localStorage.getItem(key);
     if(!id){
-      // uuid simple
       id = (crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2)));
       localStorage.setItem(key, id);
     }
@@ -250,37 +251,17 @@
   let nowSongId = null;
   let tick = null;
 
-  const socket = window.io({ transports:["websocket","polling"] });
-
-  socket.on("connect", () => {
-    statusPill.textContent = "Conectado ✅";
-    if (room) socket.emit("room:join", { room });
-    loadState();
-  });
-
-  socket.on("disconnect", () => {
-    statusPill.textContent = "Desconectado…";
-  });
-
-  socket.on("votes:update", (payload) => {
-    if (!payload || payload.room !== room) return;
-    songs = payload.songs || [];
-    render();
-  });
-
-  socket.on("song:update", (data) => {
-    if (!data || data.room !== room) return;
-    songStartedAt = Number(data.startedAt || 0);
-    durationSec = Number(data.durationSec || 0);
-    nowSongId = data.songId ?? null;
-
-    const s = songs.find(x => String(x.id) === String(nowSongId));
-    document.getElementById("nowPill").textContent = s
-      ? `Reproduciendo: ${s.artist} — ${s.title}`
-      : "Reproduciendo: —";
-
-    startTick();
-  });
+  // ✅ FIX: si socket falla, seguimos con polling
+  let pollTimer = null;
+  function startPolling(){
+    if(pollTimer) return;
+    pollTimer = setInterval(loadState, 2500);
+  }
+  function stopPolling(){
+    if(!pollTimer) return;
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
 
   async function loadState(){
     if (!room) {
@@ -306,7 +287,7 @@
       songs = Array.isArray(data.songs) ? data.songs : [];
       render();
     } catch (e) {
-      showToast("❌ ", "No se pudo cargar el estado");
+      // si falla, mantenemos UI pero no spameamos toast
     }
   }
 
@@ -316,6 +297,11 @@
 
     const vm = loadVoteMap();
     const now = Date.now();
+
+    if(!sorted.length){
+      listEl.innerHTML = `<div class="pill" style="justify-self:start">Sin canciones.</div>`;
+      return;
+    }
 
     sorted.forEach((song) => {
       const item = document.createElement("div");
@@ -351,7 +337,6 @@
       btn.addEventListener("click", async () => {
         btn.disabled = true;
         await vote(song.id);
-        // el server puede bloquear o marcar como votado; mantenemos disabled
         render();
       });
 
@@ -416,6 +401,49 @@
       const pct = Math.max(0, Math.min(100, (elapsed / durationSec) * 100));
       document.getElementById("fill").style.width = pct + "%";
     }, 350);
+  }
+
+  // ✅ CARGA ESTADO AL INICIO (aunque socket falle)
+  loadState();
+  startPolling();
+
+  // ===== Socket (si existe) =====
+  if (typeof window.io === "function") {
+    const socket = window.io({ transports:["websocket","polling"] });
+
+    socket.on("connect", () => {
+      statusPill.textContent = "Conectado ✅";
+      if (room) socket.emit("room:join", { room });
+      stopPolling();
+      loadState();
+    });
+
+    socket.on("disconnect", () => {
+      statusPill.textContent = "Desconectado…";
+      startPolling();
+    });
+
+    socket.on("votes:update", (payload) => {
+      if (!payload || payload.room !== room) return;
+      songs = payload.songs || [];
+      render();
+    });
+
+    socket.on("song:update", (data) => {
+      if (!data || data.room !== room) return;
+      songStartedAt = Number(data.startedAt || 0);
+      durationSec = Number(data.durationSec || 0);
+      nowSongId = data.songId ?? null;
+
+      const s = songs.find(x => String(x.id) === String(nowSongId));
+      document.getElementById("nowPill").textContent = s
+        ? `Reproduciendo: ${s.artist} — ${s.title}`
+        : "Reproduciendo: —";
+
+      startTick();
+    });
+  } else {
+    statusPill.textContent = "Sin socket (polling)";
   }
   </script>
 </body>
