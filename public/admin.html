@@ -1,272 +1,526 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Votify — Admin</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Votify Admin</title>
 
-  <link rel="icon" type="image/png" href="/icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/icon.png">
 
-  <style>
-    :root{
-      --primary:#9E1AAD;
-      --dark:#1B0426;
-      --accent:#FF14E4;
-      --txt:#fff;
-      --muted: rgba(255,255,255,.78);
-      --line: rgba(255,255,255,.10);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,Arial,sans-serif;
-      background:
-        radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
-        radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
-        linear-gradient(180deg, #120018, var(--dark));
-      color:var(--txt);
-    }
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    .card{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow: 0 18px 60px rgba(0,0,0,.30);
-    }
-    .head{
-      padding:14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      border-bottom:1px solid var(--line);
-    }
-    .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .logo{
-      width:54px;height:54px;border-radius:14px;
-      border:1px solid rgba(255,20,228,.20);
-      background: rgba(158,26,173,.12);
-      display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
-      box-shadow: 0 10px 30px rgba(158,26,173,.14);
-    }
-    .logo img{width:100%;height:100%;object-fit:contain;padding:9px}
-    h1{margin:0;font-size:18px;font-weight:900}
-    .sub{margin-top:4px;color:var(--muted);font-size:12px}
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-      padding:14px;
-    }
-    @media (max-width: 900px){
-      .grid{grid-template-columns:1fr}
-    }
+<style>
+  :root{
+    --primary:#9E1AAD;
+    --dark:#1B0426;
+    --accent:#FF14E4;
 
-    .panel{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      border-radius:16px;
-      padding:14px;
-    }
-    .panel h2{
-      margin:0 0 10px;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
-    label{
-      display:block;
-      font-size:12px;
-      color:rgba(255,255,255,.85);
-      margin:10px 0 6px;
-    }
-    input, select{
-      width:100%;
-      height:38px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.25);
-      color:#fff;
-      padding:0 12px;
-      outline:none;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
+    --bg: var(--dark);
+    --panel: rgba(27,4,38,.86);
+    --card: rgba(12,13,25,.62);
+    --line: rgba(255,255,255,.10);
+    --line2: rgba(255,255,255,.14);
+    --txt:#ffffff;
+    --muted: rgba(255,255,255,.70);
+    --muted2: rgba(255,255,255,.55);
 
-    .row{display:flex;gap:10px}
-    .row > *{flex:1}
-    .btn{
-      height:38px;
-      padding:0 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,20,228,.30);
-      background: rgba(158,26,173,.22);
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btn.secondary{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      font-weight:800;
-    }
+    --shadow: 0 18px 60px rgba(0,0,0,.45);
+    --radius: 22px;
+  }
 
-    .result{
-      margin-top:12px;
-      border-radius:16px;
-      padding:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      color:rgba(255,255,255,.9);
-      font-size:12px;
-      word-break:break-all;
-    }
-    .pill{
-      display:inline-flex;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color:rgba(255,255,255,.85);
-      font-size:12px;
-      gap:8px;
-      align-items:center;
-    }
-    .genres{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
-    }
-    .check{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      font-size:12px;
-      color:rgba(255,255,255,.9);
-    }
-    .check input{width:auto;height:auto}
-  </style>
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    color: var(--txt);
+    background:
+      radial-gradient(900px 500px at 15% 10%, rgba(158,26,173,.20), transparent 60%),
+      radial-gradient(900px 500px at 80% 80%, rgba(255,20,228,.14), transparent 60%),
+      var(--bg);
+  }
+
+  .topLoader{
+    position:fixed; top:0; left:0;
+    height:3px; width:0%;
+    z-index:9999;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    box-shadow:0 6px 18px rgba(255,20,228,.28);
+    transition: width .25s ease, opacity .35s ease;
+  }
+  .topLoader.on{ width:92%; }
+  .topLoader.done{ width:100%; opacity:0; }
+
+  .wrap{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 18px 22px;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom: 16px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width: 260px;
+  }
+  .logo{
+    width:44px;height:44px;border-radius:14px;
+    display:grid;place-items:center;
+    overflow:hidden;
+    background: rgba(158,26,173,.14);
+    border: 1px solid rgba(255,20,228,.22);
+    box-shadow: 0 10px 30px rgba(158,26,173,.18);
+  }
+  .logo img{ width:100%; height:100%; object-fit:contain; padding:7px; }
+  .brandTitle{
+    font-weight: 900;
+    letter-spacing:.2px;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+  .brandSub{
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .btn{
+    border:none;
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-weight: 900;
+    cursor:pointer;
+    color:#fff;
+    background: rgba(255,255,255,.08);
+    border:1px solid var(--line);
+    backdrop-filter: blur(10px);
+  }
+  .btn:hover{ filter: brightness(1.06); }
+
+  .btnPrimary{
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 12px 34px rgba(158,26,173,.22);
+  }
+  .btnGhost{
+    background: rgba(158,26,173,.12);
+    border: 1px solid rgba(255,20,228,.20);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 14px;
+  }
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+
+  .card{
+    background: linear-gradient(180deg, var(--panel), rgba(12,13,25,.55));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .cardHead{
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .cardTitle{
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing:.2px;
+    margin:0;
+  }
+  .cardHint{
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.4;
+  }
+  .cardBody{ padding: 16px; }
+
+  label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .input{
+    width:100%;
+    padding: 12px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line2);
+    background: rgba(10,11,18,.55);
+    color:#fff;
+    outline:none;
+    font-size: 14px;
+  }
+  .input:focus{
+    border-color: rgba(255,20,228,.40);
+    box-shadow: 0 0 0 4px rgba(255,20,228,.12);
+  }
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar .input{
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(10,11,18,.40);
+    cursor:pointer;
+    user-select:none;
+    transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+  }
+  .chip:hover{ filter: brightness(1.06); border-color: rgba(255,20,228,.22); }
+  .chip:active{ transform: scale(.99); }
+
+  .chipCheck{
+    width:18px;height:18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.20);
+    background: rgba(255,255,255,.06);
+    display:grid;
+    place-items:center;
+    flex: 0 0 auto;
+    opacity:.25;
+  }
+  .chip.on{
+    border-color: rgba(255,20,228,.28);
+    background: rgba(158,26,173,.12);
+  }
+  .chip.on .chipCheck{
+    opacity:1;
+    background: rgba(255,20,228,.20);
+    border-color: rgba(255,20,228,.32);
+  }
+  .chipText{
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing:.3px;
+    color: rgba(255,255,255,.92);
+  }
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid var(--line);
+    color: rgba(255,255,255,.86);
+    font-size: 12px;
+    white-space:nowrap;
+  }
+
+  .result{
+    margin-top: 14px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(10,11,18,.35);
+    padding: 12px;
+    display:none;
+  }
+  .resultRow{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  .k{ font-size: 11px; color: rgba(255,255,255,.65); margin-top: 6px; }
+  .link{
+    display:block;
+    margin-top: 6px;
+    color:#fff;
+    text-decoration:none;
+    font-weight: 800;
+    word-break: break-all;
+  }
+  .qr{
+    width: 150px;
+    height: 150px;
+    border-radius: 16px;
+    background:#fff;
+    padding: 10px;
+    object-fit:contain;
+  }
+
+  .appFooter{
+    margin-top: 14px;
+    color: rgba(255,255,255,.45);
+    font-size: 12px;
+    text-align:center;
+  }
+</style>
 </head>
 
 <body>
+  <div id="topLoader" class="topLoader" aria-hidden="true"></div>
+
   <div class="wrap">
-    <div class="card">
-      <div class="head">
-        <div class="brand">
-          <div class="logo"><img src="/icon.png" alt="Votify"></div>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <img src="/icon.png" alt="Votify" onerror="this.remove()">
+          <div id="fallbackV" style="font-weight:900;color:var(--accent);">V</div>
+        </div>
+        <div>
+          <div class="brandTitle">Panel Admin — Votify</div>
+          <div class="brandSub">Crear salas y seleccionar géneros de tu library.js</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="logoutBtn" class="btn btnGhost" type="button">Salir</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="cardHead">
           <div>
-            <h1>Admin</h1>
-            <div class="sub">Crear sala y administrar playlists</div>
+            <h2 class="cardTitle">Crear sala</h2>
+            <p class="cardHint">Selecciona géneros y define cuántas canciones cargar (aleatorio).</p>
           </div>
+          <span class="pill">✅ Seed automático</span>
         </div>
-        <div class="pill">Votify</div>
-      </div>
 
-      <div class="grid">
-        <div class="panel">
-          <h2>Crear sala</h2>
+        <div class="cardBody">
+          <label for="nameInput">Nombre del restaurante</label>
+          <!-- ✅ SIN "Ej. Los Cuchos" -->
+          <input id="nameInput" class="input" placeholder="NOMBRE DEL RESTAURANTE O SALA" />
 
-          <label for="restaurantName">Nombre del restaurante</label>
-          <!-- ✅ sin “Ej. Los Cuchos” -->
-          <input id="restaurantName" placeholder="NOMBRE DEL RESTAURANTE O SALA" autocomplete="off" />
-
-          <div class="row">
-            <div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div style="flex:1; min-width:220px;">
               <label for="totalSongs">Cantidad de canciones</label>
-              <!-- ✅ sin valor prellenado (no muestra 60) -->
-              <input id="totalSongs" type="number" min="5" max="400" placeholder="Ej. 60" value="" />
-            </div>
-            <div style="display:flex;align-items:flex-end;gap:10px">
-              <button class="btn" id="createBtn" style="width:100%">Crear</button>
+              <!-- ✅ SIN 60 PRELLENADO -->
+              <input id="totalSongs" class="input" type="number" min="5" max="300" placeholder="Ej. 60" value="" />
             </div>
           </div>
 
-          <label>Géneros</label>
-          <div class="genres" id="genresBox"></div>
+          <div class="toolbar">
+            <input id="genreSearch" class="input" placeholder="Buscar género…" />
+            <button id="selectAllBtn" class="btn" type="button">Seleccionar todo</button>
+            <button id="clearBtn" class="btn" type="button">Limpiar</button>
+          </div>
 
-          <div class="result" id="resultBox" style="display:none"></div>
+          <div id="chipsBox" class="chips"></div>
+
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="createBtn" class="btn btnPrimary" type="button">Crear sala</button>
+          </div>
+
+          <div id="resultBox" class="result"></div>
         </div>
+      </section>
 
-        <div class="panel">
-          <h2>Links</h2>
-          <div class="result" id="linksBox">
-            Crea una sala para ver los links.
+      <aside class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Géneros</h2>
+            <p class="cardHint">Estos deben coincidir con las llaves de tu <b>library.js</b>.</p>
           </div>
         </div>
-      </div>
+        <div class="cardBody" style="color:var(--muted); font-size:13px; line-height:1.55;">
+          <div style="padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
+            <div style="font-weight:900;color:#fff;margin-bottom:8px;">Disponibles</div>
+            <div id="genresList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          </div>
+
+          <footer class="appFooter">© <span id="yearNow"></span> Charly García — Votify</footer>
+        </div>
+      </aside>
     </div>
   </div>
 
-  <script>
-    const DEFAULT_GENRES = [
-      "REGGAETON", "BANDA", "SALSA", "CUMBIA", "POP", "ROCK", "ELECTRONICA"
-    ];
+<script>
+  document.getElementById("yearNow").textContent = new Date().getFullYear();
 
-    const genresBox = document.getElementById("genresBox");
-    const resultBox = document.getElementById("resultBox");
-    const linksBox = document.getElementById("linksBox");
+  const loader = document.getElementById("topLoader");
+  const resultBox = document.getElementById("resultBox");
+  const chipsBox = document.getElementById("chipsBox");
+  const genreSearch = document.getElementById("genreSearch");
+  const genresList = document.getElementById("genresList");
+  const totalSongsEl = document.getElementById("totalSongs");
 
-    function renderGenres(genres){
-      genresBox.innerHTML = "";
-      genres.forEach((g) => {
-        const chip = document.createElement("label");
-        chip.className = "check";
-        chip.innerHTML = `<input type="checkbox" value="${g}" checked> <span>${g}</span>`;
-        genresBox.appendChild(chip);
-      });
-    }
-    renderGenres(DEFAULT_GENRES);
+  const GENRES = [
+    { key: "reggaetonNuevo",     label: "Reggaetón Nuevo" },
+    { key: "reggaetonAntiguo",   label: "Reggaetón Antiguo" },
+    { key: "corridos",           label: "Corridos" },
+    { key: "banda",              label: "Banda" },
+    { key: "cumbia",             label: "Cumbia" },
+    { key: "salsa",              label: "Salsa" },
+    { key: "merengue",           label: "Merengue" },
+    { key: "rockEnEspanol",      label: "Rock en Español" },
+    { key: "rockGuatemalteco",   label: "Rock Guatemalteco" },
+  ];
 
-    function getSelectedGenres(){
-      return [...genresBox.querySelectorAll("input[type=checkbox]")].filter(x=>x.checked).map(x=>x.value);
-    }
+  GENRES.forEach(g=>{
+    const pill = document.createElement("span");
+    pill.className = "pill";
+    pill.textContent = g.label;
+    genresList.appendChild(pill);
+  });
 
-    document.getElementById("createBtn").addEventListener("click", async () => {
-      const name = (document.getElementById("restaurantName").value || "").trim();
-      const totalSongsRaw = (document.getElementById("totalSongs").value || "").trim();
-      const totalSongs = totalSongsRaw ? Number(totalSongsRaw) : undefined;
-      const genres = getSelectedGenres();
+  const selected = new Set();
 
-      try{
-        const res = await fetch("/api/admin/create", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ name, totalSongs, genres })
+  function checkIcon(){
+    return `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  function renderChips(filter=""){
+    const q = (filter || "").trim().toLowerCase();
+    chipsBox.innerHTML = "";
+
+    GENRES
+      .filter(g => !q || g.label.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
+      .forEach((g) => {
+        const chip = document.createElement("div");
+        chip.className = "chip" + (selected.has(g.key) ? " on" : "");
+        chip.setAttribute("data-genre", g.key);
+        chip.innerHTML = `
+          <div class="chipCheck">${checkIcon()}</div>
+          <div class="chipText">${g.label}</div>
+        `;
+
+        chip.addEventListener("click", () => {
+          if (selected.has(g.key)) selected.delete(g.key);
+          else selected.add(g.key);
+          chip.classList.toggle("on");
         });
 
-        const data = await res.json().catch(()=> ({}));
-        if(!res.ok || data.ok === false){
-          resultBox.style.display = "block";
-          resultBox.textContent = "❌ " + (data.error || "No se pudo crear la sala");
-          return;
-        }
+        chipsBox.appendChild(chip);
+      });
+  }
 
-        const id = data.id;
-        const rUrl = `${location.origin}/r/${id}`;
-        const tvUrl = `${location.origin}/tv/${id}`;
+  renderChips("");
 
-        resultBox.style.display = "block";
-        resultBox.textContent = "✅ Sala creada: " + id;
+  genreSearch.addEventListener("input", (e) => {
+    renderChips(e.target.value);
+  });
 
-        linksBox.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div><b>Cliente (votar):</b><div>${rUrl}</div></div>
-            <div><b>TV:</b><div>${tvUrl}</div></div>
-          </div>
-        `;
-      }catch(e){
-        resultBox.style.display = "block";
-        resultBox.textContent = "❌ Error de red";
+  document.getElementById("selectAllBtn").addEventListener("click", () => {
+    GENRES.forEach(g => selected.add(g.key));
+    renderChips(genreSearch.value);
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    selected.clear();
+    renderChips(genreSearch.value);
+  });
+
+  document.getElementById("createBtn").addEventListener("click", async () => {
+    const name = (document.getElementById("nameInput").value || "").trim();
+    if (!name) return alert("Escribe el nombre del restaurante");
+
+    const genres = Array.from(selected);
+    if (!genres.length) return alert("Selecciona al menos 1 género");
+
+    // ✅ si está vacío, default 40 (pero NO se muestra)
+    const raw = String(totalSongsEl.value || "").trim();
+    const totalSongs = Math.max(5, Math.min(300, Number(raw || 40)));
+
+    loader.classList.add("on");
+    try{
+      const res = await fetch("/api/restaurants", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ name, genres, totalSongs })
+      });
+
+      const data = await res.json().catch(()=> ({}));
+
+      loader.classList.remove("on");
+      loader.classList.add("done");
+      setTimeout(()=> loader.classList.remove("done"), 500);
+
+      if (res.status === 401) {
+        alert("Sesión expirada. Inicia sesión de nuevo.");
+        location.href = "/login.html";
+        return;
       }
-    });
-  </script>
+
+      if (!res.ok || data.ok === false) {
+        return alert(data?.error || "Error creando sala");
+      }
+
+      const room = data.id;
+      const base = location.origin;
+
+      const voteUrl = `${base}/r/${room}`;
+      const tvUrl   = `${base}/tv/${room}`;
+      const qrUrl   = `${base}${data.qrUrl || ""}`;
+
+      const countSongs = Array.isArray(data.songs) ? data.songs.length : 0;
+
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        <div style="font-weight:900; font-size:14px; margin-bottom:10px;">
+          ✅ Sala creada — <span style="color:rgba(255,255,255,.7)">(${countSongs} canciones cargadas)</span>
+        </div>
+        <div class="resultRow">
+          <div style="min-width:260px;">
+            <div class="k">Votar</div>
+            <a class="link" href="${voteUrl}" target="_blank" rel="noreferrer">${voteUrl}</a>
+
+            <div class="k" style="margin-top:10px;">TV</div>
+            <a class="link" href="${tvUrl}" target="_blank" rel="noreferrer">${tvUrl}</a>
+          </div>
+
+          <img class="qr" src="${qrUrl}" alt="QR" onerror="this.style.display='none'"/>
+        </div>
+      `;
+    }catch(err){
+      loader.classList.remove("on");
+      alert("No se pudo crear la sala.");
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    try { await fetch("/api/admin/logout", { method:"POST", credentials:"include", headers:{ "Content-Type":"application/json" } }); } catch(_){}
+    location.href = "/login.html";
+  });
+</script>
 </body>
 </html>

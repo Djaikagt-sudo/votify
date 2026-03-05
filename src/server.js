@@ -23,10 +23,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.set("trust proxy", true);
 
-app.use(express.static(path.join(__dirname, "../public"), { index: false }));
-app.use("/qrcodes", express.static(path.join(__dirname, "../public/qrcodes")));
-
-// LANDING
+// LANDING (antes de static, pero usa sendFile directo)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/landing.html"));
 });
@@ -112,6 +109,50 @@ function requireAdmin(req, res, next) {
   return res.redirect("/login.html");
 }
 
+// LOGIN API
+app.post("/api/admin/login", (req, res) => {
+  const { email, password } = req.body || {};
+  const e = String(email || "").toLowerCase().trim();
+  const p = String(password || "");
+
+  const user = ADMIN_USERS.find((u) => u.email.toLowerCase() === e);
+  if (!user) return res.status(401).json({ ok: false });
+
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(p), Buffer.from(String(user.password)))) {
+      return res.status(401).json({ ok: false });
+    }
+  } catch {
+    return res.status(401).json({ ok: false });
+  }
+
+  const token = crypto.randomBytes(24).toString("hex");
+  sessions.set(token, { createdAt: Date.now(), expiresAt: Date.now() + SESSION_MS, email: e });
+
+  setAuthCookie(res, signToken(token));
+  return res.json({ ok: true });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  const cookies = parseCookies(req);
+  const token = verifySignedToken(cookies.votify_admin);
+  if (token) sessions.delete(token);
+  clearAuthCookie(res);
+  return res.json({ ok: true });
+});
+
+// ✅ ADMIN PROTECTION (ANTES DE STATIC)
+app.get("/admin", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/admin.html"));
+});
+app.get("/admin.html", requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/admin.html"));
+});
+
+// ✅ STATIC DESPUÉS (para que NO se salte requireAdmin)
+app.use(express.static(path.join(__dirname, "../public"), { index: false }));
+app.use("/qrcodes", express.static(path.join(__dirname, "../public/qrcodes")));
+
 // SOCKET.IO
 const io = new Server(server, {
   cors: { origin: true, credentials: true },
@@ -148,46 +189,6 @@ io.on("connection", (socket) => {
 });
 
 app.set("io", io);
-
-// LOGIN API
-app.post("/api/admin/login", (req, res) => {
-  const { email, password } = req.body || {};
-  const e = String(email || "").toLowerCase().trim();
-  const p = String(password || "");
-
-  const user = ADMIN_USERS.find((u) => u.email.toLowerCase() === e);
-  if (!user) return res.status(401).json({ ok: false });
-
-  try {
-    if (!crypto.timingSafeEqual(Buffer.from(p), Buffer.from(String(user.password)))) {
-      return res.status(401).json({ ok: false });
-    }
-  } catch {
-    return res.status(401).json({ ok: false });
-  }
-
-  const token = crypto.randomBytes(24).toString("hex");
-  sessions.set(token, { createdAt: Date.now(), expiresAt: Date.now() + SESSION_MS, email: e });
-
-  setAuthCookie(res, signToken(token));
-  return res.json({ ok: true });
-});
-
-app.post("/api/admin/logout", (req, res) => {
-  const cookies = parseCookies(req);
-  const token = verifySignedToken(cookies.votify_admin);
-  if (token) sessions.delete(token);
-  clearAuthCookie(res);
-  return res.json({ ok: true });
-});
-
-// ADMIN PROTECTION
-app.get("/admin", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/admin.html"));
-});
-app.get("/admin.html", requireAdmin, (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/admin.html"));
-});
 
 // PAGES & API
 app.use(restaurantPagesRoutes);
