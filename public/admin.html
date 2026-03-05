@@ -94,6 +94,8 @@
       padding:0 12px;
       outline:none;
     }
+    input::placeholder{ color: rgba(255,255,255,.55); }
+
     .row{display:flex;gap:10px}
     .row > *{flex:1}
     .btn{
@@ -172,14 +174,15 @@
         <div class="panel">
           <h2>Crear sala</h2>
 
-          <label for="restaurantName">Nombre</label>
-          <!-- ✅ CAMBIO: placeholder sin ejemplo -->
+          <label for="restaurantName">Nombre del restaurante</label>
+          <!-- ✅ sin “Ej. Los Cuchos” -->
           <input id="restaurantName" placeholder="NOMBRE DEL RESTAURANTE O SALA" autocomplete="off" />
 
           <div class="row">
             <div>
-              <label for="totalSongs">Total canciones</label>
-              <input id="totalSongs" type="number" min="5" max="400" value="40" />
+              <label for="totalSongs">Cantidad de canciones</label>
+              <!-- ✅ sin valor prellenado (no muestra 60) -->
+              <input id="totalSongs" type="number" min="5" max="400" placeholder="Ej. 60" value="" />
             </div>
             <div style="display:flex;align-items:flex-end;gap:10px">
               <button class="btn" id="createBtn" style="width:100%">Crear</button>
@@ -203,8 +206,6 @@
   </div>
 
   <script>
-    // ====== CONFIG (ajusta si tu app usa otra lista) ======
-    // Si ya traes géneros desde library.js en tu versión, puedes reemplazar esta lista.
     const DEFAULT_GENRES = [
       "REGGAETON", "BANDA", "SALSA", "CUMBIA", "POP", "ROCK", "ELECTRONICA"
     ];
@@ -230,7 +231,8 @@
 
     document.getElementById("createBtn").addEventListener("click", async () => {
       const name = (document.getElementById("restaurantName").value || "").trim();
-      const totalSongs = Number(document.getElementById("totalSongs").value || 40);
+      const totalSongsRaw = (document.getElementById("totalSongs").value || "").trim();
+      const totalSongs = totalSongsRaw ? Number(totalSongsRaw) : undefined;
       const genres = getSelectedGenres();
 
       try{
