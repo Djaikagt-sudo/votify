@@ -278,6 +278,26 @@
       box-shadow:0 16px 60px rgba(0,0,0,.35);
     }
 
+    /* ✅ Toast "quién votó" (arriba) */
+    #voteToast{
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.16);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 14px;
+      backdrop-filter: blur(12px);
+      display:none;
+      z-index: 9999;
+      font-weight: 900;
+      max-width: 70vw;
+      text-align:center;
+      box-shadow:0 16px 60px rgba(0,0,0,.35);
+    }
+
     @media (max-width: 760px){
       .layout{flex-direction:column; height:auto;}
       .layout > .card:last-child{min-width:0}
@@ -344,6 +364,9 @@
       <div class="rankBody" id="ranking"></div>
     </div>
   </div>
+
+  <!-- ✅ Toast de voto (arriba) -->
+  <div id="voteToast"></div>
 
   <div class="toast" id="toast"></div>
 
@@ -717,6 +740,18 @@
       fallbackTimer = null;
     }
 
+    // ✅ Toast "quién votó"
+    const voteToastEl = document.getElementById("voteToast");
+    function showVoteToast(text){
+      if(!voteToastEl) return;
+      voteToastEl.textContent = text;
+      voteToastEl.style.display = "block";
+      clearTimeout(showVoteToast._t);
+      showVoteToast._t = setTimeout(() => {
+        voteToastEl.style.display = "none";
+      }, 2500);
+    }
+
     function initSocket(){
       if(typeof window.io !== "function"){
         setConnectedUI(false);
@@ -744,6 +779,15 @@
           currentSongs = songs;
           renderRanking(currentSongs);
         }
+      });
+
+      // ✅ AQUÍ VA: escuchar el evento del backend con el nombre
+      socket.on("vote:toast", (p) => {
+        if(!p) return;
+        const name = p.name || "Alguien";
+        const title = p.songTitle || "una canción";
+        const artist = p.songArtist ? ` — ${p.songArtist}` : "";
+        showVoteToast(`🎉 ${name} votó por ${title}${artist}`);
       });
     }
 
