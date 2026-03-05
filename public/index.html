@@ -1,419 +1,316 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Votify — Votar</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Votify — Votar</title>
 
-<link rel="icon" type="image/png" href="/icon.png">
+  <link rel="icon" type="image/png" href="/icon.png" />
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="/vendor/socket.io.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-<style>
-
-:root{
---primary:#9E1AAD;
---accent:#FF14E4;
---dark:#1B0426;
---line:rgba(255,255,255,.10);
---muted:rgba(255,255,255,.75);
-}
-
-*{box-sizing:border-box}
-
-body{
-margin:0;
-font-family:Inter,system-ui;
-background:
-radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
-radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
-linear-gradient(180deg,#120018,#1B0426);
-color:#fff;
-}
-
-.wrap{
-max-width:980px;
-margin:auto;
-padding:16px;
-}
-
-.card{
-background:rgba(255,255,255,.04);
-border:1px solid var(--line);
-border-radius:18px;
-overflow:hidden;
-box-shadow:0 18px 60px rgba(0,0,0,.35);
-}
-
-.head{
-padding:14px;
-display:flex;
-justify-content:space-between;
-flex-wrap:wrap;
-gap:12px;
-border-bottom:1px solid var(--line);
-}
-
-.titleRow{
-display:flex;
-align-items:center;
-gap:10px;
-}
-
-.logoMark{
-width:56px;
-height:56px;
-border-radius:14px;
-background:rgba(158,26,173,.14);
-display:grid;
-place-items:center;
-}
-
-.logoMark img{
-width:100%;
-height:100%;
-object-fit:contain;
-padding:9px;
-}
-
-h1{
-margin:0;
-font-size:18px;
-font-weight:800;
-}
-
-.muted{
-font-size:12px;
-color:var(--muted);
-}
-
-.controls{
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-align-items:center;
-}
-
-.pill{
-border:1px solid var(--line);
-padding:6px 10px;
-border-radius:999px;
-font-size:12px;
-}
-
-input{
-height:34px;
-border-radius:10px;
-border:1px solid rgba(255,255,255,.12);
-background:rgba(0,0,0,.25);
-color:#fff;
-padding:0 10px;
-}
-
-.now{
-padding:12px;
-border-bottom:1px solid var(--line);
-}
-
-.bar{
-margin-top:8px;
-height:10px;
-border-radius:999px;
-background:rgba(255,255,255,.06);
-overflow:hidden;
-}
-
-.fill{
-height:100%;
-width:0%;
-background:linear-gradient(90deg,var(--primary),var(--accent));
-}
-
-.list{
-padding:14px;
-display:grid;
-gap:10px;
-}
-
-.item{
-border:1px solid rgba(255,255,255,.10);
-border-radius:14px;
-padding:12px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-flex-wrap:wrap;
-background:rgba(0,0,0,.25);
-}
-
-.item.blocked{
-opacity:.6;
-}
-
-.meta{
-flex:1 1 220px;
-}
-
-.meta b{
-font-size:14px;
-}
-
-.meta small{
-display:block;
-font-size:12px;
-color:var(--muted);
-}
-
-.right{
-display:flex;
-gap:8px;
-align-items:center;
-}
-
-.badge{
-font-size:12px;
-padding:6px 10px;
-border-radius:999px;
-background:rgba(255,255,255,.06);
-}
-
-button{
-height:34px;
-padding:0 14px;
-border-radius:10px;
-border:1px solid rgba(255,20,228,.35);
-background:rgba(158,26,173,.25);
-color:#fff;
-font-weight:700;
-cursor:pointer;
-}
-
-button:disabled{
-opacity:.5;
-cursor:not-allowed;
-}
-
-.toast{
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-background:#000;
-border:1px solid rgba(255,255,255,.20);
-padding:10px 14px;
-border-radius:14px;
-display:none;
-}
-
-@media(max-width:640px){
-
-.right{
-width:100%;
-justify-content:flex-end;
-}
-
-button{
-flex:1;
-}
-
-}
-
-</style>
+  <style>
+    :root{
+      --primary:#9E1AAD;
+      --dark:#1B0426;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.7);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--text);
+      background: radial-gradient(1200px 700px at 30% 0%, rgba(158,26,173,.35), transparent 60%),
+                  linear-gradient(180deg, #12001d, #0b0012);
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .wrap{
+      width:min(980px, 100%);
+      margin:0 auto;
+      padding:22px 16px 70px;
+      flex:1;
+    }
+    .top{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:18px;
+      backdrop-filter: blur(12px);
+    }
+    .brand{
+      display:flex; gap:10px; align-items:center;
+      font-weight:800;
+    }
+    .brand .dot{
+      width:34px;height:34px;border-radius:12px;
+      background:linear-gradient(135deg,#b833ff,#7b2cff);
+      display:grid;place-items:center;
+      font-weight:900;
+    }
+    .status{
+      display:flex; gap:10px; align-items:center;
+      font-size:13px; color:var(--muted);
+    }
+    .pill{
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      padding:8px 10px;
+      border-radius:12px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    .now{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:18px;
+      padding:14px 16px;
+    }
+    .now h3{margin:0 0 8px 0; font-size:14px; color:var(--muted); font-weight:700;}
+    .now .line{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.18);
+    }
+    .nameInput{
+      width:220px;
+      max-width:48vw;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+    }
+    .list{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:18px;
+      overflow:hidden;
+    }
+    .listHeader{
+      padding:12px 16px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; align-items:center; justify-content:space-between;
+      color:var(--muted);
+      font-weight:700;
+      font-size:13px;
+    }
+    .song{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 16px;
+      border-top:1px solid rgba(255,255,255,.08);
+      align-items:center;
+    }
+    .song:first-child{border-top:none}
+    .song .meta{min-width:0}
+    .song .title{font-weight:800}
+    .song .artist{font-size:12px;color:var(--muted);margin-top:2px}
+    .voteBtn{
+      border:none;
+      border-radius:14px;
+      padding:10px 14px;
+      background:linear-gradient(135deg,#b833ff,#7b2cff);
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .voteBtn:disabled{opacity:.55; cursor:not-allowed}
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:78px;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.16);
+      color:white;
+      padding:10px 14px;
+      border-radius:14px;
+      backdrop-filter: blur(12px);
+      display:none;
+      font-weight:700;
+      z-index:50;
+    }
+    footer{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.28);
+      border-top:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      padding:10px 14px;
+      color:rgba(255,255,255,.7);
+      font-size:12px;
+      text-align:center;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="wrap">
-
-<div class="card">
-
-<div class="head">
-
-<div class="titleRow">
-<div class="logoMark"><img src="/icon.png"></div>
-<div>
-<h1 id="title">Votify</h1>
-<div class="muted">Vota por tu canción favorita</div>
-</div>
-</div>
-
-<div class="controls">
-<div class="pill" id="status">Conectando…</div>
-<input id="name" placeholder="Tu nombre (opcional)">
-</div>
-
-</div>
-
-<div class="now">
-<b id="nowTitle">Reproduciendo: —</b>
-<div class="bar">
-<div class="fill" id="fill"></div>
-</div>
-</div>
-
-<div class="list" id="list"></div>
-
-</div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script src="/socket.io/socket.io.js"></script>
-
-<script>
-
-const room = location.pathname.split("/r/")[1];
-
-let songs=[];
-let startedAt=0;
-let duration=0;
-
-const fill=document.getElementById("fill");
-const list=document.getElementById("list");
-
-function toast(t){
-const el=document.getElementById("toast");
-el.textContent=t;
-el.style.display="block";
-setTimeout(()=>el.style.display="none",2500);
-}
-
-function render(){
-
-list.innerHTML="";
-
-const sorted=[...songs].sort((a,b)=>{
-const ab=a.blocked?1:0;
-const bb=b.blocked?1:0;
-if(ab!==bb)return ab-bb;
-return b.votes-a.votes;
-});
-
-sorted.forEach(song=>{
-
-const el=document.createElement("div");
-el.className="item"+(song.blocked?" blocked":"");
-
-let subtitle=song.artist||"";
-
-if(song.blocked)
-subtitle="⛔ PENDIENTE DE LINK CORRECTO";
-
-el.innerHTML=`
-<div class="meta">
-<b>${song.title}</b>
-<small>${subtitle}</small>
-</div>
-
-<div class="right">
-<div class="badge">${song.votes} votos</div>
-<button ${song.blocked?"disabled":""}>Votar</button>
-</div>
-`;
-
-const btn=el.querySelector("button");
-
-btn.onclick=async()=>{
-
-const r=await fetch(`/api/r/${room}/vote/${song.id}`,{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-"x-device-id":localStorage.deviceId||crypto.randomUUID()
-}
-});
-
-if(!r.ok){
-toast("No se pudo votar");
-return;
-}
-
-song.votes++;
-
-render();
-};
-
-list.appendChild(el);
-
-});
-
-}
-
-async function load(){
-
-const r=await fetch(`/api/r/${room}/state`);
-const d=await r.json();
-
-songs=d.songs||[];
-
-render();
-
-}
-
-function startBar(){
-
-setInterval(()=>{
-
-if(!startedAt||!duration)return;
-
-const elapsed=(Date.now()-startedAt)/1000;
-
-const pct=Math.min(100,(elapsed/duration)*100);
-
-fill.style.width=pct+"%";
-
-},300);
-
-}
-
-const socket=io();
-
-socket.on("connect",()=>{
-document.getElementById("status").textContent="Conectado ✅";
-socket.emit("room:join",{room});
-});
-
-socket.on("votes:update",data=>{
-if(data.room!==room)return;
-songs=data.songs;
-render();
-});
-
-socket.on("song:update",data=>{
-if(data.room!==room)return;
-
-startedAt=data.startedAt;
-duration=data.durationSec;
-
-localStorage.lastNow=JSON.stringify(data);
-
-startBar();
-});
-
-(async()=>{
-
-await load();
-
-const last=localStorage.lastNow;
-
-if(last){
-
-const data=JSON.parse(last);
-
-startedAt=data.startedAt;
-duration=data.durationSec;
-
-startBar();
-
-}
-
-})();
-
-</script>
-
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="dot">V</div>
+        <div>
+          <div>Votify</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.68);font-weight:600;">Vota por tu canción favorita</div>
+        </div>
+      </div>
+
+      <div class="status">
+        <div class="pill" id="connPill">Conectando…</div>
+        <input class="nameInput" id="nameInput" placeholder="Tu nombre (opcional)" maxlength="24" />
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="now">
+        <h3>Reproduciendo:</h3>
+        <div class="line">
+          <div id="nowText">—</div>
+        </div>
+      </div>
+
+      <div class="list">
+        <div class="listHeader">
+          <div>Canciones</div>
+          <div>Votar</div>
+        </div>
+        <div id="songs"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer>
+    © Votify. Los derechos de autor pertenecen a sus respectivos dueños. Votify no aloja contenido; reproduce videos de YouTube mediante su API/enlace público.
+  </footer>
+
+  <script>
+    const room = location.pathname.split("/").pop();
+    const API_BASE = `/api/r/${room}`;
+    const songsEl = document.getElementById("songs");
+    const nowText = document.getElementById("nowText");
+    const connPill = document.getElementById("connPill");
+    const nameInput = document.getElementById("nameInput");
+    const toast = document.getElementById("toast");
+
+    // device id estable
+    const DEVICE_KEY = "votify_device_id";
+    let deviceId = localStorage.getItem(DEVICE_KEY);
+    if(!deviceId){
+      deviceId = crypto.randomUUID();
+      localStorage.setItem(DEVICE_KEY, deviceId);
+    }
+
+    // guardar nombre local
+    const NAME_KEY = "votify_name";
+    nameInput.value = localStorage.getItem(NAME_KEY) || "";
+    nameInput.addEventListener("input", () => {
+      localStorage.setItem(NAME_KEY, nameInput.value.trim().slice(0,24));
+    });
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.style.display = "none", 2200);
+    }
+
+    function esc(s){
+      return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function renderSongs(songs){
+      songsEl.innerHTML = "";
+      songs.forEach((s) => {
+        const row = document.createElement("div");
+        row.className = "song";
+        row.innerHTML = `
+          <div class="meta">
+            <div class="title">${esc(s.title || "Sin título")}</div>
+            <div class="artist">${esc(s.artist || "")}</div>
+          </div>
+          <button class="voteBtn">Votar</button>
+        `;
+        const btn = row.querySelector("button");
+        btn.onclick = async () => {
+          btn.disabled = true;
+          try{
+            const name = (localStorage.getItem(NAME_KEY) || "").trim().slice(0,24);
+
+            const r = await fetch(`${API_BASE}/vote/${encodeURIComponent(s.id)}`, {
+              method:"POST",
+              headers:{
+                "Content-Type":"application/json",
+                "x-device-id": deviceId
+              },
+              body: JSON.stringify({ deviceId, name })
+            });
+
+            const data = await r.json().catch(() => ({}));
+            if(!r.ok || !data.ok){
+              showToast(data.error || "No se pudo votar");
+              btn.disabled = false;
+              return;
+            }
+            showToast("✅ Voto enviado");
+          }catch(e){
+            showToast("Error de red");
+            btn.disabled = false;
+          }
+        };
+        songsEl.appendChild(row);
+      });
+    }
+
+    async function loadState(){
+      const r = await fetch(`${API_BASE}/state`);
+      const data = await r.json();
+      if(!data.ok) throw new Error(data.error || "Error");
+      renderSongs(data.songs || []);
+      return data;
+    }
+
+    // socket
+    const socket = io({ transports:["websocket","polling"] });
+    socket.on("connect", () => {
+      connPill.textContent = "Conectado ✅";
+      socket.emit("room:join", { room });
+    });
+    socket.on("disconnect", () => {
+      connPill.textContent = "Reconectando…";
+    });
+
+    socket.on("votes:update", ({ songs }) => {
+      if(Array.isArray(songs)) renderSongs(songs);
+    });
+
+    socket.on("song:update", ({ songId }) => {
+      // opcional: podrías buscar el título en la lista, aquí solo mostramos id
+      // mejor: el tv.html puede enviar title/artist, pero no lo tocamos ahorita
+    });
+
+    // primer load
+    loadState().catch(err => showToast(err.message));
+  </script>
 </body>
 </html>

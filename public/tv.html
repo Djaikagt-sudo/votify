@@ -1,229 +1,266 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Votify — TV</title>
 
-  <link rel="icon" type="image/png" href="/icon.png">
-
+  <link rel="icon" type="image/png" href="/icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <script src="/vendor/socket.io.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     :root{
       --primary:#9E1AAD;
-      --dark:#1B0426;
-      --accent:#FF14E4;
-
-      --bg: var(--dark);
-      --txt:#fff;
-
-      --good:#2ee59d;
-      --bad:#ff3b3b;
+      --primary2:#7b2cff;
+      --bg0:#0b0012;
+      --bg1:#12001d;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.7);
+      --good:#34d399;
+      --bad:#ff4d6d;
     }
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family:Inter,system-ui,Arial,sans-serif;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
       background:
-        radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
-        radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
-        linear-gradient(180deg, #120018, var(--bg));
-      color:var(--txt);
-    }
-
-    .topbar{
-      padding:18px 22px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-    }
-    .leftTop{display:flex;flex-direction:column;gap:8px}
-    .title{font-size:22px;font-weight:800;letter-spacing:.2px}
-    .pills{display:flex;gap:10px;flex-wrap:wrap}
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      color:rgba(255,255,255,.88);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 4px rgba(255,59,59,.12)}
-    .dot.ok{background:var(--good);box-shadow:0 0 0 4px rgba(46,229,157,.12)}
-
-    /* ✅ Barra progreso morada (TV) */
-    .progBar{
-      height:10px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:999px;
+        radial-gradient(1200px 700px at 30% 0%, rgba(158,26,173,.35), transparent 60%),
+        radial-gradient(900px 600px at 90% 30%, rgba(123,44,255,.25), transparent 60%),
+        linear-gradient(180deg,var(--bg1),var(--bg0));
       overflow:hidden;
-      max-width:520px;
     }
-    .progFill{
+
+    .wrap{
       height:100%;
-      width:0%;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width .35s linear;
+      display:grid;
+      grid-template-columns: 1.55fr .95fr;
+      gap:16px;
+      padding:16px;
+    }
+
+    .left, .right{
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:var(--card);
+      backdrop-filter: blur(14px);
+    }
+
+    .title{
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:.2px;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .subtitle{
+      margin-top:4px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .metaRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-weight:800;
+      font-size:13px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:99px;
+      background:rgba(255,255,255,.35);
+    }
+    .dot.good{background:var(--good)}
+    .dot.bad{background:var(--bad)}
+
+    .playerCard{
+      flex:1;
+      min-height:0;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .playerTop{
+      position:absolute;
+      left:12px;
+      top:12px;
+      display:flex;
+      gap:10px;
+      z-index:5;
+    }
+
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:10px 14px;
+      font-weight:900;
+      cursor:pointer;
+      color:white;
+      background:linear-gradient(135deg,#b833ff,#7b2cff);
+      box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    }
+    .btn.secondary{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.18);
+      color:white;
+    }
+    .btn:active{transform:translateY(1px)}
+
+    #player{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+    }
+
+    .hint{
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:5;
+      font-size:12px;
+      color:rgba(255,255,255,.7);
+      padding:8px 10px;
+      border-radius:12px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
     }
 
     .rightTop{
       display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:10px;
-      min-width:240px;
-    }
-    #restaurantName{
-      font-weight:900;
-      letter-spacing:.6px;
-      font-size:22px;
-      text-transform:uppercase;
-      color:#fff;
-      text-shadow:0 12px 40px rgba(158,26,173,.20);
-    }
-
-    .layout{
-      display:flex;
-      gap:18px;
-      padding:0 18px 18px 18px;
-      height: calc(100vh - 92px);
-      align-items: stretch;
-    }
-    .layout > .card:first-child{ flex: 2; min-width: 0; }
-    .layout > .card:last-child{ flex: 1; min-width: 340px; }
-
-    .card{
-      background:linear-gradient(180deg, rgba(27,4,38,.88), rgba(12,13,25,.65));
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:0 18px 60px rgba(0,0,0,.35);
-      display:flex;
-      flex-direction:column;
-      min-height:0;
-    }
-    .cardHead{
-      padding:14px 14px 12px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      padding:12px 14px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:var(--card);
+      backdrop-filter: blur(14px);
     }
-    .cardHead h2{
-      margin:0;
-      font-size:14px;
-      font-weight:800;
-      letter-spacing:.2px;
-      color:rgba(255,255,255,.92);
+    .brand{
+      font-weight:1000;
+      letter-spacing:.6px;
+      font-size:24px;
+      background:linear-gradient(90deg,#d9a3ff,var(--primary2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .sub{font-size:12px;color:rgba(255,255,255,.65);}
 
-    .playerWrap{
-      position:relative;
+    .panel{
       flex:1;
       min-height:0;
-      background:#000;
-    }
-    #player{ position:absolute; inset:0; }
-
-    .btnCorner{
-      position:absolute;
-      top:12px;
-      right:12px;
-      z-index:60;
-      border:none;
-      border-radius:12px;
-      padding:10px 12px;
-      font-weight:800;
-      cursor:pointer;
-      color:#fff;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      border:1px solid rgba(255,255,255,.14);
-      backdrop-filter: blur(10px);
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    .btnCorner:hover{ filter: brightness(1.05); }
-
-    .btnStart{
-      left:12px;
-      right:auto;
-    }
-
-    .logoCorner{
-      position:absolute;
-      left:12px;
-      bottom:12px;
-      z-index:60;
-      width:62px;height:62px;
       border-radius:18px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;
-      place-items:center;
+      border:1px solid var(--border);
+      background:var(--card);
+      backdrop-filter: blur(14px);
       overflow:hidden;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(158,26,173,.18);
-    }
-    .logoCorner img{width:100%;height:100%;object-fit:contain;padding:10px}
-
-    .qrTop{
       display:flex;
+      flex-direction:column;
+    }
+    .panelHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .qrArea{
+      display:grid;
+      grid-template-columns: 170px 1fr;
       gap:14px;
       padding:14px;
       border-bottom:1px solid rgba(255,255,255,.10);
       align-items:center;
     }
-    #qrImg{
-      width:150px;height:150px;
+
+    .qrBox{
+      width:170px;
+      height:170px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:#000;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.25);
+      display:grid;
+      place-items:center;
+    }
+    .qrBox img{
+      width:100%;
+      height:100%;
       object-fit:cover;
     }
-    .qrText{min-width:0}
-    .qrTitle{
-      font-weight:900;
-      letter-spacing:.6px;
-      text-transform:uppercase;
+
+    .cta h2{
+      margin:0;
+      font-size:20px;
+      font-weight:1000;
+      letter-spacing:.2px;
     }
-    .djPill{
+    .cta .tag{
       display:inline-flex;
+      align-items:center;
+      gap:8px;
       margin-top:8px;
-      padding:7px 12px;
+      padding:8px 12px;
       border-radius:999px;
-      font-weight:900;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.18);
+      font-weight:1000;
       font-size:12px;
-      color:#fff;
-      background: rgba(158,26,173,.22);
-      border:1px solid rgba(255,20,228,.30);
     }
-    .qrLink{
-      margin-top:8px;
+    .cta .url{
+      margin-top:10px;
       font-size:12px;
-      color:rgba(255,255,255,.70);
+      color:rgba(255,255,255,.72);
       word-break:break-all;
-    }
-    .qrHint{
-      margin-top:8px;
-      font-size:12px;
-      color:rgba(255,255,255,.62);
-      display:none;
+      line-height:1.35;
     }
 
-    .rankBody{
-      padding:12px 12px 14px;
+    .list{
       overflow:auto;
-      flex:1;
+      padding:10px;
     }
     .row{
       display:flex;
@@ -231,541 +268,425 @@
       justify-content:space-between;
       gap:10px;
       padding:10px 10px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(10,11,18,.35);
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
       margin-bottom:10px;
     }
-    .row.blocked{ opacity:.72; }
-    .leftRow{display:flex;gap:10px;align-items:center;min-width:0}
-    .pos{
-      width:28px;height:28px;border-radius:10px;
+    .rank{
+      width:26px;height:26px;border-radius:10px;
       display:grid;place-items:center;
-      font-weight:800;font-size:12px;
-      background:rgba(158,26,173,.18);
-      border:1px solid rgba(255,20,228,.20);
-      color:#fff;
+      font-weight:1000;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
       flex:0 0 auto;
     }
-    .song{min-width:0;display:flex;flex-direction:column;gap:2px}
-    .song b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .song span{font-size:12px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .info{min-width:0; flex:1}
+    .songTitle{font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .songArtist{font-size:12px;color:rgba(255,255,255,.7); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
     .votes{
-      font-weight:800;
-      font-size:12px;
-      color:#fff;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      padding:7px 10px;
-      border-radius:999px;
       flex:0 0 auto;
-      text-align:right;
+      font-weight:1000;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      min-width:76px;
+      text-align:center;
     }
 
-    .toast{
+    /* Toast quien votó */
+    #voteToast{
       position:fixed;
       left:50%;
-      bottom:18px;
+      top:22px;
       transform:translateX(-50%);
-      background:rgba(27,4,38,.92);
-      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.16);
+      color:white;
+      padding:10px 14px;
       border-radius:14px;
-      padding:10px 12px;
-      color:#fff;
-      font-size:13px;
+      backdrop-filter: blur(12px);
       display:none;
-      z-index:999;
-      box-shadow:0 16px 60px rgba(0,0,0,.35);
+      z-index:9999;
+      font-weight:1000;
+      max-width:70vw;
+      text-align:center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
     }
 
-    @media (max-width: 760px){
-      .layout{flex-direction:column; height:auto;}
-      .layout > .card:last-child{min-width:0}
-      #restaurantName{font-size:18px}
+    /* Progreso (simple) */
+    .progressWrap{
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      margin-top:8px;
+    }
+    .progressBar{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#ff4dff,#7b2cff);
+    }
+
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+      .right{display:none}
+      .title{font-size:22px}
     }
   </style>
 </head>
 
 <body>
-  <div class="topbar">
-    <div class="leftTop">
-      <div class="title" id="nowTitle">Votify — TV</div>
-      <div class="pills">
-        <div class="pill" id="roomPill">Sala: —</div>
-        <div class="pill"><span>Modo: no repetir</span></div>
-        <div class="pill"><span class="dot" id="dot"></span><span id="statusText">Conectando…</span></div>
-      </div>
+  <div id="voteToast"></div>
 
-      <!-- ✅ Barra progreso -->
-      <div class="progBar"><div class="progFill" id="tvFill"></div></div>
-    </div>
-
-    <div class="rightTop">
-      <div id="restaurantName">—</div>
-      <div class="pill">Siempre suena</div>
-    </div>
-  </div>
-
-  <div class="layout">
-    <div class="card">
-      <div class="cardHead">
-        <h2>Reproducción</h2>
-        <div class="sub">Auto-skip solo por error real • Start si autoplay bloqueado</div>
-      </div>
-
-      <div class="playerWrap">
-        <div id="player"></div>
-
-        <button class="btnCorner btnStart" id="startBtn" style="display:none">▶ Iniciar reproducción</button>
-        <button class="btnCorner" id="soundBtn" style="display:none">🔊 Activar sonido</button>
-
-        <div class="logoCorner" title="Votify">
-          <img src="/icon.png" alt="Votify" onerror="this.parentElement.style.display='none'">
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="cardHead">
-        <h2>Top de votos</h2>
-        <div class="sub">En vivo</div>
-      </div>
-
-      <div class="qrTop">
-        <img id="qrImg" alt="QR Votify">
-        <div class="qrText">
-          <div class="qrTitle">ESCANEA Y VOTA</div>
-          <div class="djPill">YOU ARE THE DJ</div>
-          <div class="qrLink" id="qrLinkText"></div>
-          <div class="qrHint" id="qrHint">No se encontró imagen del QR. Igual podés votar con el link.</div>
-        </div>
-      </div>
-
-      <div class="rankBody" id="ranking"></div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-    function showToast(msg){
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.style.display = "block";
-      clearTimeout(showToast._tm);
-      showToast._tm = setTimeout(()=> t.style.display = "none", 2800);
-    }
-
-    function normalizeYouTubeId(input){
-      if(input == null) return null;
-      const s = String(input).trim();
-      if(/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
-
-      try{
-        const u = new URL(s);
-        if(u.hostname.includes("youtu.be")){
-          const id = u.pathname.replace("/", "");
-          return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : null;
-        }
-        const v = u.searchParams.get("v");
-        return /^[a-zA-Z0-9_-]{11}$/.test(v || "") ? v : null;
-      }catch(_){
-        return null;
-      }
-    }
-
-    const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
-    const origin = location.origin;
-    const voteUrl = `${origin}/r/${room}`;
-
-    document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
-    document.getElementById("qrLinkText").textContent = voteUrl;
-
-    let currentSongs = [];
-    let playedSet = new Set();
-
-    let player = null;
-    let __skipLock = false;
-    let __resetOnNext = false;
-
-    let __consecutiveFails = 0;
-    const MAX_CONSECUTIVE_FAILS = 6;
-
-    // ✅ progreso TV
-    let tvStartedAt = 0;
-    let tvDurationSec = 0;
-    let tvTick = null;
-    function startTvTick(){
-      clearInterval(tvTick);
-      tvTick = setInterval(() => {
-        if(!tvStartedAt || !tvDurationSec) return;
-        const elapsed = (Date.now() - tvStartedAt) / 1000;
-        const pct = Math.max(0, Math.min(100, (elapsed / tvDurationSec) * 100));
-        const fill = document.getElementById("tvFill");
-        if(fill) fill.style.width = pct + "%";
-      }, 350);
-    }
-    function resetTvBar(){
-      const fill = document.getElementById("tvFill");
-      if(fill) fill.style.width = "0%";
-    }
-
-    const startBtn = document.getElementById("startBtn");
-    const soundBtn = document.getElementById("soundBtn");
-
-    // ✅ id actual
-    let lastPlayedId = null;
-
-    function pickNextSong(){
-      if(!currentSongs.length) return null;
-
-      // ✅ bloqueadas al final; luego por votos
-      const sorted = [...currentSongs].sort((a,b)=>{
-        const ab = a?.blocked ? 1 : 0;
-        const bb = b?.blocked ? 1 : 0;
-        if(ab !== bb) return ab - bb;
-        return (b.votes||0)-(a.votes||0);
-      });
-
-      for(const s of sorted){
-        if(s.blocked) continue;
-        if(!playedSet.has(s.id)) return s;
-      }
-
-      playedSet.clear();
-
-      for(const s of sorted){
-        if(s.blocked) continue;
-        return s;
-      }
-      return null;
-    }
-
-    function renderRanking(songs){
-      const container = document.getElementById("ranking");
-      if(!songs.length){
-        container.innerHTML = `<div style="padding:12px;color:rgba(255,255,255,.7)">Sin canciones.</div>`;
-        return;
-      }
-
-      // ✅ bloqueadas al final; luego por votos
-      const sorted = [...songs].sort((a,b)=>{
-        const ab = a?.blocked ? 1 : 0;
-        const bb = b?.blocked ? 1 : 0;
-        if(ab !== bb) return ab - bb;
-        return (b.votes||0)-(a.votes||0);
-      });
-
-      container.innerHTML = sorted.slice(0, 10).map((s, idx)=>{
-        const note = s.blocked ? `⛔ ${escapeHtml(s.blockReason || "PENDIENTE DE LINK CORRECTO")}` : "";
-        return `
-          <div class="row ${s.blocked ? "blocked":""}">
-            <div class="leftRow">
-              <div class="pos">${idx+1}</div>
-              <div class="song">
-                <b>${escapeHtml(s.title || "—")}</b>
-                <span>${escapeHtml(s.artist || "")}${note ? " • " + note : ""}</span>
-              </div>
-            </div>
-            <div class="votes">${(s.votes||0)} votos</div>
+  <div class="wrap">
+    <!-- LEFT -->
+    <div class="left">
+      <div class="bar">
+        <div style="min-width:0">
+          <div class="title" id="nowTitle">Votify — TV</div>
+          <div class="subtitle">
+            <span id="nowArtist">—</span>
           </div>
-        `;
-      }).join("");
+
+          <div class="metaRow" style="margin-top:10px">
+            <div class="pill"><span style="font-weight:1000;color:white">Sala:</span> <span id="roomId">—</span></div>
+            <div class="pill"><span style="font-weight:1000;color:white">Modo:</span> <span id="modeText">no repetir</span></div>
+            <div class="pill">
+              <span class="dot" id="connDot"></span>
+              <span id="connText">Conectando…</span>
+            </div>
+          </div>
+
+          <div class="progressWrap">
+            <div class="progressBar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="pill" style="font-weight:1000;color:white; opacity:.9">
+          Siempre suena
+        </div>
+      </div>
+
+      <div class="playerCard">
+        <div class="playerTop">
+          <button class="btn" id="startBtn" style="display:none">Iniciar reproducción</button>
+          <button class="btn secondary" id="soundBtn" style="display:none">Activar sonido</button>
+        </div>
+
+        <div class="hint">Auto-skip solo por error real • Start si autoplay bloqueado</div>
+        <div id="player"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="rightTop">
+        <div class="brand" id="roomName">VOTIFY</div>
+        <div class="pill">En vivo</div>
+      </div>
+
+      <div class="panel">
+        <div class="panelHeader">
+          <div>Top de votos</div>
+          <div style="opacity:.8">En vivo</div>
+        </div>
+
+        <div class="qrArea">
+          <div class="qrBox">
+            <img id="qrImg" alt="QR Votify" />
+          </div>
+          <div class="cta">
+            <h2>ESCANEA Y VOTA</h2>
+            <div class="tag">YOU ARE THE DJ</div>
+            <div class="url" id="qrUrlText">—</div>
+          </div>
+        </div>
+
+        <div class="list" id="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Helpers =====
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+    // ===== Room =====
+    const room = location.pathname.split("/").pop();
+    $("roomId").textContent = room;
+
+    // ===== Socket =====
+    const socket = io({ transports:["websocket","polling"] });
+
+    function setConn(ok){
+      $("connText").textContent = ok ? "Conectado ✅" : "Conectando…";
+      $("connDot").classList.toggle("good", ok);
+      $("connDot").classList.toggle("bad", !ok);
+      $("connDot").classList.toggle("dot", true);
     }
 
-    function setQrFromState(data){
-      const img = document.getElementById("qrImg");
-      const hint = document.getElementById("qrHint");
-      hint.style.display = "none";
+    socket.on("connect", () => {
+      setConn(true);
+      socket.emit("room:join", { room });
+    });
+    socket.on("disconnect", () => setConn(false));
 
-      const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
-      if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
-        img.src = qrDataUrl;
-        return;
-      }
-
-      const qrUrl = data?.qrUrl || data?.qr_url || "";
-      if(typeof qrUrl === "string" && qrUrl.length > 0){
-        img.src = qrUrl;
-        return;
-      }
-
-      img.src = `${origin}/qrcodes/${room}.png`;
-      img.onerror = () => {
-        img.style.opacity = "0.25";
-        hint.style.display = "block";
-      };
+    // Toast “quién votó”
+    const voteToast = $("voteToast");
+    function showVoteToast(text){
+      voteToast.textContent = text;
+      voteToast.style.display = "block";
+      clearTimeout(showVoteToast._t);
+      showVoteToast._t = setTimeout(() => voteToast.style.display = "none", 2500);
     }
+    socket.on("vote:toast", (p) => {
+      if(!p) return;
+      const name = p.name || "Alguien";
+      const title = p.songTitle || "una canción";
+      const artist = p.songArtist ? ` — ${p.songArtist}` : "";
+      showVoteToast(`🎉 ${name} votó por ${title}${artist}`);
+    });
+
+    // ===== State =====
+    const API_BASE = `/api/r/${room}`;
+    let state = null;
 
     async function loadState(){
-      const res = await fetch(`/api/r/${room}/state`);
-      const data = await res.json().catch(()=> ({}));
+      const r = await fetch(`${API_BASE}/state`, { cache:"no-store" });
+      const data = await r.json().catch(()=>({}));
+      if(!r.ok || !data.ok) throw new Error(data.error || "Restaurante no existe");
+      state = data;
 
-      if(!res.ok || data.ok === false){
-        document.getElementById("ranking").innerHTML = `
-          <div style="padding:12px;color:#fff">
-            ❌ ${escapeHtml(data?.error || "Restaurante no existe")}
-            <div style="color:rgba(255,255,255,.65);margin-top:8px">Crea una sala nueva en /admin.</div>
+      $("roomName").textContent = (data.name || "VOTIFY").toUpperCase();
+
+      // QR
+      const qrUrl = data.qrUrl || "";
+      $("qrImg").src = qrUrl ? `${qrUrl}?t=${Date.now()}` : "";
+      $("qrUrlText").textContent = `${location.origin}/r/${data.id}`;
+
+      // lista
+      renderList(data.songs || []);
+      return data;
+    }
+
+    function renderList(songs){
+      const list = $("list");
+      list.innerHTML = "";
+      const top = [...songs].slice(0, 25);
+
+      top.forEach((s, idx) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div class="rank">${idx+1}</div>
+          <div class="info">
+            <div class="songTitle">${esc(s.title || "Sin título")}</div>
+            <div class="songArtist">${esc(s.artist || "")}</div>
           </div>
+          <div class="votes">${Number(s.votes||0)} votos</div>
         `;
-        return false;
-      }
-
-      document.getElementById("restaurantName").textContent = (data.name || "").trim() || "—";
-      setQrFromState(data);
-
-      currentSongs = Array.isArray(data.songs) ? data.songs : [];
-      renderRanking(currentSongs);
-      return true;
+        list.appendChild(row);
+      });
     }
 
-    function skipToNext(reason){
-      if(__skipLock) return;
-      __skipLock = true;
-      console.log("⏭️ skip:", reason);
-
-      if(String(reason||"").startsWith("yt-error")){
-        showToast(`⚠️ YouTube error ${reason}. Saltando…`);
-      }
-      if(reason === "invalid-id"){
-        showToast("⚠️ youtubeId inválido. Saltando…");
-      }
-
-      setTimeout(async () => {
-        __skipLock = false;
-        __consecutiveFails++;
-
-        if(__consecutiveFails >= MAX_CONSECUTIVE_FAILS){
-          __consecutiveFails = 0;
-          showToast("⚠️ Muchos videos fallando (posible bloqueo embed).");
-        }
-
-        const next = pickNextSong();
-        if(!next) return;
-
-        if(__resetOnNext){
-          __resetOnNext = false;
-          try{ player?.destroy?.(); }catch(_){}
-          player = null;
-          await createPlayer();
-        }
-
-        playSong(next);
-      }, 650);
-    }
-
-    function playSong(song){
-      const ytId = normalizeYouTubeId(song?.youtubeId);
-      if(!song || !ytId) return skipToNext("invalid-id");
-
-      lastPlayedId = song.id;
-      playedSet.add(song.id);
-
-      resetTvBar();
-
-      document.getElementById("nowTitle").textContent =
-        `${song.title}${song.artist ? " — " + song.artist : ""}`;
-
-      try{
-        player.loadVideoById({
-          videoId: ytId,
-          startSeconds: 0
-        });
-      }catch(_){
-        skipToNext("load-failed");
-      }
-    }
-
-    function onPlayerStateChange(e){
-      if(e.data === YT.PlayerState.PLAYING){
-        __consecutiveFails = 0;
-
-        // ✅ emitir progreso a todos (TV + votar)
-        try{
-          const dur = Number(player.getDuration?.() || 0) || 0;
-          tvDurationSec = dur > 0 ? dur : (tvDurationSec || 0);
-          tvStartedAt = Date.now();
-
-          socket?.emit?.("song:start", {
-            room,
-            songId: lastPlayedId,
-            startedAt: tvStartedAt,
-            durationSec: tvDurationSec || 0
-          });
-
-          startTvTick();
-        }catch(_){}
-
-        return;
-      }
-
-      if(e.data === YT.PlayerState.ENDED){
-        // ✅ manda al fondo + cooldown + reset votos
-        try{
-          socket?.emit?.("song:ended", { room, songId: lastPlayedId });
-        }catch(_){}
-
-        const next = pickNextSong();
-        if(next) playSong(next);
-        return;
-      }
-    }
-
-    startBtn.addEventListener("click", () => {
-      startBtn.style.display = "none";
-      try{ player?.playVideo?.(); }catch(_){}
+    socket.on("votes:update", ({ songs }) => {
+      if(Array.isArray(songs)) renderList(songs);
     });
 
-    soundBtn.addEventListener("click", () => {
-      soundBtn.style.display = "none";
+    // ===== YouTube Player =====
+    let player = null;
+    let currentIndex = 0;
+    let __resetOnNext = false;
+
+    const startBtn = $("startBtn");
+    const soundBtn = $("soundBtn");
+
+    // progreso
+    const progressBar = $("progressBar");
+    let currentStartAt = 0;
+    let currentDurSec = 0;
+    function tickProgress(){
+      if(!currentStartAt || !currentDurSec) {
+        progressBar.style.width = "0%";
+        requestAnimationFrame(tickProgress);
+        return;
+      }
+      const t = (Date.now() - currentStartAt) / 1000;
+      const pct = clamp((t / currentDurSec) * 100, 0, 100);
+      progressBar.style.width = pct.toFixed(2) + "%";
+      requestAnimationFrame(tickProgress);
+    }
+    requestAnimationFrame(tickProgress);
+
+    function getPlayableSongs(){
+      const songs = state?.songs || [];
+      // evitamos bloqueadas si las manejas
+      return songs.filter(s => !s.blocked && s.youtubeId);
+    }
+
+    function setNowSong(song){
+      $("nowTitle").textContent = song?.title || "Votify — TV";
+      $("nowArtist").textContent = song?.artist || "—";
+    }
+
+    function emitSongStart(song, durationSec){
+      const startedAt = Date.now();
+      currentStartAt = startedAt;
+      currentDurSec = Number(durationSec || 0);
+
+      socket.emit("song:start", {
+        room,
+        songId: song.id,
+        startedAt,
+        durationSec: currentDurSec
+      });
+    }
+
+    function emitSongEnded(song){
+      socket.emit("song:ended", { room, songId: song.id });
+    }
+
+    function blockSong(song, reason){
+      socket.emit("song:block", { room, songId: song.id, reason: reason || "PENDIENTE DE LINK CORRECTO" });
+    }
+
+    function playIndex(idx){
+      const songs = getPlayableSongs();
+      if(!songs.length) return;
+
+      currentIndex = (idx + songs.length) % songs.length;
+      const song = songs[currentIndex];
+      setNowSong(song);
+
+      if(!player) return;
+
+      __resetOnNext = false;
       try{
-        player?.unMute?.();
-        player?.setVolume?.(100);
-        player?.playVideo?.();
+        player.loadVideoById(song.youtubeId);
+      }catch(e){
+        __resetOnNext = true;
+        skipToNext("Error cargando video");
+      }
+    }
+
+    function skipToNext(why){
+      const songs = getPlayableSongs();
+      if(!songs.length) return;
+      currentIndex = (currentIndex + 1) % songs.length;
+      playIndex(currentIndex);
+    }
+
+    // autoplay helpers
+    startBtn.onclick = () => {
+      try{
+        player.playVideo();
+        startBtn.style.display = "none";
       }catch(_){}
-    });
+    };
+    soundBtn.onclick = () => {
+      try{
+        player.unMute();
+        player.setVolume(80);
+        soundBtn.style.display = "none";
+      }catch(_){}
+    };
 
-    function loadYouTubeApi(){
-      return new Promise((resolve) => {
-        if(window.YT && window.YT.Player) return resolve();
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.body.appendChild(tag);
-        window.onYouTubeIframeAPIReady = () => resolve();
-      });
-    }
-
-    function createPlayer(){
-      return new Promise((resolve) => {
-        player = new YT.Player("player", {
-          height: "100%",
-          width: "100%",
-          host: "https://www.youtube-nocookie.com",
-          playerVars: {
-            autoplay: 1,
-            controls: 0,
-            rel: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            origin: window.location.origin,
-            enablejsapi: 1
-          },
-          events: {
-            onReady: () => {
-              try { player.mute(); } catch(_) {}
-
-              if (startBtn) startBtn.style.display = "block";
-              if (soundBtn) soundBtn.style.display = "block";
-
-              resolve();
-            },
-            onStateChange: onPlayerStateChange,
-            onError: (ev) => {
-              const code = ev?.data;
-
-              // ✅ bloquear canción por link malo y mandarla al fondo
-              try{
-                socket?.emit?.("song:block", {
-                  room,
-                  songId: lastPlayedId,
-                  reason: "PENDIENTE DE LINK CORRECTO"
-                });
-              }catch(_){}
-
-              __resetOnNext = true;
-              skipToNext(`yt-error:${code}`);
-            }
-          }
-        });
-      });
-    }
-
-    let socket = null;
-    let fallbackTimer = null;
-
-    function setConnectedUI(ok){
-      const dot = document.getElementById("dot");
-      const txt = document.getElementById("statusText");
-      if(ok){
-        dot.classList.add("ok");
-        txt.textContent = "Conectado ✅";
-      }else{
-        dot.classList.remove("ok");
-        txt.textContent = "Conectando…";
-      }
-    }
-
-    function startFallbackPolling(){
-      if(fallbackTimer) return;
-      fallbackTimer = setInterval(async () => {
+    window.onYouTubeIframeAPIReady = async function(){
+      try{
         await loadState();
-      }, 2500);
-    }
-
-    function stopFallbackPolling(){
-      if(!fallbackTimer) return;
-      clearInterval(fallbackTimer);
-      fallbackTimer = null;
-    }
-
-    function initSocket(){
-      if(typeof window.io !== "function"){
-        setConnectedUI(false);
-        showToast("⚠️ socket.io no cargó. Fallback activo.");
-        startFallbackPolling();
+      }catch(e){
+        // si la sala no existe, mostramos mensaje arriba
+        $("nowTitle").textContent = "Restaurante no existe";
+        $("nowArtist").textContent = "Crea una sala nueva en /admin";
         return;
       }
 
-      socket = window.io({ transports:["websocket","polling"] });
+      player = new YT.Player("player", {
+        height: "100%",
+        width: "100%",
+        host: "https://www.youtube-nocookie.com",
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          origin: window.location.origin,
+          enablejsapi: 1
+        },
+        events: {
+          onReady: () => {
+            // autoplay más confiable si inicia mute
+            try{
+              player.mute();
+              player.playVideo();
+            }catch(_){}
 
-      socket.on("connect", () => {
-        setConnectedUI(true);
-        stopFallbackPolling();
-        socket.emit("room:join", { room });
-      });
+            // mostramos botones por si autoplay/sound requieren gesto
+            startBtn.style.display = "block";
+            soundBtn.style.display = "block";
 
-      socket.on("disconnect", () => {
-        setConnectedUI(false);
-        startFallbackPolling();
-      });
+            // arrancar con primera canción
+            playIndex(0);
+          },
+          onStateChange: (ev) => {
+            if(!state) return;
+            const songs = getPlayableSongs();
+            const song = songs[currentIndex];
 
-      socket.on("votes:update", ({ room: r, songs }) => {
-        if(r !== room) return;
-        if(Array.isArray(songs)){
-          currentSongs = songs;
-          renderRanking(currentSongs);
+            // CUANDO EMPIEZA A REPRODUCIR
+            if(ev.data === YT.PlayerState.PLAYING){
+              try{
+                const dur = player.getDuration();
+                emitSongStart(song, dur || 0);
+              }catch(_){}
+              // si ya empezó, escondemos botón start
+              startBtn.style.display = "none";
+            }
+
+            // CUANDO TERMINA
+            if(ev.data === YT.PlayerState.ENDED){
+              try{ emitSongEnded(song); }catch(_){}
+              skipToNext("Ended");
+            }
+          },
+          onError: (ev) => {
+            // error real -> bloquear y saltar
+            const code = ev?.data;
+            const songs = getPlayableSongs();
+            const song = songs[currentIndex];
+            __resetOnNext = true;
+
+            // marcamos la canción como mala para que baje y no moleste
+            try{
+              blockSong(song, `Error YouTube (${code})`);
+            }catch(_){}
+
+            skipToNext(`YT error ${code}`);
+          }
         }
       });
+    };
+
+    // refresco del estado por si cambia ranking/canciones
+    async function poll(){
+      try{
+        const data = await loadState();
+        // Si cambió lista, intenta mantener el índice dentro del rango
+        const playable = getPlayableSongs();
+        if(player && playable.length && currentIndex >= playable.length){
+          currentIndex = 0;
+        }
+      }catch(_){}
+      setTimeout(poll, 3000);
     }
-
-    (async function init(){
-      if(!room){
-        document.getElementById("ranking").innerHTML = `<div style="padding:12px;color:#fff">Sala inválida</div>`;
-        return;
-      }
-
-      setConnectedUI(false);
-      initSocket();
-
-      const ok = await loadState();
-      if(!ok) return;
-
-      await loadYouTubeApi();
-      await createPlayer();
-
-      const first = pickNextSong();
-      if(first) playSong(first);
-      else showToast("⚠️ No hay canciones en la sala.");
-    })();
+    poll();
   </script>
 </body>
 </html>

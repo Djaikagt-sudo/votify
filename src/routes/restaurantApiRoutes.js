@@ -30,6 +30,8 @@ router.post("/:room/vote/:songId", (req, res) => {
     req.body?.device ||
     "";
 
+  const voterName = String(req.body?.name || "").trim().slice(0, 24);
+
   const out = voteSong(room, songId, deviceId);
 
   if(!out.ok){
@@ -38,7 +40,20 @@ router.post("/:room/vote/:songId", (req, res) => {
 
   const io = req.app.get("io");
   if(io){
+    // ✅ actualiza lista de votos como siempre
     io.to(room).emit("votes:update", { room, songs: out.restaurant.songs });
+
+    // ✅ toast para TV: "Juan votó por Gasolina"
+    const song = out.restaurant.songs.find(s => String(s.id) === String(songId));
+    const safeName = voterName || "Alguien";
+    const title = song?.title || "una canción";
+    const artist = song?.artist || "";
+    io.to(room).emit("vote:toast", {
+      room,
+      name: safeName,
+      songTitle: title,
+      songArtist: artist
+    });
   }
 
   return res.json({ ok:true, songs: out.restaurant.songs });
