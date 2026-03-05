@@ -11,17 +11,18 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-router.get("/", (req, res) => {
-  res.json({ ok: true, restaurants: getRestaurants() });
+router.get("/", async (req, res) => {
+  const restaurants = await getRestaurants();
+  res.json({ ok: true, restaurants });
 });
 
 router.post("/", async (req, res) => {
   const { name, genres, totalSongs } = req.body || {};
 
-  const restaurant = createRestaurant({
+  const restaurant = await createRestaurant({
     name,
     genres: Array.isArray(genres) ? genres : [],
-    totalSongs: Number(totalSongs) || 40
+    totalSongs: Number(totalSongs) || 40,
   });
 
   const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
@@ -29,7 +30,7 @@ router.post("/", async (req, res) => {
   const url = `${proto}://${host}/r/${restaurant.id}`;
 
   const qrDir = path.join(__dirname, "../../public/qrcodes");
-  if(!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
+  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
 
   const qrFile = path.join(qrDir, `${restaurant.id}.png`);
   await QRCode.toFile(qrFile, url);
@@ -38,7 +39,7 @@ router.post("/", async (req, res) => {
     ok: true,
     ...restaurant,
     url,
-    qrUrl: `/qrcodes/${restaurant.id}.png`
+    qrUrl: `/qrcodes/${restaurant.id}.png`,
   });
 });
 

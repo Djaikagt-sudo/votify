@@ -1,51 +1,55 @@
 import crypto from "crypto";
 import { buildSongsFromGenres } from "./songBuilder.js";
+import { Redis } from "@upstash/redis";
+
+const USE_REDIS =
+  !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const redis = USE_REDIS
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+  : null;
 
 const restaurants = new Map();
 
-// vote ledger: roomId -> songId -> Set(deviceId)
-const voteLedger = new Map();
+const KEY = {
+  restaurant: (id) => `votify:restaurant:${id}`,
+  ids: `votify:restaurant:ids`,
+};
 
-function getLedgerSet(roomId, songId){
-  const rid = String(roomId);
-  const sid = String(songId);
-
-  let byRoom = voteLedger.get(rid);
-  if(!byRoom){
-    byRoom = new Map();
-    voteLedger.set(rid, byRoom);
-  }
-
-  let set = byRoom.get(sid);
-  if(!set){
-    set = new Set();
-    byRoom.set(sid, set);
-  }
-
-  return set;
+async function redisSetRestaurant(r) {
+  if (!redis) return;
+  await redis.set(KEY.restaurant(r.id), r);
+  await redis.sadd(KEY.ids, r.id);
 }
 
-function clearLedger(roomId, songId){
-  const rid = String(roomId);
-  const sid = String(songId);
-  const byRoom = voteLedger.get(rid);
-  if(!byRoom) return;
-  byRoom.delete(sid);
+async function redisGetRestaurant(id) {
+  if (!redis) return null;
+  const r = await redis.get(KEY.restaurant(id));
+  return r || null;
 }
 
-export function createRestaurant({ name, genres = [], totalSongs = 40 }){
+async function redisGetAllRestaurants() {
+  if (!redis) return [];
+  const ids = (await redis.smembers(KEY.ids)) || [];
+  if (!ids.length) return [];
+  const arr = [];
+  for (const id of ids) {
+    const r = await redis.get(KEY.restaurant(id));
+    if (r) arr.push(r);
+  }
+  return arr;
+}
+
+export async function createRestaurant({ name, genres = [], totalSongs = 40 }) {
   const id = crypto.randomUUID();
 
   const songs = buildSongsFromGenres({
     genres,
-    total: Number(totalSongs) || 40
-  }).map((s) => ({
-    ...s,
-    votes: Number(s?.votes || 0),
-    playCount: Number(s?.playCount || 0),
-    lastPlayedAt: Number(s?.lastPlayedAt || 0),
-    cooldownUntil: Number(s?.cooldownUntil || 0),
-  }));
+    total: Number(totalSongs) || 40,
+  });
 
   const restaurant = {
     id,
@@ -56,70 +60,54 @@ export function createRestaurant({ name, genres = [], totalSongs = 40 }){
   };
 
   restaurants.set(id, restaurant);
+  await redisSetRestaurant(restaurant);
   return restaurant;
 }
 
-export function getRestaurant(id){
-  return restaurants.get(id);
-}
+export async function getRestaurant(id) {
+  if (restaurants.has(id)) return restaurants.get(id);
 
-export function getRestaurants(){
-  return [...restaurants.values()];
-}
-
-export function moveSongToBottomAfterPlayed(roomId, songId){
-  const r = restaurants.get(roomId);
-  if(!r) return null;
-
-  const idx = r.songs.findIndex(s => String(s.id) === String(songId));
-  if(idx < 0) return r;
-
-  const [song] = r.songs.splice(idx, 1);
-
-  const now = Date.now();
-  song.votes = 0;
-  song.playCount = Number(song.playCount || 0) + 1;
-  song.lastPlayedAt = now;
-  song.cooldownUntil = now + (30 * 60 * 1000); // 30 min
-
-  // reiniciar votos por dispositivo para el nuevo ciclo
-  clearLedger(roomId, songId);
-
-  r.songs.push(song);
+  const r = await redisGetRestaurant(id);
+  if (r) restaurants.set(id, r);
   return r;
 }
 
-/**
- * Reglas:
- * - 1 voto por canción por dispositivo (por ciclo de reproducción)
- * - si la canción ya sonó: cooldown 30 min (no se puede votar)
- */
-export function voteSong(roomId, songId, deviceId){
-  const r = restaurants.get(roomId);
-  if(!r) return { restaurant: null, status: 404, error: "Restaurante no existe" };
+export async function getRestaurants() {
+  if (!redis) return [...restaurants.values()];
 
-  const sid = Number.isNaN(Number(songId)) ? songId : Number(songId);
-  const s = r.songs.find(x => String(x.id) === String(sid));
-  if(!s) return { restaurant: r, status: 404, error: "Canción no existe" };
+  // refresca cache desde redis
+  const all = await redisGetAllRestaurants();
+  restaurants.clear();
+  for (const r of all) restaurants.set(r.id, r);
+  return all;
+}
 
-  const dev = String(deviceId || "").trim();
-  if(!dev) return { restaurant: r, status: 400, error: "deviceId requerido" };
+export async function moveSongToBottomAfterPlayed(roomId, songId) {
+  const r = await getRestaurant(roomId);
+  if (!r) return null;
 
-  const now = Date.now();
-  const lockUntil = Number(s.cooldownUntil || 0);
-  if(lockUntil && now < lockUntil){
-    const remainingMs = lockUntil - now;
-    const mins = Math.max(1, Math.ceil(remainingMs / 60000));
-    return { restaurant: r, status: 429, error: `Esta canción está bloqueada. Intenta en ${mins} min.` };
-  }
+  const idx = r.songs.findIndex((s) => String(s.id) === String(songId));
+  if (idx < 0) return r;
 
-  const set = getLedgerSet(roomId, sid);
-  if(set.has(dev)){
-    return { restaurant: r, status: 409, error: "Ya votaste esta canción en este dispositivo" };
-  }
+  const [song] = r.songs.splice(idx, 1);
+  song.votes = 0;
+  r.songs.push(song);
 
-  set.add(dev);
+  restaurants.set(roomId, r);
+  await redisSetRestaurant(r);
+  return r;
+}
+
+export async function voteSong(roomId, songId) {
+  const r = await getRestaurant(roomId);
+  if (!r) return null;
+
+  const s = r.songs.find((x) => String(x.id) === String(songId));
+  if (!s) return r;
+
   s.votes = (s.votes || 0) + 1;
 
-  return { restaurant: r, status: 200, error: null };
+  restaurants.set(roomId, r);
+  await redisSetRestaurant(r);
+  return r;
 }
