@@ -2,8 +2,6 @@ import crypto from "crypto";
 import { buildSongsFromGenres } from "./songBuilder.js";
 
 const restaurants = new Map();
-
-// ✅ 1 voto por dispositivo por canción por ciclo (playCount)
 const votesByRoom = new Map(); // roomId -> Map(deviceId -> Map(songId -> playCountVotado))
 
 const COOLDOWN_MS = 30 * 60 * 1000;
@@ -49,7 +47,7 @@ export function getRestaurants() {
 // ✅ BORRAR sala (para demo expirado)
 export function deleteRestaurant(roomId) {
   const id = String(roomId);
-  votesByRoom.delete(id); // limpia votos por dispositivo
+  votesByRoom.delete(id);
   return restaurants.delete(id);
 }
 
@@ -62,7 +60,6 @@ export function moveSongToBottomAfterPlayed(roomId, songId) {
 
   const [song] = r.songs.splice(idx, 1);
 
-  // ✅ al sonar: reset votos + cooldown 30min + nuevo ciclo (playCount++)
   song.votes = 0;
   song.playCount = Number(song.playCount || 0) + 1;
   song.lastPlayedAt = Date.now();
@@ -84,7 +81,7 @@ export function blockSongAndMoveBottom(roomId, songId, reason = "PENDIENTE DE LI
   song.blocked = true;
   song.blockReason = reason;
   song.votes = 0;
-  song.playCount = Number(song.playCount || 0) + 1; // cierra ciclo actual
+  song.playCount = Number(song.playCount || 0) + 1;
   song.lastPlayedAt = Date.now();
   song.cooldownUntil = Date.now() + COOLDOWN_MS;
 
@@ -99,12 +96,10 @@ export function voteSong(roomId, songId, deviceId) {
   const s = r.songs.find((x) => String(x.id) === String(songId));
   if (!s) return { ok: false, code: 404, error: "Canción no existe" };
 
-  // ✅ bloqueada por link malo
   if (s.blocked) {
     return { ok: false, code: 409, error: s.blockReason || "PENDIENTE DE LINK CORRECTO" };
   }
 
-  // ✅ cooldown 30 min después de sonar/bloquear
   const now = Date.now();
   const until = Number(s.cooldownUntil || 0);
   if (until && now < until) {
@@ -112,11 +107,8 @@ export function voteSong(roomId, songId, deviceId) {
     return { ok: false, code: 429, error: `Bloqueada ${mins} min` };
   }
 
-  // ✅ 1 voto por dispositivo por ciclo
   const dev = String(deviceId || "").trim();
-  if (!dev) {
-    return { ok: false, code: 400, error: "Falta deviceId" };
-  }
+  if (!dev) return { ok: false, code: 400, error: "Falta deviceId" };
 
   const devMap = getDeviceVoteMap(roomId, dev);
   const lastVotedCycle = devMap.get(String(songId));
