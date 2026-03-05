@@ -11,7 +11,7 @@ import restaurantRoutes from "./routes/restaurantRoutes.js";
 import restaurantPagesRoutes from "./routes/restaurantPagesRoutes.js";
 import restaurantApiRoutes from "./routes/restaurantApiRoutes.js";
 
-import { moveSongToBottomAfterPlayed } from "./data/store.js";
+import { moveSongToBottomAfterPlayed, blockSongAndMoveBottom } from "./data/store.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -121,18 +121,18 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("📡 Cliente conectado:", socket.id);
-
   socket.on("room:join", ({ room }) => {
     if (!room) return;
     socket.join(room);
   });
 
+  // ✅ TV emite esto cuando empieza a reproducir (para barras de progreso)
   socket.on("song:start", ({ room, songId, startedAt, durationSec }) => {
     if (!room) return;
     io.to(room).emit("song:update", { room, songId, startedAt, durationSec });
   });
 
+  // ✅ cuando termina: manda al fondo + cooldown 30min + resetea votos
   socket.on("song:ended", ({ room, songId }) => {
     if (!room || !songId) return;
 
@@ -142,8 +142,14 @@ io.on("connection", (socket) => {
     io.to(room).emit("votes:update", { room, songs: restaurant.songs });
   });
 
-  socket.on("disconnect", () => {
-    console.log("🔴 Cliente desconectado:", socket.id);
+  // ✅ si falla el video: bloquea + manda al fondo + cooldown
+  socket.on("song:block", ({ room, songId, reason }) => {
+    if (!room || !songId) return;
+
+    const restaurant = blockSongAndMoveBottom(room, songId, reason || "PENDIENTE DE LINK CORRECTO");
+    if (!restaurant) return;
+
+    io.to(room).emit("votes:update", { room, songs: restaurant.songs });
   });
 });
 

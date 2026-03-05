@@ -24,12 +24,24 @@ router.get("/:room/state", (req, res) => {
 router.post("/:room/vote/:songId", (req, res) => {
   const { room, songId } = req.params;
 
-  const restaurant = voteSong(room, songId);
-  if(!restaurant){
-    return res.status(404).json({ ok:false, error:"Restaurante no existe" });
+  const deviceId =
+    req.headers["x-device-id"] ||
+    req.body?.deviceId ||
+    req.body?.device ||
+    "";
+
+  const out = voteSong(room, songId, deviceId);
+
+  if(!out.ok){
+    return res.status(out.code || 400).json({ ok:false, error: out.error || "No se pudo votar" });
   }
 
-  return res.json({ ok:true, songs: restaurant.songs });
+  const io = req.app.get("io");
+  if(io){
+    io.to(room).emit("votes:update", { room, songs: out.restaurant.songs });
+  }
+
+  return res.json({ ok:true, songs: out.restaurant.songs });
 });
 
 export default router;

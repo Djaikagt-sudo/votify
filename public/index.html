@@ -106,6 +106,7 @@
       padding:12px;
       display:flex;align-items:center;justify-content:space-between;gap:10px;
     }
+    .item.blocked{opacity:.72}
     .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
     .meta b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .meta small{font-size:12px;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -186,7 +187,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- ✅ FIX: usa el cliente oficial de socket.io que sí sirve tu server -->
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
@@ -216,7 +216,7 @@
 
   const room = (location.pathname.split("/r/")[1] || "").split("/")[0];
 
-  // ===== Device ID (1 por dispositivo) =====
+  // ===== Device ID =====
   function getDeviceId(){
     const key = "votify_device_id";
     let id = localStorage.getItem(key);
@@ -227,6 +227,7 @@
     return id;
   }
 
+  // guarda 1 voto por ciclo (playCount)
   function loadVoteMap(){
     const key = `votify_votes_${room}`;
     try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
@@ -237,7 +238,6 @@
   }
 
   const DEVICE_ID = getDeviceId();
-
   document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
 
   const titleEl = document.getElementById("title");
@@ -251,7 +251,6 @@
   let nowSongId = null;
   let tick = null;
 
-  // ✅ FIX: si socket falla, seguimos con polling
   let pollTimer = null;
   function startPolling(){
     if(pollTimer) return;
@@ -286,17 +285,21 @@
 
       songs = Array.isArray(data.songs) ? data.songs : [];
       render();
-    } catch (e) {
-      // si falla, mantenemos UI pero no spameamos toast
-    }
+    } catch (_) {}
   }
 
   function render(){
     listEl.innerHTML = "";
-    const sorted = [...songs].sort((a,b)=> Number(b.votes||0) - Number(a.votes||0));
-
     const vm = loadVoteMap();
     const now = Date.now();
+
+    // ✅ sort: bloqueadas al fondo; luego por votos
+    const sorted = [...songs].sort((a,b)=> {
+      const ab = a?.blocked ? 1 : 0;
+      const bb = b?.blocked ? 1 : 0;
+      if(ab !== bb) return ab - bb; // no bloqueadas primero
+      return Number(b.votes||0) - Number(a.votes||0);
+    });
 
     if(!sorted.length){
       listEl.innerHTML = `<div class="pill" style="justify-self:start">Sin canciones.</div>`;
@@ -305,21 +308,28 @@
 
     sorted.forEach((song) => {
       const item = document.createElement("div");
-      item.className = "item";
+      item.className = "item" + (song.blocked ? " blocked" : "");
 
       const playCount = Number(song.playCount || 0);
       const votedCycle = vm[String(song.id)];
       const alreadyVoted = Number(votedCycle) === playCount;
 
       const lockUntil = Number(song.cooldownUntil || 0);
-      const locked = lockUntil && now < lockUntil;
+      const inCooldown = lockUntil && now < lockUntil;
 
       let subtitle = escapeHtml(song.artist || "");
-      if(locked){
-        const mins = Math.max(1, Math.ceil((lockUntil - now) / 60000));
+      let disabled = false;
+
+      if(song.blocked){
+        subtitle = `⛔ PENDIENTE DE LINK CORRECTO • ${subtitle}`;
+        disabled = true;
+      } else if(inCooldown){
+        const mins = Math.max(1, Math.ceil((lockUntil - now)/60000));
         subtitle = `⛔ Bloqueada ${mins} min • ${subtitle}`;
-      }else if(alreadyVoted){
+        disabled = true;
+      } else if(alreadyVoted){
         subtitle = `✅ Ya votaste • ${subtitle}`;
+        disabled = true;
       }
 
       item.innerHTML = `
@@ -329,7 +339,7 @@
         </div>
         <div class="right">
           <div class="badge">${Number(song.votes||0)} votos</div>
-          <button type="button"${(locked||alreadyVoted) ? " disabled" : ""}>Votar</button>
+          <button type="button"${disabled ? " disabled" : ""}>Votar</button>
         </div>
       `;
 
@@ -366,11 +376,12 @@
       try { data = text ? JSON.parse(text) : null; } catch {}
 
       if (!res.ok) {
-        showToast("❌ ", `Voto ${res.status} ${data?.error || ""}`.trim());
+        showToast("❌ ", (data?.error || `Error ${res.status}`));
+        loadState();
         return;
       }
 
-      // guardar "ya voté" por ciclo (playCount)
+      // ✅ guardamos “ya voté” por ciclo
       const vm = loadVoteMap();
       vm[String(songId)] = playCount;
       saveVoteMap(vm);
@@ -379,11 +390,9 @@
       if (song) song.votes = Number(song.votes || 0) + 1;
       render();
 
-      // source of truth
       loadState();
-
       showToast("✅ ", "Voto enviado");
-    } catch (e) {
+    } catch (_) {
       showToast("❌ ", "Sin conexión / fetch bloqueado");
     }
   }
@@ -403,11 +412,9 @@
     }, 350);
   }
 
-  // ✅ CARGA ESTADO AL INICIO (aunque socket falle)
   loadState();
   startPolling();
 
-  // ===== Socket (si existe) =====
   if (typeof window.io === "function") {
     const socket = window.io({ transports:["websocket","polling"] });
 
@@ -431,6 +438,7 @@
 
     socket.on("song:update", (data) => {
       if (!data || data.room !== room) return;
+
       songStartedAt = Number(data.startedAt || 0);
       durationSec = Number(data.durationSec || 0);
       nowSongId = data.songId ?? null;
