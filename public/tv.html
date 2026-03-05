@@ -107,7 +107,7 @@
       align-items: stretch;
     }
     .layout > .card:first-child{ flex: 2; min-width: 0; }
-    .layout > .card:last-child{ flex: 1; min-width: 340px; }
+    .layout > .card:last-child{ flex: 1; min-width: 360px; }
 
     .card{
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.18));
@@ -121,46 +121,126 @@
 
     .playerWrap{position:relative; width:100%; height:100%;}
     #player{position:absolute; inset:0;}
-    .overlayBottom{
+
+    .btn{
       position:absolute;
-      left:0; right:0; bottom:0;
-      padding:14px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      background: linear-gradient(180deg, transparent, rgba(0,0,0,.55));
-      pointer-events:none;
-    }
-    .qrBox{
-      background:rgba(0,0,0,.30);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:18px;
-      padding:10px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      backdrop-filter: blur(10px);
-      pointer-events:auto;
-    }
-    .qrBox img{
-      width:110px;height:110px;
+      right:12px;
+      bottom:12px;
+      z-index:50;
+      height:40px;
+      padding:0 14px;
       border-radius:14px;
-      background:#fff;
-      padding:8px;
-      object-fit:contain;
+      border:1px solid rgba(255,20,228,.28);
+      background:rgba(158,26,173,.22);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 14px 40px rgba(158,26,173,.22);
     }
-    .qrText{
+    .btn:active{transform:translateY(1px)}
+    .btnSound{
+      bottom:58px;
+      background:rgba(255,20,228,.14);
+    }
+    .btnStart{
+      left:12px;
+      right:auto;
+    }
+
+    .logoCorner{
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      z-index:60;
+      width:70px;height:70px;
+      border-radius:16px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(158,26,173,.18);
+    }
+    .logoCorner img{width:100%;height:100%;object-fit:contain;padding:10px}
+
+    /* ===== TOP CARD: QR arriba del ranking ===== */
+    .rankTop{
+      padding:14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
       display:flex;
-      flex-direction:column;
-      gap:6px;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .rankLeft{
+      display:flex;
+      gap:14px;
+      align-items:center;
       min-width:0;
     }
-    .qrText b{font-size:14px;letter-spacing:.2px}
-    .qrText span{font-size:12px;color:rgba(255,255,255,.8);word-break:break-all}
+    .qrBlock{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:12px;
+      border-radius:18px;
+      background:rgba(0,0,0,.26);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      box-shadow:0 16px 46px rgba(0,0,0,.25);
+      width:100%;
+    }
+    .qrBlock img{
+      width:160px;
+      height:160px;
+      border-radius:18px;
+      background:#fff;
+      padding:10px;
+      object-fit:contain;
+      flex:0 0 auto;
+    }
+    .qrInfo{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .qrTitle{
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .qrTag{
+      display:inline-flex;
+      width:max-content;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,20,228,.24);
+      background:rgba(158,26,173,.16);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      color:#fff;
+      box-shadow:0 10px 30px rgba(158,26,173,.16);
+    }
+    .qrLink{
+      font-size:12px;
+      color:rgba(255,255,255,.80);
+      word-break:break-all;
+      line-height:1.25;
+      max-width: 100%;
+    }
+    #qrHint{
+      display:none;
+      font-size:12px;
+      color:rgba(255,255,255,.70);
+    }
 
     .rankHead{
-      padding:14px 14px 10px;
-      border-bottom:1px solid rgba(255,255,255,.10);
+      padding:12px 14px 10px;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -170,7 +250,8 @@
     .ranking{
       padding:10px 10px 12px;
       overflow:auto;
-      height: calc(100% - 54px);
+      height: calc(100% - 14px - 200px - 54px); /* aproximado */
+      min-height: 0;
     }
     .row{
       display:flex;
@@ -206,74 +287,6 @@
       flex:0 0 auto;
     }
 
-    .btn{
-      position:absolute;
-      right:12px;
-      bottom:12px;
-      z-index:50;
-      height:40px;
-      padding:0 14px;
-      border-radius:14px;
-      border:1px solid rgba(255,20,228,.28);
-      background:rgba(158,26,173,.22);
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-      box-shadow:0 14px 40px rgba(158,26,173,.22);
-    }
-    .btn:active{transform:translateY(1px)}
-    .btnSound{
-      bottom:58px;
-      background:rgba(255,20,228,.14);
-    }
-    /* Botón iniciar (lado izquierdo) */
-    .btnStart{
-      left:12px;
-      right:auto;
-    }
-
-    .logoCorner{
-      position:absolute;
-      left:12px;
-      bottom:12px;
-      z-index:60;
-      width:64px;height:64px;
-      border-radius:14px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      display:grid;
-      place-items:center;
-      overflow:hidden;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(158,26,173,.18);
-    }
-    .logoCorner img{width:100%;height:100%;object-fit:contain;padding:10px}
-
-    .qrTop{
-      display:flex;
-      gap:14px;
-      padding:14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .qrTop img{
-      width:140px;height:140px;
-      border-radius:18px;
-      background:#fff;
-      padding:10px;
-      object-fit:contain;
-    }
-    .qrTop .info{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:0;
-    }
-    .qrTop .info b{font-size:14px}
-    .qrTop .info span{
-      font-size:12px;color:rgba(255,255,255,.80);
-      word-break:break-all;
-    }
-    .hint{font-size:12px;color:rgba(255,255,255,.7)}
     .toast{
       position:fixed;
       left:50%;
@@ -294,6 +307,8 @@
       .layout{flex-direction:column;height:auto}
       .layout > .card:last-child{min-width:0}
       #restaurantName{font-size:18px}
+      .qrBlock img{width:140px;height:140px}
+      .ranking{height:auto}
     }
   </style>
 </head>
@@ -328,21 +343,23 @@
         <button class="btn btnSound" id="soundBtn" style="display:none">Activar sonido 🔊</button>
 
         <div class="logoCorner"><img src="/icon.png" alt="Votify"></div>
-
-        <div class="overlayBottom">
-          <div class="qrBox">
-            <img id="qrImg" alt="QR">
-            <div class="qrText">
-              <b>Escanea para votar</b>
-              <span id="qrHint" class="hint" style="display:none">QR no encontrado</span>
-              <span id="qrLinkText2"></span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
     <div class="card">
+      <!-- ✅ QR ARRIBA DEL TOP -->
+      <div class="rankTop">
+        <div class="qrBlock">
+          <img id="qrImg" alt="QR">
+          <div class="qrInfo">
+            <div class="qrTitle">ESCANEA Y VOTA</div>
+            <div class="qrTag">YOU ARE THE DJ</div>
+            <div id="qrHint">QR no encontrado</div>
+            <div class="qrLink" id="qrLinkText2">—</div>
+          </div>
+        </div>
+      </div>
+
       <div class="rankHead">
         <b>Top votadas</b>
         <div class="pill">Actualiza en vivo</div>
@@ -355,7 +372,6 @@
 
   <script src="/vendor/socket.io.min.js"></script>
   <script>
-    // ===== Helpers =====
     function escapeHtml(str){
       return String(str)
         .replaceAll("&","&amp;")
@@ -391,7 +407,6 @@
       }
     }
 
-    // ===== Room + Link =====
     const room = (location.pathname.split("/tv/")[1] || "").split("/")[0];
     const origin = location.origin;
     const voteUrl = `${origin}/r/${room}`;
@@ -401,11 +416,9 @@
     const qrLink2 = document.getElementById("qrLinkText2");
     if(qrLink2) qrLink2.textContent = voteUrl;
 
-    // ===== Estado canciones =====
     let currentSongs = [];
     let playedSet = new Set();
 
-    // ===== Player =====
     let player = null;
     let __skipLock = false;
     let __resetOnNext = false;
@@ -481,6 +494,7 @@
       const img = document.getElementById("qrImg");
       const hint = document.getElementById("qrHint");
       hint.style.display = "none";
+      img.style.opacity = "1";
 
       const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
       if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
@@ -491,12 +505,16 @@
       const qrUrl = data?.qrUrl || data?.qr_url || "";
       if(typeof qrUrl === "string" && qrUrl.length > 0){
         img.src = qrUrl;
+        img.onerror = () => {
+          img.style.opacity = "0.35";
+          hint.style.display = "block";
+        };
         return;
       }
 
       img.src = `${origin}/qrcodes/${room}.png`;
       img.onerror = () => {
-        img.style.opacity = "0.25";
+        img.style.opacity = "0.35";
         hint.style.display = "block";
       };
     }
@@ -579,13 +597,10 @@
     }
 
     function onPlayerStateChange(e){
-
-      // Cuando empieza a reproducir
       if(e.data === YT.PlayerState.PLAYING){
         __consecutiveFails = 0;
         startProgressTicker();
 
-        // avisar a server (para barra en panel de voto)
         try{
           const startedAt = Date.now();
           const durationSec = Number(player?.getDuration?.() || 0);
@@ -597,11 +612,9 @@
         return;
       }
 
-      // Cuando termina realmente
       if(e.data === YT.PlayerState.ENDED){
         stopProgressTicker();
 
-        // avisar a server para mover al fondo + cooldown
         try{
           if(socket && room && lastPlayedId != null){
             socket.emit("song:ended", { room, songId: lastPlayedId });
@@ -612,8 +625,6 @@
         if(next) playSong(next);
         return;
       }
-
-      // IGNORAMOS UNSTARTED COMPLETAMENTE
     }
 
     startBtn.addEventListener("click", () => {
@@ -659,8 +670,8 @@
             onReady: () => {
               try { player.mute(); } catch(_) {}
 
-              if (typeof startBtn !== "undefined" && startBtn) startBtn.style.display = "block";
-              if (typeof soundBtn !== "undefined" && soundBtn) soundBtn.style.display = "block";
+              if (startBtn) startBtn.style.display = "block";
+              if (soundBtn) soundBtn.style.display = "block";
 
               resolve();
             },
