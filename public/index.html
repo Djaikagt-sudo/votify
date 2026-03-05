@@ -1,458 +1,419 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Votify — Votar</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Votify — Votar</title>
 
-  <link rel="icon" type="image/png" href="/icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/icon.png">
 
-  <style>
-    :root{
-      --primary:#9E1AAD;
-      --dark:#1B0426;
-      --accent:#FF14E4;
-      --bg: var(--dark);
-      --txt:#fff;
-      --muted: rgba(255,255,255,.78);
-      --line: rgba(255,255,255,.10);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,Arial,sans-serif;
-      background:
-        radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
-        radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
-        linear-gradient(180deg, #120018, var(--bg));
-      color:var(--txt);
-    }
-    .wrap{max-width:980px;margin:0 auto;padding:18px}
-    .card{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow: 0 18px 60px rgba(0,0,0,.30);
-    }
-    .head{
-      padding:14px 14px 12px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
-      border-bottom:1px solid var(--line);
-    }
-    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    .titleRow{display:flex;align-items:center;gap:10px}
-    .logoMark{
-      width:56px;height:56px;border-radius:14px;
-      border:1px solid rgba(255,20,228,.20);
-      background: rgba(158,26,173,.12);
-      display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
-      box-shadow: 0 10px 30px rgba(158,26,173,.14);
-    }
-    .logoMark img{width:100%;height:100%;object-fit:contain;padding:9px}
-    h1{margin:0;font-size:18px;font-weight:800}
-    .muted{color:var(--muted);font-size:12px;margin-top:4px}
-    .pill{
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding:6px 10px;
-      border-radius:999px;
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .controls{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-    }
-    input{
-      height:34px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      color:#fff;
-      padding:0 10px;
-      outline:none;
-    }
-    .now{
-      padding:10px 14px;
-      border-bottom:1px solid var(--line);
-      display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    }
-    .now b{font-size:13px}
-    .small{font-size:12px;color:var(--muted)}
-    .bar{
-      margin-top:8px;height:10px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:999px;overflow:hidden;
-    }
-    .fill{
-      height:100%;width:0%;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width .35s linear;
-    }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    .list{padding:14px;display:grid;gap:10px}
-    .item{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.22);
-      border-radius:16px;
-      padding:12px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-    }
-    .item.blocked{opacity:.72}
-    .meta{display:flex;flex-direction:column;gap:4px;min-width:0}
-    .meta b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .meta small{font-size:12px;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .right{display:flex;align-items:center;gap:10px;flex:0 0 auto}
-    .badge{
-      font-size:12px;
-      padding:6px 10px;border-radius:999px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      color:rgba(255,255,255,.88);
-      white-space:nowrap;
-    }
-    button{
-      height:34px;
-      padding:0 14px;
-      border-radius:12px;
-      border:1px solid rgba(255,20,228,.30);
-      background: rgba(158,26,173,.22);
-      color:#fff;
-      font-weight:800;
-      cursor:pointer;
-    }
-    button:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    .toast{
-      position:fixed;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:16px;
-      background: rgba(0,0,0,.75);
-      border:1px solid rgba(255,255,255,.18);
-      color:#fff;
-      padding:10px 14px;
-      border-radius:14px;
-      display:none;
-      z-index:9999;
-      max-width:min(560px, calc(100vw - 24px));
-      font-size:13px;
-    }
-  </style>
+<style>
+
+:root{
+--primary:#9E1AAD;
+--accent:#FF14E4;
+--dark:#1B0426;
+--line:rgba(255,255,255,.10);
+--muted:rgba(255,255,255,.75);
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter,system-ui;
+background:
+radial-gradient(900px 500px at 20% 10%, rgba(158,26,173,.18) 0%, transparent 60%),
+radial-gradient(900px 500px at 80% 20%, rgba(255,20,228,.10) 0%, transparent 55%),
+linear-gradient(180deg,#120018,#1B0426);
+color:#fff;
+}
+
+.wrap{
+max-width:980px;
+margin:auto;
+padding:16px;
+}
+
+.card{
+background:rgba(255,255,255,.04);
+border:1px solid var(--line);
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 18px 60px rgba(0,0,0,.35);
+}
+
+.head{
+padding:14px;
+display:flex;
+justify-content:space-between;
+flex-wrap:wrap;
+gap:12px;
+border-bottom:1px solid var(--line);
+}
+
+.titleRow{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.logoMark{
+width:56px;
+height:56px;
+border-radius:14px;
+background:rgba(158,26,173,.14);
+display:grid;
+place-items:center;
+}
+
+.logoMark img{
+width:100%;
+height:100%;
+object-fit:contain;
+padding:9px;
+}
+
+h1{
+margin:0;
+font-size:18px;
+font-weight:800;
+}
+
+.muted{
+font-size:12px;
+color:var(--muted);
+}
+
+.controls{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+align-items:center;
+}
+
+.pill{
+border:1px solid var(--line);
+padding:6px 10px;
+border-radius:999px;
+font-size:12px;
+}
+
+input{
+height:34px;
+border-radius:10px;
+border:1px solid rgba(255,255,255,.12);
+background:rgba(0,0,0,.25);
+color:#fff;
+padding:0 10px;
+}
+
+.now{
+padding:12px;
+border-bottom:1px solid var(--line);
+}
+
+.bar{
+margin-top:8px;
+height:10px;
+border-radius:999px;
+background:rgba(255,255,255,.06);
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,var(--primary),var(--accent));
+}
+
+.list{
+padding:14px;
+display:grid;
+gap:10px;
+}
+
+.item{
+border:1px solid rgba(255,255,255,.10);
+border-radius:14px;
+padding:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+background:rgba(0,0,0,.25);
+}
+
+.item.blocked{
+opacity:.6;
+}
+
+.meta{
+flex:1 1 220px;
+}
+
+.meta b{
+font-size:14px;
+}
+
+.meta small{
+display:block;
+font-size:12px;
+color:var(--muted);
+}
+
+.right{
+display:flex;
+gap:8px;
+align-items:center;
+}
+
+.badge{
+font-size:12px;
+padding:6px 10px;
+border-radius:999px;
+background:rgba(255,255,255,.06);
+}
+
+button{
+height:34px;
+padding:0 14px;
+border-radius:10px;
+border:1px solid rgba(255,20,228,.35);
+background:rgba(158,26,173,.25);
+color:#fff;
+font-weight:700;
+cursor:pointer;
+}
+
+button:disabled{
+opacity:.5;
+cursor:not-allowed;
+}
+
+.toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#000;
+border:1px solid rgba(255,255,255,.20);
+padding:10px 14px;
+border-radius:14px;
+display:none;
+}
+
+@media(max-width:640px){
+
+.right{
+width:100%;
+justify-content:flex-end;
+}
+
+button{
+flex:1;
+}
+
+}
+
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="head">
-        <div class="top">
-          <div class="titleRow">
-            <div class="logoMark"><img src="/icon.png" alt="Votify"></div>
-            <div>
-              <h1 id="title">Votify</h1>
-              <div class="muted" id="subtitle">Vota por tu canción favorita</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="controls">
-          <div class="pill" id="statusPill">Conectando…</div>
-          <input id="nameInput" placeholder="Tu nombre (opcional)" />
-        </div>
-      </div>
+<div class="wrap">
 
-      <div class="now">
-        <div>
-          <b id="nowPill">Reproduciendo: —</b>
-          <div class="small" id="timeLeft">⏳ —</div>
-          <div class="bar"><div class="fill" id="fill"></div></div>
-        </div>
-        <div class="pill" id="roomPill">Sala: —</div>
-      </div>
+<div class="card">
 
-      <div class="list" id="list"></div>
-    </div>
-  </div>
+<div class="head">
 
-  <div class="toast" id="toast"></div>
+<div class="titleRow">
+<div class="logoMark"><img src="/icon.png"></div>
+<div>
+<h1 id="title">Votify</h1>
+<div class="muted">Vota por tu canción favorita</div>
+</div>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
+<div class="controls">
+<div class="pill" id="status">Conectando…</div>
+<input id="name" placeholder="Tu nombre (opcional)">
+</div>
 
-  <script>
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
+</div>
 
-  function showToast(prefix, msg){
-    const t = document.getElementById("toast");
-    t.textContent = (prefix || "") + (msg || "");
-    t.style.display = "block";
-    clearTimeout(showToast._tm);
-    showToast._tm = setTimeout(()=> t.style.display = "none", 2800);
-  }
+<div class="now">
+<b id="nowTitle">Reproduciendo: —</b>
+<div class="bar">
+<div class="fill" id="fill"></div>
+</div>
+</div>
 
-  function formatTime(sec){
-    sec = Math.max(0, Math.floor(sec || 0));
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${String(s).padStart(2,"0")}`;
-  }
+<div class="list" id="list"></div>
 
-  const room = (location.pathname.split("/r/")[1] || "").split("/")[0];
+</div>
+</div>
 
-  // ===== Device ID =====
-  function getDeviceId(){
-    const key = "votify_device_id";
-    let id = localStorage.getItem(key);
-    if(!id){
-      id = (crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2)));
-      localStorage.setItem(key, id);
-    }
-    return id;
-  }
+<div class="toast" id="toast"></div>
 
-  // guarda 1 voto por ciclo (playCount)
-  function loadVoteMap(){
-    const key = `votify_votes_${room}`;
-    try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
-  }
-  function saveVoteMap(map){
-    const key = `votify_votes_${room}`;
-    localStorage.setItem(key, JSON.stringify(map || {}));
-  }
+<script src="/socket.io/socket.io.js"></script>
 
-  const DEVICE_ID = getDeviceId();
-  document.getElementById("roomPill").textContent = `Sala: ${room || "—"}`;
+<script>
 
-  const titleEl = document.getElementById("title");
-  const subtitleEl = document.getElementById("subtitle");
-  const statusPill = document.getElementById("statusPill");
-  const listEl = document.getElementById("list");
+const room = location.pathname.split("/r/")[1];
 
-  let songs = [];
-  let songStartedAt = 0;
-  let durationSec = 0;
-  let nowSongId = null;
-  let tick = null;
+let songs=[];
+let startedAt=0;
+let duration=0;
 
-  let pollTimer = null;
-  function startPolling(){
-    if(pollTimer) return;
-    pollTimer = setInterval(loadState, 2500);
-  }
-  function stopPolling(){
-    if(!pollTimer) return;
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
+const fill=document.getElementById("fill");
+const list=document.getElementById("list");
 
-  async function loadState(){
-    if (!room) {
-      showToast("❌ ", "Sala inválida");
-      return;
-    }
+function toast(t){
+const el=document.getElementById("toast");
+el.textContent=t;
+el.style.display="block";
+setTimeout(()=>el.style.display="none",2500);
+}
 
-    try {
-      const res = await fetch(`/api/r/${encodeURIComponent(room)}/state`);
-      const data = await res.json().catch(()=> ({}));
+function render(){
 
-      if (!res.ok || data.ok === false) {
-        titleEl.textContent = "Sala no existe";
-        subtitleEl.textContent = data?.error || "Crea la sala en /admin";
-        songs = [];
-        render();
-        return;
-      }
+list.innerHTML="";
 
-      titleEl.textContent = (data.name || "Votify").trim() || "Votify";
-      subtitleEl.textContent = "Vota por tu canción favorita";
+const sorted=[...songs].sort((a,b)=>{
+const ab=a.blocked?1:0;
+const bb=b.blocked?1:0;
+if(ab!==bb)return ab-bb;
+return b.votes-a.votes;
+});
 
-      songs = Array.isArray(data.songs) ? data.songs : [];
-      render();
-    } catch (_) {}
-  }
+sorted.forEach(song=>{
 
-  function render(){
-    listEl.innerHTML = "";
-    const vm = loadVoteMap();
-    const now = Date.now();
+const el=document.createElement("div");
+el.className="item"+(song.blocked?" blocked":"");
 
-    // ✅ sort: bloqueadas al fondo; luego por votos
-    const sorted = [...songs].sort((a,b)=> {
-      const ab = a?.blocked ? 1 : 0;
-      const bb = b?.blocked ? 1 : 0;
-      if(ab !== bb) return ab - bb; // no bloqueadas primero
-      return Number(b.votes||0) - Number(a.votes||0);
-    });
+let subtitle=song.artist||"";
 
-    if(!sorted.length){
-      listEl.innerHTML = `<div class="pill" style="justify-self:start">Sin canciones.</div>`;
-      return;
-    }
+if(song.blocked)
+subtitle="⛔ PENDIENTE DE LINK CORRECTO";
 
-    sorted.forEach((song) => {
-      const item = document.createElement("div");
-      item.className = "item" + (song.blocked ? " blocked" : "");
+el.innerHTML=`
+<div class="meta">
+<b>${song.title}</b>
+<small>${subtitle}</small>
+</div>
 
-      const playCount = Number(song.playCount || 0);
-      const votedCycle = vm[String(song.id)];
-      const alreadyVoted = Number(votedCycle) === playCount;
+<div class="right">
+<div class="badge">${song.votes} votos</div>
+<button ${song.blocked?"disabled":""}>Votar</button>
+</div>
+`;
 
-      const lockUntil = Number(song.cooldownUntil || 0);
-      const inCooldown = lockUntil && now < lockUntil;
+const btn=el.querySelector("button");
 
-      let subtitle = escapeHtml(song.artist || "");
-      let disabled = false;
+btn.onclick=async()=>{
 
-      if(song.blocked){
-        subtitle = `⛔ PENDIENTE DE LINK CORRECTO • ${subtitle}`;
-        disabled = true;
-      } else if(inCooldown){
-        const mins = Math.max(1, Math.ceil((lockUntil - now)/60000));
-        subtitle = `⛔ Bloqueada ${mins} min • ${subtitle}`;
-        disabled = true;
-      } else if(alreadyVoted){
-        subtitle = `✅ Ya votaste • ${subtitle}`;
-        disabled = true;
-      }
+const r=await fetch(`/api/r/${room}/vote/${song.id}`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"x-device-id":localStorage.deviceId||crypto.randomUUID()
+}
+});
 
-      item.innerHTML = `
-        <div class="meta">
-          <b>${escapeHtml(song.title || "")}</b>
-          <small>${subtitle}</small>
-        </div>
-        <div class="right">
-          <div class="badge">${Number(song.votes||0)} votos</div>
-          <button type="button"${disabled ? " disabled" : ""}>Votar</button>
-        </div>
-      `;
+if(!r.ok){
+toast("No se pudo votar");
+return;
+}
 
-      const btn = item.querySelector("button");
-      btn.addEventListener("click", async () => {
-        btn.disabled = true;
-        await vote(song.id);
-        render();
-      });
+song.votes++;
 
-      listEl.appendChild(item);
-    });
-  }
+render();
+};
 
-  async function vote(songId){
-    const voter = (document.getElementById("nameInput").value || "Alguien").trim();
-    const url = `/api/r/${encodeURIComponent(room)}/vote/${encodeURIComponent(songId)}`;
+list.appendChild(el);
 
-    const song = songs.find(x => String(x.id) === String(songId));
-    const playCount = Number(song?.playCount || 0);
+});
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-device-id": DEVICE_ID
-        },
-        body: JSON.stringify({ voter, deviceId: DEVICE_ID })
-      });
+}
 
-      const text = await res.text();
-      let data = null;
-      try { data = text ? JSON.parse(text) : null; } catch {}
+async function load(){
 
-      if (!res.ok) {
-        showToast("❌ ", (data?.error || `Error ${res.status}`));
-        loadState();
-        return;
-      }
+const r=await fetch(`/api/r/${room}/state`);
+const d=await r.json();
 
-      // ✅ guardamos “ya voté” por ciclo
-      const vm = loadVoteMap();
-      vm[String(songId)] = playCount;
-      saveVoteMap(vm);
+songs=d.songs||[];
 
-      // update optimista
-      if (song) song.votes = Number(song.votes || 0) + 1;
-      render();
+render();
 
-      loadState();
-      showToast("✅ ", "Voto enviado");
-    } catch (_) {
-      showToast("❌ ", "Sin conexión / fetch bloqueado");
-    }
-  }
+}
 
-  function startTick(){
-    clearInterval(tick);
-    tick = setInterval(() => {
-      if (!songStartedAt || !durationSec) return;
+function startBar(){
 
-      const elapsed = (Date.now() - songStartedAt) / 1000;
-      const remaining = Math.max(0, Math.ceil(durationSec - elapsed));
+setInterval(()=>{
 
-      document.getElementById("timeLeft").textContent = `⏳ ${formatTime(remaining)}`;
+if(!startedAt||!duration)return;
 
-      const pct = Math.max(0, Math.min(100, (elapsed / durationSec) * 100));
-      document.getElementById("fill").style.width = pct + "%";
-    }, 350);
-  }
+const elapsed=(Date.now()-startedAt)/1000;
 
-  loadState();
-  startPolling();
+const pct=Math.min(100,(elapsed/duration)*100);
 
-  if (typeof window.io === "function") {
-    const socket = window.io({ transports:["websocket","polling"] });
+fill.style.width=pct+"%";
 
-    socket.on("connect", () => {
-      statusPill.textContent = "Conectado ✅";
-      if (room) socket.emit("room:join", { room });
-      stopPolling();
-      loadState();
-    });
+},300);
 
-    socket.on("disconnect", () => {
-      statusPill.textContent = "Desconectado…";
-      startPolling();
-    });
+}
 
-    socket.on("votes:update", (payload) => {
-      if (!payload || payload.room !== room) return;
-      songs = payload.songs || [];
-      render();
-    });
+const socket=io();
 
-    socket.on("song:update", (data) => {
-      if (!data || data.room !== room) return;
+socket.on("connect",()=>{
+document.getElementById("status").textContent="Conectado ✅";
+socket.emit("room:join",{room});
+});
 
-      songStartedAt = Number(data.startedAt || 0);
-      durationSec = Number(data.durationSec || 0);
-      nowSongId = data.songId ?? null;
+socket.on("votes:update",data=>{
+if(data.room!==room)return;
+songs=data.songs;
+render();
+});
 
-      const s = songs.find(x => String(x.id) === String(nowSongId));
-      document.getElementById("nowPill").textContent = s
-        ? `Reproduciendo: ${s.artist} — ${s.title}`
-        : "Reproduciendo: —";
+socket.on("song:update",data=>{
+if(data.room!==room)return;
 
-      startTick();
-    });
-  } else {
-    statusPill.textContent = "Sin socket (polling)";
-  }
-  </script>
+startedAt=data.startedAt;
+duration=data.durationSec;
+
+localStorage.lastNow=JSON.stringify(data);
+
+startBar();
+});
+
+(async()=>{
+
+await load();
+
+const last=localStorage.lastNow;
+
+if(last){
+
+const data=JSON.parse(last);
+
+startedAt=data.startedAt;
+duration=data.durationSec;
+
+startBar();
+
+}
+
+})();
+
+</script>
+
 </body>
 </html>
