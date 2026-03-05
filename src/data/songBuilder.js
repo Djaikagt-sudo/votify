@@ -1,57 +1,53 @@
 import { library } from "./library.js";
 
-function shuffle(arr){
-  const a = [...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+// genera canciones a partir de géneros, tolerando mayúsculas/minúsculas
+export function buildSongsFromGenres({ genres = [], total = 40 }) {
+  const want = (genres || []).map(g => String(g || "").trim()).filter(Boolean);
 
-function normalizeId(s){
-  const v = String(s || "").trim();
-  return /^[a-zA-Z0-9_-]{11}$/.test(v) ? v : "";
-}
+  const libKeys = Object.keys(library || {});
+  const keyMap = new Map();
+  // mapa lower -> key real
+  for (const k of libKeys) keyMap.set(k.toLowerCase(), k);
 
-/**
- * Construye lista de canciones aleatoria desde géneros seleccionados.
- */
-export function buildSongsFromGenres({ genres = [], total = 40 } = {}){
-  const allGenres = Object.keys(library);
+  const pools = [];
 
-  const pickedGenres = (Array.isArray(genres) && genres.length)
-    ? genres.filter(g => allGenres.includes(g))
-    : allGenres;
+  for (const g of want) {
+    const realKey = keyMap.get(g.toLowerCase());
+    if (!realKey) continue;
 
-  const pools = pickedGenres.map((g) => {
-    const songs = Array.isArray(library[g]) ? library[g] : [];
-    return { genre: g, songs: shuffle(songs) };
-  });
-
-  const result = [];
-  let safety = 0;
-
-  while(result.length < total && safety < 9999){
-    safety++;
-    const available = pools.filter(p => p.songs.length > 0);
-    if(!available.length) break;
-
-    const p = available[Math.floor(Math.random() * available.length)];
-    const s = p.songs.shift();
-
-    const youtubeId = normalizeId(s.youtubeId);
-    if(!youtubeId) continue;
-
-    result.push({
-      id: result.length + 1,
-      genre: p.genre,
-      artist: s.artist || "",
-      title: s.title || "",
-      youtubeId,
-      votes: 0
-    });
+    const arr = Array.isArray(library[realKey]) ? library[realKey] : [];
+    for (const s of arr) {
+      if (!s) continue;
+      pools.push({
+        id: s.id ?? `${realKey}-${Math.random().toString(36).slice(2)}`,
+        title: s.title || s.name || "Sin título",
+        artist: s.artist || "",
+        youtubeId: s.youtubeId || s.youtube || s.yt || "",
+        genre: realKey,
+        votes: 0,
+        playCount: 0,
+        lastPlayedAt: 0,
+        cooldownUntil: 0
+      });
+    }
   }
 
-  return result;
+  // quitar vacíos y duplicados por youtubeId
+  const seen = new Set();
+  const unique = [];
+  for (const s of pools) {
+    const key = String(s.youtubeId || "").trim();
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(s);
+  }
+
+  // shuffle simple
+  for (let i = unique.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [unique[i], unique[j]] = [unique[j], unique[i]];
+  }
+
+  return unique.slice(0, Math.max(1, Number(total) || 40));
 }

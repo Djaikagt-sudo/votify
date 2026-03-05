@@ -491,33 +491,34 @@
     }
 
     function setQrFromState(data){
-      const img = document.getElementById("qrImg");
-      const hint = document.getElementById("qrHint");
-      hint.style.display = "none";
-      img.style.opacity = "1";
+  const img = document.getElementById("qrImg");
+  const hint = document.getElementById("qrHint");
+  hint.style.display = "none";
+  img.style.opacity = "1";
 
-      const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
-      if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
-        img.src = qrDataUrl;
-        return;
-      }
+  const qrDataUrl = data?.qrDataUrl || data?.qr || data?.qr_url || "";
+  if(typeof qrDataUrl === "string" && qrDataUrl.startsWith("data:image")){
+    img.src = qrDataUrl;
+    return;
+  }
 
-      const qrUrl = data?.qrUrl || data?.qr_url || "";
-      if(typeof qrUrl === "string" && qrUrl.length > 0){
-        img.src = qrUrl;
-        img.onerror = () => {
-          img.style.opacity = "0.35";
-          hint.style.display = "block";
-        };
-        return;
-      }
+  // fallback (por si un día vuelves a png)
+  const qrUrl = data?.qrUrl || data?.qr_url || "";
+  if(typeof qrUrl === "string" && qrUrl.length > 0){
+    img.src = qrUrl;
+    img.onerror = () => {
+      img.style.opacity = "0.35";
+      hint.style.display = "block";
+      hint.textContent = "QR no encontrado";
+    };
+    return;
+  }
 
-      img.src = `${origin}/qrcodes/${room}.png`;
-      img.onerror = () => {
-        img.style.opacity = "0.35";
-        hint.style.display = "block";
-      };
-    }
+  // último fallback: ocultar
+  img.style.opacity = "0.35";
+  hint.style.display = "block";
+  hint.textContent = "QR no encontrado";
+}
 
     async function loadState(){
       const res = await fetch(`/api/r/${room}/state`);

@@ -1,15 +1,8 @@
 import express from "express";
 import QRCode from "qrcode";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-
 import { createRestaurant, getRestaurants } from "../data/store.js";
 
 const router = express.Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 router.get("/", async (req, res) => {
   const restaurants = await getRestaurants();
@@ -25,21 +18,27 @@ router.post("/", async (req, res) => {
     totalSongs: Number(totalSongs) || 40,
   });
 
+  // ✅ si quedó vacío, avisar bien (y evitar sala inútil)
+  if (!restaurant.songs || restaurant.songs.length === 0) {
+    return res.status(400).json({
+      ok: false,
+      error:
+        "No se cargaron canciones. Revisa que los géneros seleccionados coincidan con las llaves de tu library.js",
+    });
+  }
+
   const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
   const host = req.get("host");
-  const url = `${proto}://${host}/r/${restaurant.id}`;
+  const voteUrl = `${proto}://${host}/r/${restaurant.id}`;
 
-  const qrDir = path.join(__dirname, "../../public/qrcodes");
-  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
-
-  const qrFile = path.join(qrDir, `${restaurant.id}.png`);
-  await QRCode.toFile(qrFile, url);
+  // ✅ Render: NO guardes PNG en disco. Enviar como dataURL.
+  const qrDataUrl = await QRCode.toDataURL(voteUrl, { margin: 1, scale: 8 });
 
   res.json({
     ok: true,
     ...restaurant,
-    url,
-    qrUrl: `/qrcodes/${restaurant.id}.png`,
+    url: voteUrl,
+    qrDataUrl
   });
 });
 
