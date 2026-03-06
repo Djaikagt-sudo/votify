@@ -3,214 +3,895 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Votify | Votación musical en tiempo real</title>
-  <meta name="description" content="Votify permite que tus clientes voten canciones en tiempo real desde un código QR. Ideal para restaurantes, bares y eventos." />
+  <title>Votify | La música que conecta con tus clientes</title>
+  <meta
+    name="description"
+    content="Votify permite que tus clientes voten canciones en tiempo real desde un código QR. Ideal para restaurantes, bares, eventos y experiencias musicales interactivas."
+  />
 
   <style>
     :root{
-      --bg1:#12001f;
-      --bg2:#2a003f;
-      --primary:#9d4edd;
-      --primary2:#7b2cff;
-      --textSoft:rgba(255,255,255,.8);
-      --card:rgba(255,255,255,.06);
+      --bg:#09040f;
+      --bg-soft:#12081b;
+      --panel:rgba(255,255,255,.06);
+      --panel-strong:rgba(255,255,255,.09);
       --border:rgba(255,255,255,.12);
+      --text:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --primary:#9E1AAD;
+      --primary-2:#C44DFF;
+      --accent:#FF4DF0;
+      --success:#7CFFB2;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
     }
 
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
 
     body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
-      color:#fff;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(800px 400px at 20% 0%, rgba(157,78,221,.35), transparent 60%),
-        radial-gradient(800px 500px at 90% 30%, rgba(123,44,255,.25), transparent 60%),
-        linear-gradient(135deg,var(--bg1),var(--bg2));
+        radial-gradient(900px 500px at 15% 0%, rgba(158,26,173,.28), transparent 60%),
+        radial-gradient(800px 400px at 85% 10%, rgba(196,77,255,.18), transparent 60%),
+        linear-gradient(180deg, #0a0410 0%, #100616 45%, #07030b 100%);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    a{
+      color:inherit;
+      text-decoration:none;
     }
 
     .container{
-      max-width:1100px;
-      margin:auto;
-      padding:60px 20px;
+      width:min(1180px, calc(100% - 32px));
+      margin:0 auto;
     }
 
-    header{
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(14px);
+      background:rgba(7,3,11,.55);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .topbar-inner{
+      min-height:78px;
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      margin-bottom:80px;
+      justify-content:space-between;
+      gap:18px;
     }
 
-    .logo{
-      font-size:24px;
-      font-weight:900;
-      letter-spacing:1px;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
     }
 
-    .hero{
-      text-align:center;
-      margin-bottom:80px;
+    .brand img{
+      width:54px;
+      height:54px;
+      object-fit:contain;
+      filter:drop-shadow(0 6px 20px rgba(196,77,255,.30));
     }
 
-    .hero h1{
-      font-size:52px;
-      margin-bottom:20px;
-      background:linear-gradient(90deg,#d9a3ff,var(--primary2));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
+    .brand-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
     }
 
-    .hero p{
-      font-size:20px;
-      color:var(--textSoft);
-      max-width:700px;
-      margin:auto;
-      margin-bottom:40px;
-      line-height:1.6;
+    .brand-text strong{
+      font-size:1.1rem;
+      letter-spacing:.3px;
+    }
+
+    .brand-text span{
+      color:var(--muted);
+      font-size:.88rem;
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .nav a.link{
+      color:var(--muted);
+      font-size:.95rem;
+      transition:.2s ease;
+    }
+
+    .nav a.link:hover{
+      color:#fff;
     }
 
     .btn{
-      display:inline-block;
-      padding:14px 28px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      border:none;
       border-radius:14px;
-      font-weight:700;
-      text-decoration:none;
-      transition:.2s;
-      margin:8px;
-    }
-
-    .btn-primary{
-      background:linear-gradient(90deg,var(--primary),var(--primary2));
-      color:#fff;
-    }
-
-    .btn-outline{
-      border:1px solid var(--border);
-      color:#fff;
+      padding:14px 22px;
+      font-weight:800;
+      font-size:.97rem;
+      cursor:pointer;
+      transition:.2s ease;
+      white-space:nowrap;
     }
 
     .btn:hover{
       transform:translateY(-2px);
-      filter:brightness(1.05);
+    }
+
+    .btn-primary{
+      color:#fff;
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow:0 12px 30px rgba(158,26,173,.35);
+    }
+
+    .btn-secondary{
+      color:#fff;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--border);
+    }
+
+    .hero{
+      padding:70px 0 42px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      align-items:center;
+      gap:34px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      color:#f2d6ff;
+      font-size:.92rem;
+      margin-bottom:18px;
+    }
+
+    .hero h1{
+      font-size:clamp(2.4rem, 5vw, 4.9rem);
+      line-height:.98;
+      letter-spacing:-1.8px;
+      margin-bottom:18px;
+    }
+
+    .gradient-text{
+      background:linear-gradient(90deg, #ffffff 0%, #e8b9ff 45%, #c44dff 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .hero p{
+      font-size:1.08rem;
+      line-height:1.75;
+      color:var(--muted);
+      max-width:680px;
+      margin-bottom:28px;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-bottom:26px;
+    }
+
+    .trust-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .trust-pill{
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      color:rgba(255,255,255,.86);
+      font-size:.92rem;
+    }
+
+    .hero-visual{
+      position:relative;
+    }
+
+    .visual-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+    }
+
+    .visual-glow{
+      position:absolute;
+      inset:auto -60px -80px auto;
+      width:220px;
+      height:220px;
+      background:radial-gradient(circle, rgba(196,77,255,.28), transparent 68%);
+      pointer-events:none;
+    }
+
+    .dashboard-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .dashboard-head h3{
+      font-size:1rem;
+    }
+
+    .dashboard-tag{
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(124,255,178,.12);
+      border:1px solid rgba(124,255,178,.18);
+      color:var(--success);
+      font-size:.82rem;
+      font-weight:700;
+    }
+
+    .now-playing{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      padding:18px;
+      margin-bottom:16px;
+    }
+
+    .now-playing small,
+    .mini-card small,
+    .song small{
+      color:var(--muted);
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .now-playing strong{
+      font-size:1.12rem;
+      display:block;
+      margin-bottom:12px;
+    }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+    }
+
+    .bar span{
+      display:block;
+      height:100%;
+      width:68%;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--primary), var(--primary-2));
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    .mini-card{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .mini-card strong{
+      font-size:1.35rem;
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .playlist{
+      display:grid;
+      gap:10px;
+    }
+
+    .song{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px 16px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .song strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:.98rem;
+    }
+
+    .votes{
+      min-width:74px;
+      text-align:right;
+      font-weight:800;
+      color:#f3c8ff;
     }
 
     .section{
-      margin-top:80px;
+      padding:42px 0;
     }
 
-    .features{
+    .section-title{
+      text-align:center;
+      max-width:860px;
+      margin:0 auto 18px;
+    }
+
+    .section-title h2{
+      font-size:clamp(1.9rem, 3vw, 3rem);
+      line-height:1.05;
+      margin-bottom:12px;
+      letter-spacing:-1px;
+    }
+
+    .section-title p{
+      color:var(--muted);
+      line-height:1.75;
+      font-size:1.03rem;
+    }
+
+    .grid-3{
       display:grid;
       grid-template-columns:repeat(3,1fr);
-      gap:20px;
-      margin-top:40px;
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .grid-4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+      margin-top:28px;
     }
 
     .card{
-      background:var(--card);
+      background:var(--panel);
       border:1px solid var(--border);
-      padding:25px;
-      border-radius:18px;
-      text-align:center;
+      border-radius:22px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+
+    .card .icon{
+      width:52px;
+      height:52px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      font-size:1.35rem;
+      margin-bottom:16px;
+      background:linear-gradient(135deg, rgba(158,26,173,.22), rgba(196,77,255,.16));
+      border:1px solid rgba(255,255,255,.08);
     }
 
     .card h3{
+      font-size:1.08rem;
       margin-bottom:10px;
     }
 
     .card p{
-      color:var(--textSoft);
-      font-size:15px;
-      line-height:1.5;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:.97rem;
+    }
+
+    .steps{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .step{
+      position:relative;
+      padding:26px 22px 22px;
+      border-radius:22px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+    }
+
+    .step-number{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      font-weight:900;
+      margin-bottom:16px;
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    }
+
+    .step h3{
+      margin-bottom:10px;
+    }
+
+    .step p{
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .audience{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .audience .card{
+      text-align:left;
+    }
+
+    .cta{
+      padding:30px 0 70px;
+    }
+
+    .cta-box{
+      position:relative;
+      overflow:hidden;
+      border-radius:30px;
+      padding:36px;
+      background:
+        radial-gradient(500px 240px at 20% 0%, rgba(196,77,255,.18), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+
+    .cta-box h2{
+      font-size:clamp(1.9rem, 3vw, 3rem);
+      margin-bottom:12px;
+      letter-spacing:-1px;
+    }
+
+    .cta-box p{
+      max-width:760px;
+      margin:0 auto 24px;
+      color:var(--muted);
+      line-height:1.8;
     }
 
     footer{
-      margin-top:100px;
+      padding:0 0 40px;
+      color:rgba(255,255,255,.55);
       text-align:center;
-      opacity:.5;
-      font-size:14px;
+      font-size:.92rem;
     }
 
-    @media(max-width:900px){
-      .features{
+    @media (max-width: 1024px){
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .steps,
+      .audience{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px){
+      .topbar-inner{
+        min-height:auto;
+        padding:14px 0;
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .nav{
+        width:100%;
+        justify-content:flex-start;
+      }
+
+      .hero{
+        padding-top:38px;
+      }
+
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .steps,
+      .audience,
+      .stats-grid{
         grid-template-columns:1fr;
       }
 
+      .hero-actions{
+        flex-direction:column;
+      }
+
+      .btn{
+        width:100%;
+      }
+
+      .visual-card,
+      .cta-box,
+      .card,
+      .step{
+        border-radius:22px;
+      }
+
+      .brand img{
+        width:48px;
+        height:48px;
+      }
+
       .hero h1{
-        font-size:38px;
+        letter-spacing:-1.2px;
       }
     }
   </style>
 </head>
-
 <body>
 
-  <div class="container">
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="/landing" class="brand">
+        <img src="/logovotify.png" alt="Logo Votify" onerror="this.src='/icon.png'">
+        <div class="brand-text">
+          <strong>Votify</strong>
+          <span>Música interactiva para tu negocio</span>
+        </div>
+      </a>
 
-    <header>
-      <div class="logo">Votify</div>
-      <a href="/login" class="btn btn-outline">Iniciar sesión</a>
-    </header>
+      <nav class="nav">
+        <a class="link" href="#beneficios">Beneficios</a>
+        <a class="link" href="#estadisticas">Estadísticas</a>
+        <a class="link" href="#como-funciona">Cómo funciona</a>
+        <a class="btn btn-secondary" href="/login">Iniciar sesión</a>
+      </nav>
+    </div>
+  </header>
 
+  <main>
     <section class="hero">
-      <h1>La música la eligen tus clientes</h1>
-      <p>
-        Votify es una plataforma de votación musical en tiempo real.
-        Tus clientes escanean un código QR, votan canciones desde su teléfono
-        y la pantalla del local se actualiza automáticamente.
-      </p>
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">🎧 Convierte la música en una experiencia interactiva</div>
 
-      <a href="/login" class="btn btn-primary">Acceder al Panel</a>
-      <a href="/demo" class="btn btn-outline">Ver Demo</a>
+          <h1>
+            La música de tu local,
+            <span class="gradient-text">guiada por tus clientes</span>
+          </h1>
+
+          <p>
+            Votify permite que tus clientes escaneen un código QR, voten por sus canciones favoritas
+            y participen en tiempo real en la música del ambiente. No solo mejoras la experiencia:
+            también obtienes información valiosa sobre lo que realmente quieren escuchar.
+          </p>
+
+          <div class="hero-actions">
+            <a href="/login" class="btn btn-primary">Entrar al panel</a>
+            <a href="#beneficios" class="btn btn-secondary">Ver beneficios</a>
+          </div>
+
+          <div class="trust-row">
+            <div class="trust-pill">⚡ Votación en tiempo real</div>
+            <div class="trust-pill">📱 Acceso con QR</div>
+            <div class="trust-pill">📊 Estadísticas de consumo musical</div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="visual-card">
+            <div class="visual-glow"></div>
+
+            <div class="dashboard-head">
+              <h3>Panel Votify</h3>
+              <div class="dashboard-tag">En vivo</div>
+            </div>
+
+            <div class="now-playing">
+              <small>Sonando ahora</small>
+              <strong>Feid — Luna</strong>
+              <div class="bar"><span></span></div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="mini-card">
+                <small>Votos hoy</small>
+                <strong>248</strong>
+              </div>
+              <div class="mini-card">
+                <small>Género favorito</small>
+                <strong>Reggaetón</strong>
+              </div>
+              <div class="mini-card">
+                <small>Hora más activa</small>
+                <strong>8:00 PM</strong>
+              </div>
+              <div class="mini-card">
+                <small>Canción top</small>
+                <strong>La Plena</strong>
+              </div>
+            </div>
+
+            <div class="playlist">
+              <div class="song">
+                <div>
+                  <small>#1 más votada</small>
+                  <strong>Bad Bunny — Monaco</strong>
+                </div>
+                <div class="votes">54 votos</div>
+              </div>
+
+              <div class="song">
+                <div>
+                  <small>#2 tendencia</small>
+                  <strong>Karol G — Amargura</strong>
+                </div>
+                <div class="votes">39 votos</div>
+              </div>
+
+              <div class="song">
+                <div>
+                  <small>#3 subida rápida</small>
+                  <strong>Rauw Alejandro — Touching The Sky</strong>
+                </div>
+                <div class="votes">31 votos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="section">
-      <h2 style="text-align:center;">¿Cómo funciona?</h2>
-
-      <div class="features">
-        <div class="card">
-          <h3>1️⃣ Escanean el QR</h3>
-          <p>Los clientes ingresan a la sala desde su teléfono en segundos.</p>
+    <section class="section" id="beneficios">
+      <div class="container">
+        <div class="section-title">
+          <h2>Beneficios reales para tu negocio</h2>
+          <p>
+            Votify no es solo una pantalla bonita. Es una herramienta para mejorar la experiencia,
+            aumentar la conexión con tus clientes y tomar mejores decisiones sobre el ambiente musical del local.
+          </p>
         </div>
 
-        <div class="card">
-          <h3>2️⃣ Votan canciones</h3>
-          <p>Eligen su música favorita y compiten en el ranking en tiempo real.</p>
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon">✨</div>
+            <h3>Experiencia más atractiva</h3>
+            <p>
+              Tus clientes participan activamente en la música del lugar. Eso hace que la visita se vuelva
+              más entretenida, moderna y memorable.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">⏱</div>
+            <h3>Más tiempo de permanencia</h3>
+            <p>
+              Cuando las personas sienten que forman parte del ambiente, suelen quedarse más tiempo,
+              interactuar más y disfrutar más la experiencia.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">💜</div>
+            <h3>Tu marca se ve más premium</h3>
+            <p>
+              Tener una app de votación musical con QR proyecta innovación, tecnología y una imagen más
+              moderna frente a tus clientes.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">🎯</div>
+            <h3>Ambiente musical más acertado</h3>
+            <p>
+              Dejas de adivinar qué poner. Ahora puedes detectar qué ritmo conecta más con la gente
+              según el horario, el día o el tipo de público.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">📲</div>
+            <h3>Uso fácil e inmediato</h3>
+            <p>
+              Tus clientes solo escanean el QR y votan desde su teléfono. No necesitan instalar nada ni
+              pasar por procesos complicados.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">🚀</div>
+            <h3>Ideal para crecer</h3>
+            <p>
+              Funciona para restaurantes, bares, terrazas, eventos, DJs y conceptos de entretenimiento
+              donde la música forma parte de la experiencia.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="estadisticas">
+      <div class="container">
+        <div class="section-title">
+          <h2>Conoce mejor a tus clientes con estadísticas musicales</h2>
+          <p>
+            Votify también te ayuda a entender qué escucha tu audiencia. Así puedes mejorar playlists,
+            programaciones, promociones y el estilo general de tu local con base en datos reales.
+          </p>
         </div>
 
-        <div class="card">
-          <h3>3️⃣ La TV se actualiza</h3>
-          <p>Las canciones más votadas suben automáticamente en la lista.</p>
+        <div class="grid-4">
+          <div class="card">
+            <div class="icon">📊</div>
+            <h3>Canciones más votadas</h3>
+            <p>
+              Descubre cuáles son las canciones que más conectan con tus clientes y cuáles generan más interacción.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">🎵</div>
+            <h3>Géneros favoritos</h3>
+            <p>
+              Identifica si tu público responde mejor a reggaetón, pop, regional, electrónica o cualquier otro género.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">🕘</div>
+            <h3>Horas de mayor actividad</h3>
+            <p>
+              Mira en qué momento del día tus clientes votan más y ajusta la energía musical del local en esos horarios.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">👥</div>
+            <h3>Preferencias del ambiente</h3>
+            <p>
+              Entiende mejor qué estilo musical prefiere tu audiencia para crear experiencias más alineadas con tu negocio.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="como-funciona">
+      <div class="container">
+        <div class="section-title">
+          <h2>Así funciona Votify</h2>
+          <p>
+            Un proceso simple para tus clientes y muy potente para tu negocio.
+          </p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h3>Escanean el código QR</h3>
+            <p>
+              Los clientes ingresan al sistema desde su celular en segundos, sin complicaciones y sin instalar aplicaciones.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <h3>Votan por sus canciones</h3>
+            <p>
+              Cada persona participa eligiendo la música que quiere escuchar, lo que hace la experiencia más dinámica.
+            </p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <h3>Obtienes interacción y datos</h3>
+            <p>
+              La música se mueve en tiempo real y tú vas descubriendo qué escucha tu público para tomar mejores decisiones.
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <h2 style="text-align:center;">Ideal para</h2>
-
-      <div class="features">
-        <div class="card">
-          <h3>🍽 Restaurantes</h3>
-          <p>Mejora la experiencia del cliente y aumenta el tiempo de permanencia.</p>
+      <div class="container">
+        <div class="section-title">
+          <h2>Perfecto para negocios donde la música importa</h2>
+          <p>
+            Votify se adapta a diferentes tipos de experiencia y hace que el ambiente tenga más participación, energía y personalidad.
+          </p>
         </div>
 
-        <div class="card">
-          <h3>🍺 Bares</h3>
-          <p>Ambiente interactivo donde todos participan en la música.</p>
-        </div>
+        <div class="audience">
+          <div class="card">
+            <div class="icon">🍽</div>
+            <h3>Restaurantes</h3>
+            <p>
+              Mejora la experiencia del cliente y crea un ambiente más conectado con el tipo de público que te visita.
+            </p>
+          </div>
 
-        <div class="card">
-          <h3>🎧 DJs & Eventos</h3>
-          <p>Controla la energía del evento con votaciones en vivo.</p>
+          <div class="card">
+            <div class="icon">🍸</div>
+            <h3>Bares y lounges</h3>
+            <p>
+              Convierte la música en parte del entretenimiento y genera una experiencia más social e interactiva.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="icon">🎉</div>
+            <h3>Eventos y DJs</h3>
+            <p>
+              Mantén a la audiencia involucrada, lee mejor el ambiente y haz que cada momento se sienta más vivo.
+            </p>
+          </div>
         </div>
       </div>
     </section>
 
-    <footer>
-      © 2026 Votify — Dj Aika
-    </footer>
+    <section class="cta">
+      <div class="container">
+        <div class="cta-box">
+          <h2>Haz que tu música también trabaje para tu negocio</h2>
+          <p>
+            Moderniza la experiencia de tus clientes, permite votación musical en tiempo real y obtén estadísticas
+            que te ayuden a entender mejor qué escucha tu audiencia.
+          </p>
 
-  </div>
+          <div class="hero-actions" style="justify-content:center;">
+            <a href="/login" class="btn btn-primary">Entrar a Votify</a>
+            <a href="#estadisticas" class="btn btn-secondary">Ver estadísticas</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Votify — Experiencias musicales interactivas
+  </footer>
 
 </body>
 </html>
