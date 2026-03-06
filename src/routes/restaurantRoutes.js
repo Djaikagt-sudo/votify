@@ -16,12 +16,11 @@ router.get("/", (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { name, genres, totalSongs } = req.body || {};
+  const { name, genres } = req.body || {};
 
   const restaurant = createRestaurant({
     name,
-    genres: Array.isArray(genres) ? genres : [],
-    totalSongs: Number(totalSongs) || 40
+    genres: Array.isArray(genres) ? genres : []
   });
 
   const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http").toString();
@@ -29,7 +28,7 @@ router.post("/", async (req, res) => {
   const url = `${proto}://${host}/r/${restaurant.id}`;
 
   const qrDir = path.join(__dirname, "../../public/qrcodes");
-  if(!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
+  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
 
   const qrFile = path.join(qrDir, `${restaurant.id}.png`);
   await QRCode.toFile(qrFile, url);
