@@ -519,15 +519,15 @@
 
           <form id="loginForm" class="form">
             <div class="field">
-              <label for="username">Usuario</label>
+              <label for="email">Correo</label>
               <div class="input-wrap">
                 <input
-                  id="username"
-                  name="username"
+                  id="email"
+                  name="email"
                   class="input"
-                  type="text"
-                  placeholder="Ingresa tu usuario"
-                  autocomplete="username"
+                  type="email"
+                  placeholder="djaika.gt@gmail.com"
+                  autocomplete="email"
                   required
                 />
               </div>
@@ -583,15 +583,15 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
       statusEl.className = "status";
       statusEl.textContent = "";
 
-      if (!username || !password) {
+      if (!email || !password) {
         statusEl.className = "status error";
-        statusEl.textContent = "Por favor completa usuario y contraseña.";
+        statusEl.textContent = "Por favor completa correo y contraseña.";
         return;
       }
 
@@ -599,38 +599,40 @@
       loginBtn.textContent = "Ingresando...";
 
       try {
-        const res = await fetch("/api/auth/login", {
+        const res = await fetch("/api/admin/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ email, password })
         });
 
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok || !data.ok) {
-          throw new Error(data?.error || "No se pudo iniciar sesión.");
+          throw new Error(data?.error || "Credenciales inválidas.");
+        }
+
+        if (data.token) {
+          localStorage.setItem("votify_admin_token", data.token);
+        }
+
+        if (data.email) {
+          localStorage.setItem("votify_admin_email", data.email);
+        } else {
+          localStorage.setItem("votify_admin_email", email);
         }
 
         statusEl.className = "status success";
         statusEl.textContent = "Acceso concedido. Redirigiendo...";
 
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
-
-        if (data.user) {
-          localStorage.setItem("votify_user", JSON.stringify(data.user));
-        }
-
         setTimeout(() => {
-          window.location.href = data.redirect || "/admin";
+          window.location.href = "/admin";
         }, 700);
 
       } catch (err) {
         statusEl.className = "status error";
-        statusEl.textContent = err.message || "Credenciales inválidas.";
+        statusEl.textContent = err.message || "No se pudo iniciar sesión.";
       } finally {
         loginBtn.disabled = false;
         loginBtn.textContent = "Entrar al panel";
