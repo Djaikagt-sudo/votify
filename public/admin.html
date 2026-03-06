@@ -4,24 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Votify | Admin</title>
-  <meta name="description" content="Panel administrativo de Votify" />
 
   <style>
     :root{
-      --bg:#09040f;
-      --bg-2:#12081b;
-      --panel:rgba(255,255,255,.06);
-      --panel-2:rgba(255,255,255,.08);
-      --border:rgba(255,255,255,.10);
-      --text:#fff;
-      --muted:rgba(255,255,255,.70);
+      --bg:#0a0410;
+      --bg2:#12081b;
+      --panel:#17101f;
+      --panel2:#201728;
+      --border:rgba(255,255,255,.08);
+      --text:#ffffff;
+      --muted:rgba(255,255,255,.68);
       --primary:#9E1AAD;
-      --primary-2:#C44DFF;
-      --success:#7CFFB2;
-      --warning:#FFD66B;
-      --danger:#FF7C98;
-      --shadow:0 20px 60px rgba(0,0,0,.35);
-      --radius:24px;
+      --primary2:#C44DFF;
+      --danger:#b94a67;
+      --success:#72f0ab;
+      --shadow:0 12px 30px rgba(0,0,0,.25);
+      --radius:20px;
     }
 
     *{
@@ -32,13 +30,12 @@
 
     body{
       min-height:100vh;
-      font-family:Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
       color:var(--text);
       background:
-        radial-gradient(1000px 500px at 10% 0%, rgba(158,26,173,.24), transparent 60%),
-        radial-gradient(700px 400px at 90% 10%, rgba(196,77,255,.16), transparent 60%),
-        linear-gradient(180deg, #0a0410 0%, #100616 45%, #07030b 100%);
-      overflow-x:hidden;
+        radial-gradient(900px 450px at 10% 0%, rgba(158,26,173,.18), transparent 60%),
+        radial-gradient(700px 350px at 90% 10%, rgba(196,77,255,.10), transparent 60%),
+        linear-gradient(180deg,#09040f 0%,#100616 50%,#07030b 100%);
     }
 
     a{
@@ -46,27 +43,25 @@
       text-decoration:none;
     }
 
-    button,
-    input{
+    button,input{
       font:inherit;
     }
 
-    .app{
+    .wrap{
       width:min(1380px, calc(100% - 28px));
       margin:0 auto;
-      padding:20px 0 28px;
+      padding:18px 0 24px;
     }
 
     .topbar{
       display:flex;
-      align-items:center;
       justify-content:space-between;
+      align-items:center;
       gap:16px;
-      padding:14px 18px;
+      padding:16px 18px;
+      background:rgba(255,255,255,.04);
       border:1px solid var(--border);
-      background:rgba(255,255,255,.05);
-      backdrop-filter:blur(12px);
-      border-radius:22px;
+      border-radius:20px;
       box-shadow:var(--shadow);
       margin-bottom:18px;
     }
@@ -75,38 +70,28 @@
       display:flex;
       align-items:center;
       gap:14px;
-      min-width:0;
     }
 
     .brand img{
-      width:52px;
-      height:52px;
+      width:46px;
+      height:46px;
       object-fit:contain;
-      filter:drop-shadow(0 8px 18px rgba(196,77,255,.22));
-      flex:0 0 auto;
     }
 
-    .brand-copy{
-      min-width:0;
+    .brand h1{
+      font-size:1.2rem;
+      margin-bottom:2px;
     }
 
-    .brand-copy strong{
-      display:block;
-      font-size:1.1rem;
-      letter-spacing:.2px;
-    }
-
-    .brand-copy span{
-      display:block;
-      font-size:.9rem;
+    .brand p{
       color:var(--muted);
-      margin-top:4px;
+      font-size:.92rem;
     }
 
-    .top-actions{
+    .top-right{
       display:flex;
-      align-items:center;
       gap:10px;
+      align-items:center;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
@@ -114,26 +99,20 @@
     .pill{
       padding:10px 14px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
       background:rgba(255,255,255,.05);
-      color:rgba(255,255,255,.9);
+      border:1px solid var(--border);
+      color:#fff;
       font-size:.92rem;
-      white-space:nowrap;
     }
 
     .btn{
       border:none;
-      cursor:pointer;
       border-radius:14px;
       padding:12px 16px;
       font-weight:800;
-      transition:.2s ease;
+      cursor:pointer;
       color:#fff;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      white-space:nowrap;
+      transition:.2s ease;
     }
 
     .btn:hover{
@@ -141,232 +120,185 @@
     }
 
     .btn-primary{
-      background:linear-gradient(135deg, var(--primary), var(--primary-2));
-      box-shadow:0 14px 30px rgba(158,26,173,.24);
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
     }
 
     .btn-secondary{
       background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
+      border:1px solid var(--border);
     }
 
     .btn-danger{
-      background:rgba(255,124,152,.12);
-      border:1px solid rgba(255,124,152,.18);
-      color:#ffd0da;
+      background:rgba(185,74,103,.14);
+      border:1px solid rgba(185,74,103,.24);
+      color:#ffd3dc;
     }
 
-    .hero{
-      display:grid;
-      grid-template-columns:1.1fr .9fr;
-      gap:18px;
-      margin-bottom:18px;
-    }
-
-    .hero-card,
-    .panel,
-    .metric,
-    .song-row,
-    .genre-card,
-    .activity-card{
+    .panel{
+      background:rgba(255,255,255,.04);
       border:1px solid var(--border);
-      background:var(--panel);
-      backdrop-filter:blur(12px);
+      border-radius:var(--radius);
       box-shadow:var(--shadow);
     }
 
-    .hero-card{
-      border-radius:var(--radius);
-      padding:26px;
-      position:relative;
-      overflow:hidden;
+    .main-setup{
+      padding:20px;
+      margin-bottom:18px;
     }
 
-    .hero-card::after{
-      content:"";
-      position:absolute;
-      right:-80px;
-      bottom:-90px;
-      width:220px;
-      height:220px;
-      background:radial-gradient(circle, rgba(196,77,255,.22), transparent 68%);
-      pointer-events:none;
+    .main-setup h2{
+      font-size:1.35rem;
+      margin-bottom:6px;
     }
 
-    .eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      color:#f3d8ff;
-      font-size:.92rem;
-      margin-bottom:16px;
-    }
-
-    .hero-card h1{
-      font-size:clamp(1.9rem, 4vw, 3.1rem);
-      line-height:1;
-      letter-spacing:-1.4px;
-      margin-bottom:12px;
-    }
-
-    .hero-card p{
+    .main-setup p{
       color:var(--muted);
-      line-height:1.75;
-      max-width:760px;
-      margin-bottom:20px;
+      line-height:1.7;
+      margin-bottom:18px;
     }
 
-    .hero-grid{
+    .setup-grid{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:1.4fr auto auto auto;
       gap:12px;
+      align-items:end;
     }
 
-    .metric{
-      border-radius:20px;
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    .field label{
+      font-size:.92rem;
+      color:rgba(255,255,255,.9);
+      font-weight:700;
+    }
+
+    .input{
+      width:100%;
+      padding:14px 14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:#fff;
+      outline:none;
+    }
+
+    .input:focus{
+      border-color:rgba(196,77,255,.55);
+      box-shadow:0 0 0 4px rgba(196,77,255,.08);
+    }
+
+    .quick-links{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    .linkbox{
+      padding:13px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      color:var(--muted);
+      word-break:break-all;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .stat{
       padding:18px;
     }
 
-    .metric small{
+    .stat small{
       display:block;
       color:var(--muted);
       margin-bottom:8px;
-      font-size:.88rem;
     }
 
-    .metric strong{
+    .stat strong{
+      font-size:1.6rem;
       display:block;
-      font-size:1.55rem;
-      letter-spacing:-.6px;
       margin-bottom:4px;
     }
 
-    .metric span{
+    .stat span{
       color:rgba(255,255,255,.82);
       font-size:.92rem;
     }
 
-    .hero-side{
-      display:grid;
-      gap:18px;
-    }
-
-    .panel{
-      border-radius:var(--radius);
-      padding:22px;
-    }
-
-    .panel-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:16px;
-    }
-
-    .panel-head h2{
-      font-size:1.08rem;
-      margin-bottom:4px;
-    }
-
-    .panel-head p{
-      color:var(--muted);
-      font-size:.93rem;
-      line-height:1.6;
-    }
-
-    .qr-box{
-      display:grid;
-      place-items:center;
-      padding:18px;
-      border-radius:22px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-      margin-bottom:14px;
-      min-height:240px;
-    }
-
-    .qr-box img{
-      width:min(100%, 210px);
-      aspect-ratio:1/1;
-      object-fit:contain;
-      background:#fff;
-      border-radius:18px;
-      padding:12px;
-    }
-
-    .mini-actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
     .layout{
       display:grid;
-      grid-template-columns:300px minmax(0,1fr) 330px;
+      grid-template-columns:300px 1fr 310px;
       gap:18px;
       align-items:start;
     }
 
-    .sidebar,
-    .main,
-    .rightcol{
-      display:grid;
-      gap:18px;
+    .section{
+      padding:18px;
     }
 
-    .genre-list{
+    .section h3{
+      font-size:1.12rem;
+      margin-bottom:6px;
+    }
+
+    .section p{
+      color:var(--muted);
+      line-height:1.6;
+      margin-bottom:14px;
+      font-size:.94rem;
+    }
+
+    .genre-list,
+    .song-list,
+    .info-list{
       display:grid;
       gap:10px;
-      margin-top:8px;
     }
 
-    .genre-card{
-      border-radius:18px;
-      padding:14px 14px;
+    .genre-item,
+    .song-item,
+    .info-item{
+      padding:14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+    }
+
+    .genre-item{
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      gap:12px;
-    }
-
-    .genre-left{
-      display:flex;
       align-items:center;
       gap:12px;
-      min-width:0;
     }
 
-    .genre-badge{
-      width:40px;
-      height:40px;
-      display:grid;
-      place-items:center;
-      border-radius:14px;
-      background:linear-gradient(135deg, rgba(158,26,173,.26), rgba(196,77,255,.16));
-      border:1px solid rgba(255,255,255,.08);
-      flex:0 0 auto;
-    }
-
-    .genre-info strong{
+    .genre-item strong,
+    .song-item strong,
+    .info-item strong{
       display:block;
-      font-size:.98rem;
       margin-bottom:4px;
     }
 
-    .genre-info span{
+    .genre-item span,
+    .song-item span,
+    .info-item span{
       color:var(--muted);
-      font-size:.88rem;
+      font-size:.92rem;
+      line-height:1.5;
     }
 
     .switch{
       position:relative;
-      width:54px;
-      height:32px;
+      width:52px;
+      height:30px;
       flex:0 0 auto;
     }
 
@@ -380,27 +312,27 @@
     .slider{
       position:absolute;
       inset:0;
-      background:rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.10);
       border-radius:999px;
-      transition:.2s ease;
+      background:rgba(255,255,255,.12);
+      border:1px solid var(--border);
       cursor:pointer;
+      transition:.2s ease;
     }
 
     .slider::before{
       content:"";
       position:absolute;
-      width:22px;
-      height:22px;
-      left:4px;
-      top:4px;
+      width:20px;
+      height:20px;
       border-radius:50%;
       background:#fff;
+      left:4px;
+      top:4px;
       transition:.2s ease;
     }
 
     .switch input:checked + .slider{
-      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
       border-color:transparent;
     }
 
@@ -408,434 +340,213 @@
       transform:translateX(22px);
     }
 
-    .song-list{
+    .song-item{
       display:grid;
-      gap:10px;
-    }
-
-    .song-row{
-      border-radius:18px;
-      padding:14px 16px;
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:14px;
+      grid-template-columns:44px 1fr auto;
+      gap:12px;
       align-items:center;
     }
 
-    .song-rank{
-      width:38px;
-      height:38px;
-      border-radius:12px;
+    .rank{
+      width:44px;
+      height:44px;
+      border-radius:14px;
       display:grid;
       place-items:center;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
       font-weight:900;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--border);
     }
 
-    .song-meta{
-      min-width:0;
-    }
-
-    .song-meta strong{
-      display:block;
-      margin-bottom:4px;
-      font-size:1rem;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .song-meta span{
-      display:block;
-      color:var(--muted);
-      font-size:.9rem;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .song-votes{
-      text-align:right;
+    .votes{
       font-weight:800;
-      color:#f3c8ff;
-      min-width:72px;
+      color:#f1c7ff;
+      white-space:nowrap;
     }
 
-    .now-playing{
-      border-radius:22px;
-      padding:18px;
-      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
-      border:1px solid rgba(255,255,255,.08);
-      margin-bottom:14px;
-    }
-
-    .now-playing small{
-      display:block;
-      color:var(--muted);
-      margin-bottom:8px;
-    }
-
-    .now-playing strong{
-      display:block;
-      font-size:1.2rem;
+    .qr-box{
+      min-height:220px;
+      display:grid;
+      place-items:center;
+      padding:16px;
+      border-radius:18px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
       margin-bottom:12px;
-      letter-spacing:-.4px;
     }
 
-    .progress{
-      height:10px;
-      border-radius:999px;
-      overflow:hidden;
-      background:rgba(255,255,255,.08);
-      margin-bottom:10px;
-    }
-
-    .progress > span{
-      display:block;
-      height:100%;
-      width:0%;
-      border-radius:999px;
-      background:linear-gradient(90deg, var(--primary), var(--primary-2));
-      transition:width .4s ease;
-    }
-
-    .progress-meta{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      color:var(--muted);
-      font-size:.88rem;
+    .qr-box img{
+      width:min(100%,210px);
+      background:#fff;
+      padding:10px;
+      border-radius:16px;
+      object-fit:contain;
     }
 
     .empty{
-      padding:22px;
-      border-radius:18px;
-      background:rgba(255,255,255,.04);
-      border:1px dashed rgba(255,255,255,.12);
-      color:var(--muted);
+      padding:18px;
       text-align:center;
-      line-height:1.7;
-    }
-
-    .activity-list{
-      display:grid;
-      gap:10px;
-    }
-
-    .activity-card{
-      border-radius:18px;
-      padding:14px 16px;
-    }
-
-    .activity-card strong{
-      display:block;
-      margin-bottom:6px;
-      font-size:.95rem;
-    }
-
-    .activity-card span{
       color:var(--muted);
-      font-size:.9rem;
-      line-height:1.6;
-      display:block;
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.10);
+      line-height:1.7;
     }
 
     .status-ok{
       color:var(--success);
-    }
-
-    .status-warn{
-      color:var(--warning);
-    }
-
-    .toolbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .input{
-      width:100%;
-      padding:13px 14px;
-      border:none;
-      outline:none;
-      border-radius:14px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.10);
-      color:#fff;
-    }
-
-    .label{
-      display:block;
-      font-size:.92rem;
-      margin-bottom:8px;
-      color:rgba(255,255,255,.9);
-      font-weight:700;
+      font-weight:800;
     }
 
     .helper{
       color:var(--muted);
-      font-size:.88rem;
+      font-size:.9rem;
       line-height:1.6;
       margin-top:10px;
     }
 
-    @media (max-width: 1180px){
+    @media (max-width: 1150px){
       .layout{
         grid-template-columns:1fr;
       }
 
-      .sidebar,
-      .main,
-      .rightcol{
-        grid-template-columns:1fr;
+      .stats{
+        grid-template-columns:1fr 1fr;
       }
     }
 
-    @media (max-width: 1020px){
-      .hero{
-        grid-template-columns:1fr;
+    @media (max-width: 900px){
+      .setup-grid{
+        grid-template-columns:1fr 1fr;
       }
     }
 
-    @media (max-width: 760px){
-      .app{
-        width:min(100% - 18px, 100%);
-      }
-
-      .topbar{
-        padding:14px;
-      }
-
-      .topbar,
-      .top-actions{
-        align-items:flex-start;
+    @media (max-width: 680px){
+      .wrap{
+        width:min(100% - 16px, 100%);
       }
 
       .topbar{
         flex-direction:column;
+        align-items:flex-start;
       }
 
-      .top-actions{
+      .top-right{
         width:100%;
         justify-content:flex-start;
       }
 
-      .hero-card,
-      .panel{
-        padding:18px;
-      }
-
-      .hero-grid{
+      .setup-grid{
         grid-template-columns:1fr;
       }
 
-      .mini-actions{
+      .stats{
         grid-template-columns:1fr;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
+  <div class="wrap">
+    <header class="topbar panel">
       <div class="brand">
         <img src="/logovotify.png" alt="Logo Votify" onerror="this.src='/icon.png'">
-        <div class="brand-copy">
-          <strong>Votify Admin</strong>
-          <span>Panel premium de control musical</span>
+        <div>
+          <h1>Votify Admin</h1>
+          <p>Panel de control musical</p>
         </div>
       </div>
 
-      <div class="top-actions">
+      <div class="top-right">
         <div class="pill" id="userPill">Administrador</div>
-        <div class="pill" id="roomPill">Room: --</div>
-        <button class="btn btn-secondary" id="refreshBtn">Actualizar</button>
         <button class="btn btn-danger" id="logoutBtn">Salir</button>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="hero-card">
-        <div class="eyebrow">📊 Controla la experiencia y entiende a tus clientes</div>
-        <h1>Tu música, tus votos, tus estadísticas.</h1>
-        <p>
-          Desde aquí puedes monitorear la actividad del local, revisar qué canciones van arriba,
-          abrir la vista del cliente, mostrar la TV y tener un panel mucho más profesional para Votify.
-        </p>
+    <section class="panel main-setup">
+      <h2>Gestionar sala</h2>
+      <p>
+        Aquí puedes escribir la sala que quieres administrar, cargar sus datos y abrir la vista del cliente o la TV.
+      </p>
 
-        <div class="hero-grid">
-          <div class="metric">
-            <small>Votos totales</small>
-            <strong id="metricVotes">0</strong>
-            <span>Interacciones en esta sala</span>
-          </div>
-
-          <div class="metric">
-            <small>Canciones cargadas</small>
-            <strong id="metricSongs">0</strong>
-            <span>Disponibles para votar</span>
-          </div>
-
-          <div class="metric">
-            <small>Géneros activos</small>
-            <strong id="metricGenres">0</strong>
-            <span>Configurados en esta sala</span>
-          </div>
+      <div class="setup-grid">
+        <div class="field">
+          <label for="roomInput">Nombre de la sala</label>
+          <input id="roomInput" class="input" type="text" placeholder="Ejemplo: restaurante1">
         </div>
+
+        <button class="btn btn-primary" id="loadRoomBtn">Cargar sala</button>
+        <button class="btn btn-secondary" id="openClientBtn">Abrir cliente</button>
+        <button class="btn btn-secondary" id="openTvBtn">Abrir TV</button>
       </div>
 
-      <div class="hero-side">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Accesos rápidos</h2>
-              <p>Abre la experiencia del cliente o la pantalla de TV.</p>
-            </div>
-          </div>
+      <div class="quick-links">
+        <div class="linkbox" id="roomText">Sala actual: --</div>
+        <div class="linkbox" id="clientLinkText">Link cliente: --</div>
+        <div class="linkbox" id="statusText">Estado: esperando carga...</div>
+      </div>
+    </section>
 
-          <div class="toolbar">
-            <button class="btn btn-primary" id="openClientBtn">Abrir cliente</button>
-            <button class="btn btn-secondary" id="openTvBtn">Abrir TV</button>
-            <button class="btn btn-secondary" id="copyClientBtn">Copiar link</button>
-          </div>
+    <section class="stats">
+      <div class="panel stat">
+        <small>Votos totales</small>
+        <strong id="metricVotes">0</strong>
+        <span>Interacciones acumuladas</span>
+      </div>
 
-          <div class="helper" id="clientLinkText">Link cliente: --</div>
-        </div>
+      <div class="panel stat">
+        <small>Canciones cargadas</small>
+        <strong id="metricSongs">0</strong>
+        <span>Disponibles en la sala</span>
+      </div>
 
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Estado del sistema</h2>
-              <p>Información rápida del panel actual.</p>
-            </div>
-          </div>
+      <div class="panel stat">
+        <small>Géneros activos</small>
+        <strong id="metricGenres">0</strong>
+        <span>Visibles en el panel</span>
+      </div>
 
-          <div class="activity-list">
-            <div class="activity-card">
-              <strong class="status-ok">Conectado</strong>
-              <span id="systemStatus">Esperando datos de la sala…</span>
-            </div>
-            <div class="activity-card">
-              <strong>Última actualización</strong>
-              <span id="lastUpdate">--</span>
-            </div>
-          </div>
-        </div>
+      <div class="panel stat">
+        <small>Última actualización</small>
+        <strong id="metricUpdate">--</strong>
+        <span>Hora del último refresco</span>
       </div>
     </section>
 
     <section class="layout">
-      <aside class="sidebar">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Géneros disponibles</h2>
-              <p>Activa o desactiva visualmente tus géneros por sala.</p>
-            </div>
-          </div>
-
-          <div class="genre-list" id="genreList">
-            <div class="empty">Cargando géneros…</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Configuración rápida</h2>
-              <p>Selecciona o cambia la sala que quieres administrar.</p>
-            </div>
-          </div>
-
-          <label class="label" for="roomInput">Room</label>
-          <input class="input" id="roomInput" type="text" placeholder="Ejemplo: restaurante1">
-
-          <div class="toolbar" style="margin-top:12px;">
-            <button class="btn btn-primary" id="saveRoomBtn">Guardar room</button>
-          </div>
-
-          <div class="helper">
-            El panel intentará usar primero el parámetro <strong>?room=</strong> de la URL.
-            Si no existe, usará el último room guardado.
-          </div>
+      <aside class="panel section">
+        <h3>Géneros</h3>
+        <p>Activa o desactiva visualmente los géneros de esta sala.</p>
+        <div class="genre-list" id="genreList">
+          <div class="empty">Primero carga una sala.</div>
         </div>
       </aside>
 
-      <main class="main">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Top de canciones</h2>
-              <p>Las más votadas aparecen arriba automáticamente.</p>
-            </div>
-          </div>
-
-          <div class="song-list" id="topSongs">
-            <div class="empty">Esperando canciones…</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Actividad reciente</h2>
-              <p>Resumen visual de lo que sucede en tu sala.</p>
-            </div>
-          </div>
-
-          <div class="activity-list" id="activityList">
-            <div class="activity-card">
-              <strong>Panel listo</strong>
-              <span>En cuanto se carguen datos, verás aquí un resumen de la actividad.</span>
-            </div>
-          </div>
+      <main class="panel section">
+        <h3>Top de canciones</h3>
+        <p>Las canciones con más votos aparecerán aquí.</p>
+        <div class="song-list" id="songList">
+          <div class="empty">Todavía no hay canciones cargadas.</div>
         </div>
       </main>
 
-      <aside class="rightcol">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>QR del cliente</h2>
-              <p>Escanéalo o muéstralo para que puedan votar.</p>
-            </div>
-          </div>
+      <aside class="panel section">
+        <h3>QR del cliente</h3>
+        <p>Úsalo para que tus clientes entren a votar.</p>
 
-          <div class="qr-box" id="qrBox">
-            <div class="empty">QR no disponible</div>
-          </div>
-
-          <div class="mini-actions">
-            <button class="btn btn-primary" id="downloadQrBtn">Abrir QR</button>
-            <button class="btn btn-secondary" id="copyQrBtn">Copiar URL QR</button>
-          </div>
+        <div class="qr-box" id="qrBox">
+          <div class="empty">QR no disponible.</div>
         </div>
 
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <h2>Sonando ahora</h2>
-              <p>Vista rápida de la reproducción actual.</p>
-            </div>
+        <div class="info-list">
+          <div class="info-item">
+            <strong>Estado del sistema</strong>
+            <span id="systemState"><span class="status-ok">Listo</span></span>
           </div>
 
-          <div class="now-playing">
-            <small>Reproducción actual</small>
-            <strong id="nowPlayingTitle">Sin datos disponibles</strong>
-            <div class="progress">
-              <span id="progressBar"></span>
-            </div>
-            <div class="progress-meta">
-              <span id="progressCurrent">0:00</span>
-              <span id="progressTotal">0:00</span>
-            </div>
-          </div>
-
-          <div class="helper">
-            Si tu backend todavía no envía datos de tiempo real de reproducción,
-            esta sección seguirá mostrando el top 1 como referencia visual.
+          <div class="info-item">
+            <strong>Resumen</strong>
+            <span id="summaryText">Carga una sala para ver la información.</span>
           </div>
         </div>
       </aside>
@@ -843,276 +554,50 @@
   </div>
 
   <script>
-    const qs = new URLSearchParams(window.location.search);
-
     const userPill = document.getElementById("userPill");
-    const roomPill = document.getElementById("roomPill");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const roomInput = document.getElementById("roomInput");
+    const loadRoomBtn = document.getElementById("loadRoomBtn");
+    const openClientBtn = document.getElementById("openClientBtn");
+    const openTvBtn = document.getElementById("openTvBtn");
+
+    const roomText = document.getElementById("roomText");
+    const clientLinkText = document.getElementById("clientLinkText");
+    const statusText = document.getElementById("statusText");
+
     const metricVotes = document.getElementById("metricVotes");
     const metricSongs = document.getElementById("metricSongs");
     const metricGenres = document.getElementById("metricGenres");
-    const topSongs = document.getElementById("topSongs");
-    const genreList = document.getElementById("genreList");
-    const lastUpdate = document.getElementById("lastUpdate");
-    const systemStatus = document.getElementById("systemStatus");
-    const roomInput = document.getElementById("roomInput");
-    const clientLinkText = document.getElementById("clientLinkText");
-    const qrBox = document.getElementById("qrBox");
-    const activityList = document.getElementById("activityList");
-    const nowPlayingTitle = document.getElementById("nowPlayingTitle");
-    const progressBar = document.getElementById("progressBar");
-    const progressCurrent = document.getElementById("progressCurrent");
-    const progressTotal = document.getElementById("progressTotal");
+    const metricUpdate = document.getElementById("metricUpdate");
 
-    const refreshBtn = document.getElementById("refreshBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const saveRoomBtn = document.getElementById("saveRoomBtn");
-    const openClientBtn = document.getElementById("openClientBtn");
-    const openTvBtn = document.getElementById("openTvBtn");
-    const copyClientBtn = document.getElementById("copyClientBtn");
-    const downloadQrBtn = document.getElementById("downloadQrBtn");
-    const copyQrBtn = document.getElementById("copyQrBtn");
+    const genreList = document.getElementById("genreList");
+    const songList = document.getElementById("songList");
+    const qrBox = document.getElementById("qrBox");
+
+    const systemState = document.getElementById("systemState");
+    const summaryText = document.getElementById("summaryText");
 
     const adminEmail = localStorage.getItem("votify_admin_email") || "Administrador";
     userPill.textContent = adminEmail;
 
+    const qs = new URLSearchParams(window.location.search);
+
     const state = {
       room: qs.get("room") || localStorage.getItem("votify_admin_room") || "restaurante1",
-      songs: [],
       genres: [],
-      qrUrl: "",
-      poller: null
+      songs: [],
+      qrUrl: ""
     };
 
     roomInput.value = state.room;
 
-    function formatTime(date = new Date()) {
+    function formatTime() {
       return new Intl.DateTimeFormat("es-GT", {
         hour: "numeric",
         minute: "2-digit",
         second: "2-digit"
-      }).format(date);
-    }
-
-    function setRoom(room) {
-      state.room = room || "restaurante1";
-      localStorage.setItem("votify_admin_room", state.room);
-      roomInput.value = state.room;
-      roomPill.textContent = `Room: ${state.room}`;
-      clientLinkText.textContent = `Link cliente: ${window.location.origin}/r/${state.room}`;
-    }
-
-    function getGenreStorageKey() {
-      return `votify_genres_${state.room}`;
-    }
-
-    function getSavedGenreMap() {
-      try {
-        return JSON.parse(localStorage.getItem(getGenreStorageKey()) || "{}");
-      } catch {
-        return {};
-      }
-    }
-
-    function saveGenreMap(map) {
-      localStorage.setItem(getGenreStorageKey(), JSON.stringify(map));
-    }
-
-    function titleFromSong(song, fallbackIndex = 0) {
-      return (
-        song?.title ||
-        song?.name ||
-        song?.song ||
-        song?.track ||
-        `Canción ${fallbackIndex + 1}`
-      );
-    }
-
-    function subtitleFromSong(song) {
-      return (
-        song?.artist ||
-        song?.singer ||
-        song?.genre ||
-        "Disponible en la sala"
-      );
-    }
-
-    function voteCount(song) {
-      return Number(song?.votes || song?.count || 0);
-    }
-
-    function renderGenres(genres = []) {
-      if (!Array.isArray(genres) || genres.length === 0) {
-        genreList.innerHTML = `<div class="empty">No hay géneros disponibles en esta sala.</div>`;
-        metricGenres.textContent = "0";
-        return;
-      }
-
-      const saved = getSavedGenreMap();
-      let activeCount = 0;
-
-      genreList.innerHTML = genres.map((genre, i) => {
-        const checked = saved[genre] !== undefined ? saved[genre] : true;
-        if (checked) activeCount++;
-
-        return `
-          <div class="genre-card">
-            <div class="genre-left">
-              <div class="genre-badge">${["🎵","🔥","🎧","🎤","💜","⚡"][i % 6]}</div>
-              <div class="genre-info">
-                <strong>${genre}</strong>
-                <span>${checked ? "Activo en panel" : "Oculto en panel"}</span>
-              </div>
-            </div>
-
-            <label class="switch">
-              <input type="checkbox" data-genre="${encodeURIComponent(genre)}" ${checked ? "checked" : ""}>
-              <span class="slider"></span>
-            </label>
-          </div>
-        `;
-      }).join("");
-
-      metricGenres.textContent = String(activeCount);
-
-      genreList.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener("change", () => {
-          const map = getSavedGenreMap();
-          const genre = decodeURIComponent(input.dataset.genre);
-          map[genre] = input.checked;
-          saveGenreMap(map);
-          renderGenres(state.genres);
-        });
-      });
-    }
-
-    function renderSongs(songs = []) {
-      if (!Array.isArray(songs) || songs.length === 0) {
-        topSongs.innerHTML = `<div class="empty">No hay canciones cargadas todavía.</div>`;
-        metricVotes.textContent = "0";
-        metricSongs.textContent = "0";
-        nowPlayingTitle.textContent = "Sin datos disponibles";
-        progressBar.style.width = "0%";
-        progressCurrent.textContent = "0:00";
-        progressTotal.textContent = "0:00";
-        return;
-      }
-
-      const ordered = [...songs].sort((a, b) => voteCount(b) - voteCount(a));
-      const totalVotes = ordered.reduce((acc, song) => acc + voteCount(song), 0);
-
-      metricVotes.textContent = String(totalVotes);
-      metricSongs.textContent = String(ordered.length);
-
-      topSongs.innerHTML = ordered.slice(0, 12).map((song, index) => `
-        <div class="song-row">
-          <div class="song-rank">${index + 1}</div>
-          <div class="song-meta">
-            <strong>${titleFromSong(song, index)}</strong>
-            <span>${subtitleFromSong(song)}</span>
-          </div>
-          <div class="song-votes">${voteCount(song)} votos</div>
-        </div>
-      `).join("");
-
-      const first = ordered[0];
-      nowPlayingTitle.textContent = titleFromSong(first, 0);
-      progressBar.style.width = "68%";
-      progressCurrent.textContent = "2:14";
-      progressTotal.textContent = "3:18";
-
-      renderActivity(ordered, totalVotes);
-    }
-
-    function renderActivity(orderedSongs = [], totalVotes = 0) {
-      const top1 = orderedSongs[0];
-      const top2 = orderedSongs[1];
-      const top3 = orderedSongs[2];
-
-      const items = [];
-
-      items.push(`
-        <div class="activity-card">
-          <strong>Total de votos en sala</strong>
-          <span>${totalVotes} votos acumulados actualmente en <b>${state.room}</b>.</span>
-        </div>
-      `);
-
-      if (top1) {
-        items.push(`
-          <div class="activity-card">
-            <strong>#1 actual: ${titleFromSong(top1, 0)}</strong>
-            <span>Lidera con ${voteCount(top1)} votos y marca la tendencia principal del ambiente.</span>
-          </div>
-        `);
-      }
-
-      if (top2) {
-        items.push(`
-          <div class="activity-card">
-            <strong>#2 en carrera: ${titleFromSong(top2, 1)}</strong>
-            <span>Se mantiene presionando el primer lugar con ${voteCount(top2)} votos.</span>
-          </div>
-        `);
-      }
-
-      if (top3) {
-        items.push(`
-          <div class="activity-card">
-            <strong>#3 destacada: ${titleFromSong(top3, 2)}</strong>
-            <span>También está conectando con los clientes con ${voteCount(top3)} votos.</span>
-          </div>
-        `);
-      }
-
-      activityList.innerHTML = items.join("");
-    }
-
-    function renderQr(qrUrl) {
-      state.qrUrl = qrUrl || `/qrcodes/${state.room}.png`;
-
-      qrBox.innerHTML = `
-        <img src="${state.qrUrl}" alt="QR Votify" onerror="this.parentElement.innerHTML='<div class=&quot;empty&quot;>No se pudo cargar el QR para esta sala.</div>';">
-      `;
-    }
-
-    async function loadState() {
-      setRoom(state.room);
-      systemStatus.textContent = `Consultando datos de la sala ${state.room}...`;
-
-      try {
-        const res = await fetch(`/api/${encodeURIComponent(state.room)}/state`, {
-          headers: {
-            "Accept": "application/json"
-          }
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.ok) {
-          throw new Error(data?.error || "No se pudo cargar el estado de la sala.");
-        }
-
-        state.songs = Array.isArray(data.songs) ? data.songs : [];
-        state.genres = Array.isArray(data.genres) ? data.genres : [];
-        renderSongs(state.songs);
-        renderGenres(state.genres);
-        renderQr(data.qrUrl || `/qrcodes/${state.room}.png`);
-
-        systemStatus.textContent = `Sala ${state.room} cargada correctamente con ${state.songs.length} canciones.`;
-        lastUpdate.textContent = formatTime(new Date());
-
-      } catch (err) {
-        systemStatus.textContent = err.message || "No se pudo obtener información.";
-        topSongs.innerHTML = `<div class="empty">No se pudo cargar el estado de la sala.</div>`;
-        genreList.innerHTML = `<div class="empty">No se pudieron cargar los géneros.</div>`;
-        qrBox.innerHTML = `<div class="empty">QR no disponible.</div>`;
-        lastUpdate.textContent = formatTime(new Date());
-      }
-    }
-
-    function startPolling() {
-      if (state.poller) clearInterval(state.poller);
-      state.poller = setInterval(loadState, 5000);
+      }).format(new Date());
     }
 
     function getClientUrl() {
@@ -1123,16 +608,185 @@
       return `${window.location.origin}/tv/${state.room}`;
     }
 
-    async function copyText(text) {
+    function setRoom(room) {
+      state.room = room || "restaurante1";
+      localStorage.setItem("votify_admin_room", state.room);
+      roomInput.value = state.room;
+      roomText.textContent = `Sala actual: ${state.room}`;
+      clientLinkText.textContent = `Link cliente: ${getClientUrl()}`;
+    }
+
+    function voteCount(song) {
+      return Number(song?.votes || song?.count || 0);
+    }
+
+    function songTitle(song, index) {
+      return song?.title || song?.name || song?.song || song?.track || `Canción ${index + 1}`;
+    }
+
+    function songSubtitle(song) {
+      return song?.artist || song?.genre || "Disponible en la sala";
+    }
+
+    function getGenreStorageKey() {
+      return `votify_genres_${state.room}`;
+    }
+
+    function getSavedGenres() {
       try {
-        await navigator.clipboard.writeText(text);
-        return true;
+        return JSON.parse(localStorage.getItem(getGenreStorageKey()) || "{}");
       } catch {
-        return false;
+        return {};
       }
     }
 
-    refreshBtn.addEventListener("click", loadState);
+    function saveGenres(data) {
+      localStorage.setItem(getGenreStorageKey(), JSON.stringify(data));
+    }
+
+    function renderGenres(genres) {
+      if (!Array.isArray(genres) || !genres.length) {
+        genreList.innerHTML = `<div class="empty">No se encontraron géneros para esta sala.</div>`;
+        metricGenres.textContent = "0";
+        return;
+      }
+
+      const saved = getSavedGenres();
+      let active = 0;
+
+      genreList.innerHTML = genres.map((genre) => {
+        const checked = saved[genre] !== undefined ? saved[genre] : true;
+        if (checked) active++;
+
+        return `
+          <div class="genre-item">
+            <div>
+              <strong>${genre}</strong>
+              <span>${checked ? "Visible en el panel" : "Oculto en el panel"}</span>
+            </div>
+
+            <label class="switch">
+              <input type="checkbox" data-genre="${encodeURIComponent(genre)}" ${checked ? "checked" : ""}>
+              <span class="slider"></span>
+            </label>
+          </div>
+        `;
+      }).join("");
+
+      metricGenres.textContent = String(active);
+
+      genreList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener("change", () => {
+          const data = getSavedGenres();
+          const genre = decodeURIComponent(input.dataset.genre);
+          data[genre] = input.checked;
+          saveGenres(data);
+          renderGenres(state.genres);
+        });
+      });
+    }
+
+    function renderSongs(songs) {
+      if (!Array.isArray(songs) || !songs.length) {
+        songList.innerHTML = `<div class="empty">No hay canciones disponibles en esta sala.</div>`;
+        metricSongs.textContent = "0";
+        metricVotes.textContent = "0";
+        summaryText.textContent = "La sala no tiene canciones cargadas o no se pudieron obtener.";
+        return;
+      }
+
+      const ordered = [...songs].sort((a, b) => voteCount(b) - voteCount(a));
+      const totalVotes = ordered.reduce((sum, song) => sum + voteCount(song), 0);
+
+      metricSongs.textContent = String(ordered.length);
+      metricVotes.textContent = String(totalVotes);
+
+      songList.innerHTML = ordered.slice(0, 15).map((song, index) => `
+        <div class="song-item">
+          <div class="rank">${index + 1}</div>
+          <div>
+            <strong>${songTitle(song, index)}</strong>
+            <span>${songSubtitle(song)}</span>
+          </div>
+          <div class="votes">${voteCount(song)} votos</div>
+        </div>
+      `).join("");
+
+      const top = ordered[0];
+      summaryText.textContent = top
+        ? `La canción que lidera actualmente es "${songTitle(top, 0)}" con ${voteCount(top)} votos.`
+        : "No hay actividad suficiente para mostrar un resumen.";
+    }
+
+    function renderQr(qrUrl) {
+      state.qrUrl = qrUrl || `/qrcodes/${state.room}.png`;
+
+      qrBox.innerHTML = `
+        <img src="${state.qrUrl}" alt="QR Votify"
+             onerror="this.parentElement.innerHTML='<div class=&quot;empty&quot;>No se pudo cargar el QR de esta sala.</div>';">
+      `;
+    }
+
+    async function loadRoom() {
+      setRoom(roomInput.value.trim() || state.room);
+      statusText.textContent = `Estado: cargando sala ${state.room}...`;
+      systemState.innerHTML = `<span class="status-ok">Consultando datos...</span>`;
+
+      try {
+        const res = await fetch(`/api/${encodeURIComponent(state.room)}/state`, {
+          headers: { "Accept": "application/json" }
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.ok) {
+          throw new Error(data?.error || "No se pudo cargar el estado de la sala.");
+        }
+
+        state.genres = Array.isArray(data.genres) ? data.genres : [];
+        state.songs = Array.isArray(data.songs) ? data.songs : [];
+
+        renderGenres(state.genres);
+        renderSongs(state.songs);
+        renderQr(data.qrUrl || `/qrcodes/${state.room}.png`);
+
+        metricUpdate.textContent = formatTime();
+        statusText.textContent = `Estado: sala ${state.room} cargada correctamente.`;
+        systemState.innerHTML = `<span class="status-ok">Sala conectada correctamente</span>`;
+
+      } catch (error) {
+        metricUpdate.textContent = formatTime();
+        metricVotes.textContent = "0";
+        metricSongs.textContent = "0";
+        metricGenres.textContent = "0";
+
+        genreList.innerHTML = `<div class="empty">No se pudieron cargar los géneros.</div>`;
+        songList.innerHTML = `<div class="empty">No se pudo cargar el top de canciones.</div>`;
+        qrBox.innerHTML = `<div class="empty">QR no disponible.</div>`;
+
+        statusText.textContent = `Estado: ${error.message || "error al cargar la sala."}`;
+        systemState.innerHTML = `<span style="color:#ffd2dc;">No se pudo cargar la sala</span>`;
+        summaryText.textContent = "Verifica que la sala exista y que la ruta /api/:room/state esté respondiendo bien.";
+      }
+    }
+
+    loadRoomBtn.addEventListener("click", loadRoom);
+
+    roomInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        loadRoom();
+      }
+    });
+
+    openClientBtn.addEventListener("click", () => {
+      setRoom(roomInput.value.trim() || state.room);
+      window.open(getClientUrl(), "_blank");
+    });
+
+    openTvBtn.addEventListener("click", () => {
+      setRoom(roomInput.value.trim() || state.room);
+      window.open(getTvUrl(), "_blank");
+    });
 
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("votify_admin_token");
@@ -1140,43 +794,8 @@
       window.location.href = "/login";
     });
 
-    saveRoomBtn.addEventListener("click", () => {
-      const newRoom = roomInput.value.trim();
-      if (!newRoom) return;
-      setRoom(newRoom);
-      loadState();
-      startPolling();
-    });
-
-    openClientBtn.addEventListener("click", () => {
-      window.open(getClientUrl(), "_blank");
-    });
-
-    openTvBtn.addEventListener("click", () => {
-      window.open(getTvUrl(), "_blank");
-    });
-
-    copyClientBtn.addEventListener("click", async () => {
-      const ok = await copyText(getClientUrl());
-      clientLinkText.textContent = ok
-        ? `Link cliente copiado: ${getClientUrl()}`
-        : `No se pudo copiar. Link: ${getClientUrl()}`;
-    });
-
-    downloadQrBtn.addEventListener("click", () => {
-      if (state.qrUrl) window.open(state.qrUrl, "_blank");
-    });
-
-    copyQrBtn.addEventListener("click", async () => {
-      if (!state.qrUrl) return;
-      const fullQrUrl = state.qrUrl.startsWith("http") ? state.qrUrl : `${window.location.origin}${state.qrUrl}`;
-      const ok = await copyText(fullQrUrl);
-      systemStatus.textContent = ok ? "URL del QR copiada correctamente." : "No se pudo copiar la URL del QR.";
-    });
-
     setRoom(state.room);
-    loadState();
-    startPolling();
+    loadRoom();
   </script>
 </body>
 </html>
