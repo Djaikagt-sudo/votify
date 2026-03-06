@@ -3,348 +3,452 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Votify | Admin</title>
+  <title>Votify Admin</title>
+
+  <link rel="icon" type="image/png" href="/icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
 
   <style>
     :root{
-      --bg:#0a0410;
-      --bg2:#12081b;
-      --panel:#17101f;
-      --panel2:#201728;
-      --border:rgba(255,255,255,.08);
-      --text:#ffffff;
-      --muted:rgba(255,255,255,.68);
       --primary:#9E1AAD;
       --primary2:#C44DFF;
-      --danger:#b94a67;
-      --success:#72f0ab;
-      --shadow:0 12px 30px rgba(0,0,0,.25);
-      --radius:20px;
+      --accent:#FF14E4;
+      --dark:#100616;
+      --dark2:#1B0426;
+
+      --bg:#09040f;
+      --panel:rgba(22,10,31,.88);
+      --card:rgba(255,255,255,.05);
+      --card2:rgba(255,255,255,.07);
+      --line:rgba(255,255,255,.10);
+      --line2:rgba(255,255,255,.14);
+      --txt:#ffffff;
+      --muted:rgba(255,255,255,.72);
+      --muted2:rgba(255,255,255,.54);
+      --ok:#7CFFB2;
+      --danger:#ffb7c2;
+      --shadow:0 18px 60px rgba(0,0,0,.42);
+      --radius:22px;
     }
 
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
-
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
     body{
-      min-height:100vh;
-      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      color:var(--text);
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+      color:var(--txt);
       background:
-        radial-gradient(900px 450px at 10% 0%, rgba(158,26,173,.18), transparent 60%),
-        radial-gradient(700px 350px at 90% 10%, rgba(196,77,255,.10), transparent 60%),
-        linear-gradient(180deg,#09040f 0%,#100616 50%,#07030b 100%);
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
+        radial-gradient(900px 500px at 12% 6%, rgba(158,26,173,.20), transparent 60%),
+        radial-gradient(900px 500px at 86% 80%, rgba(255,20,228,.10), transparent 60%),
+        linear-gradient(180deg,#08030d 0%,#100616 50%,#07030b 100%);
     }
 
     button,input{
       font:inherit;
     }
 
+    .topLoader{
+      position:fixed;
+      top:0; left:0;
+      width:0%;
+      height:3px;
+      z-index:9999;
+      background:linear-gradient(90deg,var(--primary),var(--accent));
+      box-shadow:0 6px 18px rgba(255,20,228,.28);
+      transition:width .25s ease, opacity .35s ease;
+    }
+    .topLoader.on{ width:92%; }
+    .topLoader.done{ width:100%; opacity:0; }
+
     .wrap{
       width:min(1380px, calc(100% - 28px));
       margin:0 auto;
-      padding:18px 0 24px;
+      padding:26px 0 22px;
     }
 
     .topbar{
       display:flex;
-      justify-content:space-between;
       align-items:center;
+      justify-content:space-between;
       gap:16px;
+      margin-bottom:16px;
       padding:16px 18px;
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
-      border-radius:20px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(27,4,38,.90), rgba(12,13,25,.62));
       box-shadow:var(--shadow);
-      margin-bottom:18px;
     }
 
     .brand{
       display:flex;
       align-items:center;
-      gap:14px;
+      gap:12px;
+      min-width:0;
     }
 
-    .brand img{
-      width:46px;
-      height:46px;
+    .logo{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:rgba(158,26,173,.14);
+      border:1px solid rgba(255,20,228,.22);
+      box-shadow:0 10px 30px rgba(158,26,173,.18);
+      flex:0 0 auto;
+    }
+
+    .logo img{
+      width:100%;
+      height:100%;
       object-fit:contain;
+      padding:7px;
     }
 
-    .brand h1{
-      font-size:1.2rem;
-      margin-bottom:2px;
+    .brandTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:20px;
+      line-height:1.1;
     }
 
-    .brand p{
+    .brandSub{
+      font-size:13px;
       color:var(--muted);
-      font-size:.92rem;
+      margin-top:4px;
     }
 
-    .top-right{
+    .topActions{
       display:flex;
-      gap:10px;
       align-items:center;
+      gap:10px;
       flex-wrap:wrap;
       justify-content:flex-end;
     }
 
     .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
       padding:10px 14px;
       border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid var(--border);
-      color:#fff;
-      font-size:.92rem;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:rgba(255,255,255,.90);
+      font-size:12px;
+      white-space:nowrap;
     }
 
     .btn{
       border:none;
       border-radius:14px;
-      padding:12px 16px;
-      font-weight:800;
+      padding:11px 15px;
+      font-weight:900;
       cursor:pointer;
       color:#fff;
-      transition:.2s ease;
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      backdrop-filter:blur(10px);
+      transition:.15s ease;
     }
 
     .btn:hover{
+      filter:brightness(1.06);
       transform:translateY(-1px);
     }
 
-    .btn-primary{
-      background:linear-gradient(135deg,var(--primary),var(--primary2));
+    .btnPrimary{
+      background:linear-gradient(90deg,var(--primary),var(--accent));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 12px 34px rgba(158,26,173,.22);
     }
 
-    .btn-secondary{
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--border);
+    .btnGhost{
+      background:rgba(158,26,173,.12);
+      border:1px solid rgba(255,20,228,.20);
     }
 
-    .btn-danger{
-      background:rgba(185,74,103,.14);
-      border:1px solid rgba(185,74,103,.24);
-      color:#ffd3dc;
+    .btnDanger{
+      background:rgba(255,80,120,.10);
+      border:1px solid rgba(255,120,160,.18);
+      color:#ffd5de;
     }
 
-    .panel{
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
+    .grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .bottomGrid{
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+    }
+
+    @media (max-width: 1100px){
+      .grid, .bottomGrid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(27,4,38,.86), rgba(12,13,25,.60));
+      border:1px solid var(--line);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
+      overflow:hidden;
     }
 
-    .main-setup{
-      padding:20px;
-      margin-bottom:18px;
-    }
-
-    .main-setup h2{
-      font-size:1.35rem;
-      margin-bottom:6px;
-    }
-
-    .main-setup p{
-      color:var(--muted);
-      line-height:1.7;
-      margin-bottom:18px;
-    }
-
-    .setup-grid{
-      display:grid;
-      grid-template-columns:1.4fr auto auto auto;
+    .cardHead{
+      padding:16px 16px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
       gap:12px;
-      align-items:end;
     }
 
-    .field{
-      display:grid;
-      gap:8px;
+    .cardTitle{
+      font-size:15px;
+      font-weight:900;
+      letter-spacing:.2px;
+      margin:0;
     }
 
-    .field label{
-      font-size:.92rem;
-      color:rgba(255,255,255,.9);
-      font-weight:700;
+    .cardHint{
+      margin:6px 0 0 0;
+      font-size:12px;
+      color:var(--muted2);
+      line-height:1.45;
+    }
+
+    .cardBody{
+      padding:16px;
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
     }
 
     .input{
       width:100%;
-      padding:14px 14px;
+      padding:12px 12px;
       border-radius:14px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.05);
+      border:1px solid var(--line2);
+      background:rgba(10,11,18,.55);
       color:#fff;
       outline:none;
+      font-size:14px;
     }
 
     .input:focus{
-      border-color:rgba(196,77,255,.55);
-      box-shadow:0 0 0 4px rgba(196,77,255,.08);
+      border-color:rgba(255,20,228,.40);
+      box-shadow:0 0 0 4px rgba(255,20,228,.12);
     }
 
-    .quick-links{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns:1fr;
+    .toolbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top:12px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .toolbar .input{
+      flex:1;
+      min-width:220px;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
       gap:10px;
     }
 
-    .linkbox{
-      padding:13px 14px;
-      border-radius:14px;
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
-      color:var(--muted);
-      word-break:break-all;
+    .chip{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(10,11,18,.40);
+      cursor:pointer;
+      user-select:none;
+      transition:transform .12s ease, filter .12s ease, border-color .12s ease;
     }
 
-    .stats{
+    .chip:hover{
+      filter:brightness(1.06);
+      border-color:rgba(255,20,228,.22);
+    }
+
+    .chip:active{
+      transform:scale(.99);
+    }
+
+    .chipCheck{
+      width:18px;
+      height:18px;
+      border-radius:6px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.06);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      opacity:.25;
+    }
+
+    .chip.on{
+      border-color:rgba(255,20,228,.28);
+      background:rgba(158,26,173,.12);
+    }
+
+    .chip.on .chipCheck{
+      opacity:1;
+      background:rgba(255,20,228,.20);
+      border-color:rgba(255,20,228,.32);
+    }
+
+    .chipText{
+      font-weight:800;
+      font-size:12px;
+      letter-spacing:.3px;
+      color:rgba(255,255,255,.92);
+    }
+
+    .genresPills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .statGrid{
       display:grid;
       grid-template-columns:repeat(4,1fr);
-      gap:14px;
-      margin-bottom:18px;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    @media (max-width: 900px){
+      .statGrid{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 580px){
+      .statGrid{
+        grid-template-columns:1fr;
+      }
     }
 
     .stat{
-      padding:18px;
+      padding:16px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
     }
 
     .stat small{
       display:block;
       color:var(--muted);
       margin-bottom:8px;
+      font-size:12px;
     }
 
     .stat strong{
-      font-size:1.6rem;
       display:block;
-      margin-bottom:4px;
+      font-size:28px;
+      line-height:1;
+      margin-bottom:6px;
+      letter-spacing:-.5px;
     }
 
     .stat span{
       color:rgba(255,255,255,.82);
-      font-size:.92rem;
+      font-size:12px;
+      line-height:1.45;
     }
 
-    .layout{
+    .result{
+      margin-top:14px;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(10,11,18,.35);
+      padding:12px;
+      display:none;
+    }
+
+    .resultRow{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .k{
+      font-size:11px;
+      color:rgba(255,255,255,.65);
+      margin-top:8px;
+    }
+
+    .link{
+      display:block;
+      margin-top:6px;
+      color:#fff;
+      text-decoration:none;
+      font-weight:800;
+      word-break:break-all;
+    }
+
+    .qr{
+      width:160px;
+      height:160px;
+      border-radius:16px;
+      background:#fff;
+      padding:10px;
+      object-fit:contain;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .subGrid{
       display:grid;
-      grid-template-columns:300px 1fr 310px;
-      gap:18px;
-      align-items:start;
+      grid-template-columns:1fr 320px;
+      gap:14px;
+      margin-top:14px;
     }
 
-    .section{
-      padding:18px;
+    @media (max-width: 980px){
+      .subGrid{
+        grid-template-columns:1fr;
+      }
     }
 
-    .section h3{
-      font-size:1.12rem;
-      margin-bottom:6px;
-    }
-
-    .section p{
-      color:var(--muted);
-      line-height:1.6;
-      margin-bottom:14px;
-      font-size:.94rem;
-    }
-
-    .genre-list,
-    .song-list,
-    .info-list{
+    .list{
       display:grid;
       gap:10px;
     }
 
-    .genre-item,
-    .song-item,
-    .info-item{
-      padding:14px;
-      border-radius:16px;
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
-    }
-
-    .genre-item{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-    }
-
-    .genre-item strong,
-    .song-item strong,
-    .info-item strong{
-      display:block;
-      margin-bottom:4px;
-    }
-
-    .genre-item span,
-    .song-item span,
-    .info-item span{
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.5;
-    }
-
-    .switch{
-      position:relative;
-      width:52px;
-      height:30px;
-      flex:0 0 auto;
-    }
-
-    .switch input{
-      opacity:0;
-      width:0;
-      height:0;
-      position:absolute;
-    }
-
-    .slider{
-      position:absolute;
-      inset:0;
-      border-radius:999px;
-      background:rgba(255,255,255,.12);
-      border:1px solid var(--border);
-      cursor:pointer;
-      transition:.2s ease;
-    }
-
-    .slider::before{
-      content:"";
-      position:absolute;
-      width:20px;
-      height:20px;
-      border-radius:50%;
-      background:#fff;
-      left:4px;
-      top:4px;
-      transition:.2s ease;
-    }
-
-    .switch input:checked + .slider{
-      background:linear-gradient(135deg,var(--primary),var(--primary2));
-      border-color:transparent;
-    }
-
-    .switch input:checked + .slider::before{
-      transform:translateX(22px);
-    }
-
-    .song-item{
+    .songRow{
       display:grid;
       grid-template-columns:44px 1fr auto;
       gap:12px;
       align-items:center;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
     }
 
     .rank{
@@ -355,244 +459,315 @@
       place-items:center;
       font-weight:900;
       background:rgba(255,255,255,.05);
-      border:1px solid var(--border);
+      border:1px solid var(--line);
+    }
+
+    .songTitle{
+      font-weight:800;
+      margin-bottom:4px;
+    }
+
+    .songMeta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
     }
 
     .votes{
-      font-weight:800;
-      color:#f1c7ff;
+      font-weight:900;
+      color:#f4c8ff;
       white-space:nowrap;
-    }
-
-    .qr-box{
-      min-height:220px;
-      display:grid;
-      place-items:center;
-      padding:16px;
-      border-radius:18px;
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
-      margin-bottom:12px;
-    }
-
-    .qr-box img{
-      width:min(100%,210px);
-      background:#fff;
-      padding:10px;
-      border-radius:16px;
-      object-fit:contain;
+      font-size:13px;
     }
 
     .empty{
       padding:18px;
-      text-align:center;
-      color:var(--muted);
       border-radius:16px;
+      border:1px dashed rgba(255,255,255,.12);
       background:rgba(255,255,255,.03);
-      border:1px dashed rgba(255,255,255,.10);
-      line-height:1.7;
-    }
-
-    .status-ok{
-      color:var(--success);
-      font-weight:800;
-    }
-
-    .helper{
       color:var(--muted);
-      font-size:.9rem;
-      line-height:1.6;
-      margin-top:10px;
+      text-align:center;
+      line-height:1.65;
+      font-size:13px;
     }
 
-    @media (max-width: 1150px){
-      .layout{
-        grid-template-columns:1fr;
-      }
-
-      .stats{
-        grid-template-columns:1fr 1fr;
-      }
+    .miniInfo{
+      display:grid;
+      gap:10px;
     }
 
-    @media (max-width: 900px){
-      .setup-grid{
-        grid-template-columns:1fr 1fr;
-      }
+    .miniItem{
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
     }
 
-    @media (max-width: 680px){
-      .wrap{
-        width:min(100% - 16px, 100%);
-      }
+    .miniItem strong{
+      display:block;
+      margin-bottom:6px;
+      font-size:13px;
+    }
 
-      .topbar{
-        flex-direction:column;
-        align-items:flex-start;
-      }
+    .miniItem span{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
 
-      .top-right{
-        width:100%;
-        justify-content:flex-start;
-      }
+    .ok{
+      color:var(--ok);
+    }
 
-      .setup-grid{
-        grid-template-columns:1fr;
-      }
+    .error{
+      color:var(--danger);
+    }
 
-      .stats{
-        grid-template-columns:1fr;
-      }
+    .appFooter{
+      margin-top:14px;
+      color:rgba(255,255,255,.45);
+      font-size:12px;
+      text-align:center;
     }
   </style>
 </head>
 <body>
+  <div id="topLoader" class="topLoader" aria-hidden="true"></div>
+
   <div class="wrap">
-    <header class="topbar panel">
+    <header class="topbar">
       <div class="brand">
-        <img src="/logovotify.png" alt="Logo Votify" onerror="this.src='/icon.png'">
+        <div class="logo" aria-hidden="true">
+          <img src="/logovotify.png" alt="Votify" onerror="this.src='/icon.png'">
+        </div>
         <div>
-          <h1>Votify Admin</h1>
-          <p>Panel de control musical</p>
+          <div class="brandTitle">Panel Admin — Votify</div>
+          <div class="brandSub">Crear salas, seleccionar géneros y ver estadísticas de la sala activa</div>
         </div>
       </div>
 
-      <div class="top-right">
-        <div class="pill" id="userPill">Administrador</div>
-        <button class="btn btn-danger" id="logoutBtn">Salir</button>
+      <div class="topActions">
+        <span class="pill" id="sessionPill">Administrador</span>
+        <button id="refreshStatsBtn" class="btn" type="button">Actualizar estadísticas</button>
+        <button id="logoutBtn" class="btn btnDanger" type="button">Salir</button>
       </div>
     </header>
 
-    <section class="panel main-setup">
-      <h2>Gestionar sala</h2>
-      <p>
-        Aquí puedes escribir la sala que quieres administrar, cargar sus datos y abrir la vista del cliente o la TV.
-      </p>
-
-      <div class="setup-grid">
-        <div class="field">
-          <label for="roomInput">Nombre de la sala</label>
-          <input id="roomInput" class="input" type="text" placeholder="Ejemplo: restaurante1">
+    <div class="grid">
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Crear sala</h2>
+            <p class="cardHint">Usa la misma lógica original que ya te funcionaba. Selecciona géneros y define cuántas canciones cargar.</p>
+          </div>
+          <span class="pill">✅ Función original</span>
         </div>
 
-        <button class="btn btn-primary" id="loadRoomBtn">Cargar sala</button>
-        <button class="btn btn-secondary" id="openClientBtn">Abrir cliente</button>
-        <button class="btn btn-secondary" id="openTvBtn">Abrir TV</button>
-      </div>
+        <div class="cardBody">
+          <label for="nameInput">Nombre del restaurante o sala</label>
+          <input id="nameInput" class="input" placeholder="NOMBRE DEL RESTAURANTE O SALA" />
 
-      <div class="quick-links">
-        <div class="linkbox" id="roomText">Sala actual: --</div>
-        <div class="linkbox" id="clientLinkText">Link cliente: --</div>
-        <div class="linkbox" id="statusText">Estado: esperando carga...</div>
-      </div>
-    </section>
-
-    <section class="stats">
-      <div class="panel stat">
-        <small>Votos totales</small>
-        <strong id="metricVotes">0</strong>
-        <span>Interacciones acumuladas</span>
-      </div>
-
-      <div class="panel stat">
-        <small>Canciones cargadas</small>
-        <strong id="metricSongs">0</strong>
-        <span>Disponibles en la sala</span>
-      </div>
-
-      <div class="panel stat">
-        <small>Géneros activos</small>
-        <strong id="metricGenres">0</strong>
-        <span>Visibles en el panel</span>
-      </div>
-
-      <div class="panel stat">
-        <small>Última actualización</small>
-        <strong id="metricUpdate">--</strong>
-        <span>Hora del último refresco</span>
-      </div>
-    </section>
-
-    <section class="layout">
-      <aside class="panel section">
-        <h3>Géneros</h3>
-        <p>Activa o desactiva visualmente los géneros de esta sala.</p>
-        <div class="genre-list" id="genreList">
-          <div class="empty">Primero carga una sala.</div>
-        </div>
-      </aside>
-
-      <main class="panel section">
-        <h3>Top de canciones</h3>
-        <p>Las canciones con más votos aparecerán aquí.</p>
-        <div class="song-list" id="songList">
-          <div class="empty">Todavía no hay canciones cargadas.</div>
-        </div>
-      </main>
-
-      <aside class="panel section">
-        <h3>QR del cliente</h3>
-        <p>Úsalo para que tus clientes entren a votar.</p>
-
-        <div class="qr-box" id="qrBox">
-          <div class="empty">QR no disponible.</div>
-        </div>
-
-        <div class="info-list">
-          <div class="info-item">
-            <strong>Estado del sistema</strong>
-            <span id="systemState"><span class="status-ok">Listo</span></span>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+            <div style="flex:1; min-width:220px;">
+              <label for="totalSongs">Cantidad de canciones</label>
+              <input id="totalSongs" class="input" type="number" min="5" max="300" placeholder="Ej. 60" value="" />
+            </div>
           </div>
 
-          <div class="info-item">
-            <strong>Resumen</strong>
-            <span id="summaryText">Carga una sala para ver la información.</span>
+          <div class="toolbar">
+            <input id="genreSearch" class="input" placeholder="Buscar género…" />
+            <button id="selectAllBtn" class="btn" type="button">Seleccionar todo</button>
+            <button id="clearBtn" class="btn" type="button">Limpiar</button>
+          </div>
+
+          <div id="chipsBox" class="chips"></div>
+
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="createBtn" class="btn btnPrimary" type="button">Crear sala</button>
+          </div>
+
+          <div id="resultBox" class="result"></div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Géneros disponibles</h2>
+            <p class="cardHint">Estos géneros deben coincidir con las llaves de tu <b>library.js</b>.</p>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <div style="padding:12px; border-radius:18px; border:1px solid var(--line); background:rgba(10,11,18,.35);">
+            <div style="font-weight:900;color:#fff;margin-bottom:10px;">Disponibles</div>
+            <div id="genresList" class="genresPills"></div>
+          </div>
+
+          <div class="appFooter">© <span id="yearNow"></span> Charly García — Votify</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="bottomGrid">
+      <aside class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Sala activa</h2>
+            <p class="cardHint">Aquí se muestra la sala recién creada o la última sala cargada correctamente.</p>
+          </div>
+        </div>
+        <div class="cardBody">
+          <div class="miniInfo">
+            <div class="miniItem">
+              <strong>ID de sala</strong>
+              <span id="roomIdText">Aún no hay sala activa.</span>
+            </div>
+            <div class="miniItem">
+              <strong>Estado</strong>
+              <span id="roomStatusText">Esperando creación o carga de sala.</span>
+            </div>
+            <div class="miniItem">
+              <strong>Accesos</strong>
+              <span id="roomLinksText">Todavía no hay links disponibles.</span>
+            </div>
           </div>
         </div>
       </aside>
-    </section>
+
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2 class="cardTitle">Estadísticas de la sala</h2>
+            <p class="cardHint">Resumen de votos, canciones, géneros y top actual de la sala activa.</p>
+          </div>
+          <span class="pill" id="statsPill">Sin cargar</span>
+        </div>
+
+        <div class="cardBody">
+          <div class="statGrid">
+            <div class="stat">
+              <small>Votos totales</small>
+              <strong id="metricVotes">0</strong>
+              <span>Suma de votos de todas las canciones</span>
+            </div>
+            <div class="stat">
+              <small>Canciones cargadas</small>
+              <strong id="metricSongs">0</strong>
+              <span>Disponibles actualmente en la sala</span>
+            </div>
+            <div class="stat">
+              <small>Géneros activos</small>
+              <strong id="metricGenres">0</strong>
+              <span>Configurados al crear la sala</span>
+            </div>
+            <div class="stat">
+              <small>Última actualización</small>
+              <strong id="metricUpdated">--</strong>
+              <span>Hora del último refresco</span>
+            </div>
+          </div>
+
+          <div class="subGrid">
+            <div>
+              <div style="font-weight:900; margin-bottom:10px;">Top de canciones</div>
+              <div id="songsBox" class="list">
+                <div class="empty">Primero crea una sala o carga estadísticas de una sala válida.</div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-weight:900; margin-bottom:10px;">Resumen</div>
+              <div class="miniInfo">
+                <div class="miniItem">
+                  <strong>Géneros de la sala</strong>
+                  <span id="genresSummary">Sin información.</span>
+                </div>
+                <div class="miniItem">
+                  <strong>Canción líder</strong>
+                  <span id="leaderSummary">Sin información.</span>
+                </div>
+                <div class="miniItem">
+                  <strong>QR</strong>
+                  <div id="qrWrap" style="margin-top:10px;">
+                    <div class="empty">QR no disponible.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
   </div>
 
   <script>
-    const userPill = document.getElementById("userPill");
-    const logoutBtn = document.getElementById("logoutBtn");
+    document.getElementById("yearNow").textContent = new Date().getFullYear();
 
-    const roomInput = document.getElementById("roomInput");
-    const loadRoomBtn = document.getElementById("loadRoomBtn");
-    const openClientBtn = document.getElementById("openClientBtn");
-    const openTvBtn = document.getElementById("openTvBtn");
+    const loader = document.getElementById("topLoader");
+    const resultBox = document.getElementById("resultBox");
+    const chipsBox = document.getElementById("chipsBox");
+    const genreSearch = document.getElementById("genreSearch");
+    const genresList = document.getElementById("genresList");
+    const totalSongsEl = document.getElementById("totalSongs");
+    const sessionPill = document.getElementById("sessionPill");
 
-    const roomText = document.getElementById("roomText");
-    const clientLinkText = document.getElementById("clientLinkText");
-    const statusText = document.getElementById("statusText");
+    const roomIdText = document.getElementById("roomIdText");
+    const roomStatusText = document.getElementById("roomStatusText");
+    const roomLinksText = document.getElementById("roomLinksText");
+    const statsPill = document.getElementById("statsPill");
 
     const metricVotes = document.getElementById("metricVotes");
     const metricSongs = document.getElementById("metricSongs");
     const metricGenres = document.getElementById("metricGenres");
-    const metricUpdate = document.getElementById("metricUpdate");
+    const metricUpdated = document.getElementById("metricUpdated");
 
-    const genreList = document.getElementById("genreList");
-    const songList = document.getElementById("songList");
-    const qrBox = document.getElementById("qrBox");
-
-    const systemState = document.getElementById("systemState");
-    const summaryText = document.getElementById("summaryText");
+    const songsBox = document.getElementById("songsBox");
+    const genresSummary = document.getElementById("genresSummary");
+    const leaderSummary = document.getElementById("leaderSummary");
+    const qrWrap = document.getElementById("qrWrap");
 
     const adminEmail = localStorage.getItem("votify_admin_email") || "Administrador";
-    userPill.textContent = adminEmail;
+    sessionPill.textContent = adminEmail;
 
-    const qs = new URLSearchParams(window.location.search);
+    const GENRES = [
+      { key: "reggaetonNuevo",   label: "Reggaetón Nuevo" },
+      { key: "reggaetonAntiguo", label: "Reggaetón Antiguo" },
+      { key: "corridos",         label: "Corridos" },
+      { key: "banda",            label: "Banda" },
+      { key: "cumbia",           label: "Cumbia" },
+      { key: "salsa",            label: "Salsa" },
+      { key: "merengue",         label: "Merengue" },
+      { key: "rockEnEspanol",    label: "Rock en Español" },
+      { key: "rockGuatemalteco", label: "Rock Guatemalteco" },
+    ];
 
+    const selected = new Set();
     const state = {
-      room: qs.get("room") || localStorage.getItem("votify_admin_room") || "restaurante1",
-      genres: [],
-      songs: [],
+      activeRoomId: localStorage.getItem("votify_active_room") || "",
       qrUrl: ""
     };
 
-    roomInput.value = state.room;
+    GENRES.forEach(g => {
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      pill.textContent = g.label;
+      genresList.appendChild(pill);
+    });
 
-    function formatTime() {
+    function setLoading(on) {
+      loader.classList.remove("done");
+      if (on) {
+        loader.classList.add("on");
+      } else {
+        loader.classList.remove("on");
+        loader.classList.add("done");
+        setTimeout(() => loader.classList.remove("done"), 500);
+      }
+    }
+
+    function formatNow() {
       return new Intl.DateTimeFormat("es-GT", {
         hour: "numeric",
         minute: "2-digit",
@@ -600,202 +775,292 @@
       }).format(new Date());
     }
 
-    function getClientUrl() {
-      return `${window.location.origin}/r/${state.room}`;
+    function checkIcon() {
+      return `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
     }
 
-    function getTvUrl() {
-      return `${window.location.origin}/tv/${state.room}`;
+    function renderChips(filter = "") {
+      const q = (filter || "").trim().toLowerCase();
+      chipsBox.innerHTML = "";
+
+      GENRES
+        .filter(g => !q || g.label.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
+        .forEach((g) => {
+          const chip = document.createElement("div");
+          chip.className = "chip" + (selected.has(g.key) ? " on" : "");
+          chip.setAttribute("data-genre", g.key);
+          chip.innerHTML = `
+            <div class="chipCheck">${checkIcon()}</div>
+            <div class="chipText">${g.label}</div>
+          `;
+
+          chip.addEventListener("click", () => {
+            if (selected.has(g.key)) selected.delete(g.key);
+            else selected.add(g.key);
+            chip.classList.toggle("on");
+          });
+
+          chipsBox.appendChild(chip);
+        });
     }
 
-    function setRoom(room) {
-      state.room = room || "restaurante1";
-      localStorage.setItem("votify_admin_room", state.room);
-      roomInput.value = state.room;
-      roomText.textContent = `Sala actual: ${state.room}`;
-      clientLinkText.textContent = `Link cliente: ${getClientUrl()}`;
-    }
-
-    function voteCount(song) {
-      return Number(song?.votes || song?.count || 0);
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
     }
 
     function songTitle(song, index) {
       return song?.title || song?.name || song?.song || song?.track || `Canción ${index + 1}`;
     }
 
-    function songSubtitle(song) {
-      return song?.artist || song?.genre || "Disponible en la sala";
+    function songMeta(song) {
+      const artist = song?.artist || "";
+      const genre = song?.genre || "";
+      return [artist, genre].filter(Boolean).join(" • ") || "Disponible en la sala";
     }
 
-    function getGenreStorageKey() {
-      return `votify_genres_${state.room}`;
+    function voteCount(song) {
+      return Number(song?.votes || 0);
     }
 
-    function getSavedGenres() {
-      try {
-        return JSON.parse(localStorage.getItem(getGenreStorageKey()) || "{}");
-      } catch {
-        return {};
+    function setActiveRoom(roomId) {
+      state.activeRoomId = roomId || "";
+      if (state.activeRoomId) {
+        localStorage.setItem("votify_active_room", state.activeRoomId);
       }
+      roomIdText.textContent = state.activeRoomId || "Aún no hay sala activa.";
     }
 
-    function saveGenres(data) {
-      localStorage.setItem(getGenreStorageKey(), JSON.stringify(data));
+    function renderEmptyStats(message = "Primero crea una sala o carga estadísticas de una sala válida.") {
+      metricVotes.textContent = "0";
+      metricSongs.textContent = "0";
+      metricGenres.textContent = "0";
+      metricUpdated.textContent = "--";
+      statsPill.textContent = "Sin cargar";
+      songsBox.innerHTML = `<div class="empty">${escapeHtml(message)}</div>`;
+      genresSummary.textContent = "Sin información.";
+      leaderSummary.textContent = "Sin información.";
+      qrWrap.innerHTML = `<div class="empty">QR no disponible.</div>`;
     }
 
-    function renderGenres(genres) {
-      if (!Array.isArray(genres) || !genres.length) {
-        genreList.innerHTML = `<div class="empty">No se encontraron géneros para esta sala.</div>`;
-        metricGenres.textContent = "0";
-        return;
-      }
+    function renderStats(data) {
+      const songs = Array.isArray(data?.songs) ? [...data.songs] : [];
+      const genres = Array.isArray(data?.genres) ? data.genres : [];
+      const totalVotes = songs.reduce((acc, song) => acc + voteCount(song), 0);
+      const ordered = songs.sort((a, b) => voteCount(b) - voteCount(a));
+      const leader = ordered[0];
 
-      const saved = getSavedGenres();
-      let active = 0;
-
-      genreList.innerHTML = genres.map((genre) => {
-        const checked = saved[genre] !== undefined ? saved[genre] : true;
-        if (checked) active++;
-
-        return `
-          <div class="genre-item">
-            <div>
-              <strong>${genre}</strong>
-              <span>${checked ? "Visible en el panel" : "Oculto en el panel"}</span>
-            </div>
-
-            <label class="switch">
-              <input type="checkbox" data-genre="${encodeURIComponent(genre)}" ${checked ? "checked" : ""}>
-              <span class="slider"></span>
-            </label>
-          </div>
-        `;
-      }).join("");
-
-      metricGenres.textContent = String(active);
-
-      genreList.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener("change", () => {
-          const data = getSavedGenres();
-          const genre = decodeURIComponent(input.dataset.genre);
-          data[genre] = input.checked;
-          saveGenres(data);
-          renderGenres(state.genres);
-        });
-      });
-    }
-
-    function renderSongs(songs) {
-      if (!Array.isArray(songs) || !songs.length) {
-        songList.innerHTML = `<div class="empty">No hay canciones disponibles en esta sala.</div>`;
-        metricSongs.textContent = "0";
-        metricVotes.textContent = "0";
-        summaryText.textContent = "La sala no tiene canciones cargadas o no se pudieron obtener.";
-        return;
-      }
-
-      const ordered = [...songs].sort((a, b) => voteCount(b) - voteCount(a));
-      const totalVotes = ordered.reduce((sum, song) => sum + voteCount(song), 0);
-
-      metricSongs.textContent = String(ordered.length);
       metricVotes.textContent = String(totalVotes);
+      metricSongs.textContent = String(songs.length);
+      metricGenres.textContent = String(genres.length);
+      metricUpdated.textContent = formatNow();
+      statsPill.textContent = "Sala cargada";
 
-      songList.innerHTML = ordered.slice(0, 15).map((song, index) => `
-        <div class="song-item">
-          <div class="rank">${index + 1}</div>
-          <div>
-            <strong>${songTitle(song, index)}</strong>
-            <span>${songSubtitle(song)}</span>
+      genresSummary.textContent = genres.length ? genres.join(", ") : "Sin géneros configurados.";
+      leaderSummary.textContent = leader
+        ? `${songTitle(leader, 0)} con ${voteCount(leader)} votos`
+        : "No hay una canción líder todavía.";
+
+      if (!ordered.length) {
+        songsBox.innerHTML = `<div class="empty">La sala existe, pero todavía no tiene canciones cargadas.</div>`;
+      } else {
+        songsBox.innerHTML = ordered.slice(0, 12).map((song, index) => `
+          <div class="songRow">
+            <div class="rank">${index + 1}</div>
+            <div>
+              <div class="songTitle">${escapeHtml(songTitle(song, index))}</div>
+              <div class="songMeta">${escapeHtml(songMeta(song))}</div>
+            </div>
+            <div class="votes">${voteCount(song)} votos</div>
           </div>
-          <div class="votes">${voteCount(song)} votos</div>
-        </div>
-      `).join("");
+        `).join("");
+      }
 
-      const top = ordered[0];
-      summaryText.textContent = top
-        ? `La canción que lidera actualmente es "${songTitle(top, 0)}" con ${voteCount(top)} votos.`
-        : "No hay actividad suficiente para mostrar un resumen.";
+      const qrUrl = data?.qrUrl || (state.activeRoomId ? `/qrcodes/${state.activeRoomId}.png` : "");
+      state.qrUrl = qrUrl;
+
+      if (qrUrl) {
+        qrWrap.innerHTML = `
+          <img class="qr" src="${escapeHtml(qrUrl)}" alt="QR sala"
+               onerror="this.parentElement.innerHTML='<div class=&quot;empty&quot;>No se pudo cargar el QR.</div>';">
+        `;
+      } else {
+        qrWrap.innerHTML = `<div class="empty">QR no disponible.</div>`;
+      }
+
+      roomStatusText.innerHTML = `<span class="ok">Sala conectada correctamente.</span>`;
+      if (state.activeRoomId) {
+        const base = location.origin;
+        const voteUrl = `${base}/r/${state.activeRoomId}`;
+        const tvUrl = `${base}/tv/${state.activeRoomId}`;
+        roomLinksText.innerHTML = `
+          Cliente: <a class="link" href="${voteUrl}" target="_blank" rel="noreferrer">${voteUrl}</a>
+          TV: <a class="link" href="${tvUrl}" target="_blank" rel="noreferrer">${tvUrl}</a>
+        `;
+      }
     }
 
-    function renderQr(qrUrl) {
-      state.qrUrl = qrUrl || `/qrcodes/${state.room}.png`;
+    async function loadRoomStats(roomId) {
+      const id = String(roomId || "").trim();
+      if (!id) {
+        renderEmptyStats("No hay una sala activa para consultar.");
+        roomStatusText.textContent = "Esperando creación o carga de sala.";
+        return;
+      }
 
-      qrBox.innerHTML = `
-        <img src="${state.qrUrl}" alt="QR Votify"
-             onerror="this.parentElement.innerHTML='<div class=&quot;empty&quot;>No se pudo cargar el QR de esta sala.</div>';">
-      `;
-    }
-
-    async function loadRoom() {
-      setRoom(roomInput.value.trim() || state.room);
-      statusText.textContent = `Estado: cargando sala ${state.room}...`;
-      systemState.innerHTML = `<span class="status-ok">Consultando datos...</span>`;
+      setLoading(true);
+      setActiveRoom(id);
+      statsPill.textContent = "Consultando...";
+      roomStatusText.textContent = `Consultando datos de la sala ${id}...`;
 
       try {
-        const res = await fetch(`/api/${encodeURIComponent(state.room)}/state`, {
+        const res = await fetch(`/api/r/${encodeURIComponent(id)}/state`, {
           headers: { "Accept": "application/json" }
         });
 
         const data = await res.json().catch(() => ({}));
 
-        if (!res.ok || !data.ok) {
+        if (!res.ok || data?.ok === false) {
           throw new Error(data?.error || "No se pudo cargar el estado de la sala.");
         }
 
-        state.genres = Array.isArray(data.genres) ? data.genres : [];
-        state.songs = Array.isArray(data.songs) ? data.songs : [];
-
-        renderGenres(state.genres);
-        renderSongs(state.songs);
-        renderQr(data.qrUrl || `/qrcodes/${state.room}.png`);
-
-        metricUpdate.textContent = formatTime();
-        statusText.textContent = `Estado: sala ${state.room} cargada correctamente.`;
-        systemState.innerHTML = `<span class="status-ok">Sala conectada correctamente</span>`;
-
-      } catch (error) {
-        metricUpdate.textContent = formatTime();
-        metricVotes.textContent = "0";
-        metricSongs.textContent = "0";
-        metricGenres.textContent = "0";
-
-        genreList.innerHTML = `<div class="empty">No se pudieron cargar los géneros.</div>`;
-        songList.innerHTML = `<div class="empty">No se pudo cargar el top de canciones.</div>`;
-        qrBox.innerHTML = `<div class="empty">QR no disponible.</div>`;
-
-        statusText.textContent = `Estado: ${error.message || "error al cargar la sala."}`;
-        systemState.innerHTML = `<span style="color:#ffd2dc;">No se pudo cargar la sala</span>`;
-        summaryText.textContent = "Verifica que la sala exista y que la ruta /api/:room/state esté respondiendo bien.";
+        renderStats(data);
+      } catch (err) {
+        statsPill.textContent = "Error";
+        roomStatusText.innerHTML = `<span class="error">${escapeHtml(err.message || "No se pudo cargar la sala.")}</span>`;
+        renderEmptyStats("La sala no devolvió datos. Verifica que exista y que siga activa en memoria.");
+      } finally {
+        setLoading(false);
       }
     }
 
-    loadRoomBtn.addEventListener("click", loadRoom);
+    renderChips("");
 
-    roomInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        loadRoom();
+    genreSearch.addEventListener("input", (e) => {
+      renderChips(e.target.value);
+    });
+
+    document.getElementById("selectAllBtn").addEventListener("click", () => {
+      GENRES.forEach(g => selected.add(g.key));
+      renderChips(genreSearch.value);
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      selected.clear();
+      renderChips(genreSearch.value);
+    });
+
+    document.getElementById("createBtn").addEventListener("click", async () => {
+      const name = (document.getElementById("nameInput").value || "").trim();
+      if (!name) {
+        alert("Escribe el nombre del restaurante");
+        return;
+      }
+
+      const genres = Array.from(selected);
+      if (!genres.length) {
+        alert("Selecciona al menos 1 género");
+        return;
+      }
+
+      const raw = String(totalSongsEl.value || "").trim();
+      const totalSongs = Math.max(5, Math.min(300, Number(raw || 40)));
+
+      setLoading(true);
+
+      try {
+        const res = await fetch("/api/restaurants", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ name, genres, totalSongs })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 401) {
+          alert("Sesión expirada. Inicia sesión de nuevo.");
+          location.href = "/login";
+          return;
+        }
+
+        if (!res.ok || data.ok === false) {
+          throw new Error(data?.error || "Error creando sala");
+        }
+
+        const room = data.id;
+        setActiveRoom(room);
+
+        const base = location.origin;
+        const voteUrl = `${base}/r/${room}`;
+        const tvUrl = `${base}/tv/${room}`;
+        const qrUrl = `${base}${data.qrUrl || ""}`;
+        const countSongs = Array.isArray(data.songs) ? data.songs.length : 0;
+
+        resultBox.style.display = "block";
+        resultBox.innerHTML = `
+          <div style="font-weight:900; font-size:14px; margin-bottom:10px;">
+            ✅ Sala creada — <span style="color:rgba(255,255,255,.7)">(${countSongs} canciones cargadas)</span>
+          </div>
+          <div class="resultRow">
+            <div style="min-width:260px;">
+              <div class="k">Votar</div>
+              <a class="link" href="${voteUrl}" target="_blank" rel="noreferrer">${voteUrl}</a>
+
+              <div class="k" style="margin-top:10px;">TV</div>
+              <a class="link" href="${tvUrl}" target="_blank" rel="noreferrer">${tvUrl}</a>
+
+              <div class="k" style="margin-top:10px;">ID sala</div>
+              <div class="link" style="font-weight:700;">${escapeHtml(room)}</div>
+            </div>
+
+            <img class="qr" src="${qrUrl}" alt="QR" onerror="this.style.display='none'"/>
+          </div>
+        `;
+
+        await loadRoomStats(room);
+
+      } catch (err) {
+        alert(err.message || "No se pudo crear la sala.");
+      } finally {
+        setLoading(false);
       }
     });
 
-    openClientBtn.addEventListener("click", () => {
-      setRoom(roomInput.value.trim() || state.room);
-      window.open(getClientUrl(), "_blank");
+    document.getElementById("refreshStatsBtn").addEventListener("click", async () => {
+      if (!state.activeRoomId) {
+        alert("Todavía no hay una sala activa.");
+        return;
+      }
+      await loadRoomStats(state.activeRoomId);
     });
 
-    openTvBtn.addEventListener("click", () => {
-      setRoom(roomInput.value.trim() || state.room);
-      window.open(getTvUrl(), "_blank");
-    });
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      try {
+        await fetch("/api/admin/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+      } catch (_) {}
 
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("votify_admin_token");
       localStorage.removeItem("votify_admin_email");
+      localStorage.removeItem("votify_admin_token");
       window.location.href = "/login";
     });
 
-    setRoom(state.room);
-    loadRoom();
+    if (state.activeRoomId) {
+      loadRoomStats(state.activeRoomId);
+    } else {
+      renderEmptyStats();
+    }
   </script>
 </body>
 </html>
