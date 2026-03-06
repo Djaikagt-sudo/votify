@@ -6,7 +6,6 @@
   <title>Votify Admin</title>
 
   <link rel="icon" type="image/png" href="/icon.png">
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
@@ -16,13 +15,9 @@
       --primary:#9E1AAD;
       --primary2:#C44DFF;
       --accent:#FF14E4;
-      --dark:#100616;
-      --dark2:#1B0426;
-
       --bg:#09040f;
       --panel:rgba(22,10,31,.88);
       --card:rgba(255,255,255,.05);
-      --card2:rgba(255,255,255,.07);
       --line:rgba(255,255,255,.10);
       --line2:rgba(255,255,255,.14);
       --txt:#ffffff;
@@ -36,6 +31,7 @@
 
     *{ box-sizing:border-box; }
     html,body{ min-height:100%; }
+
     body{
       margin:0;
       font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;
@@ -52,7 +48,8 @@
 
     .topLoader{
       position:fixed;
-      top:0; left:0;
+      top:0;
+      left:0;
       width:0%;
       height:3px;
       z-index:9999;
@@ -165,11 +162,6 @@
       background:linear-gradient(90deg,var(--primary),var(--accent));
       border:1px solid rgba(255,255,255,.10);
       box-shadow:0 12px 34px rgba(158,26,173,.22);
-    }
-
-    .btnGhost{
-      background:rgba(158,26,173,.12);
-      border:1px solid rgba(255,20,228,.20);
     }
 
     .btnDanger{
@@ -558,21 +550,14 @@
         <div class="cardHead">
           <div>
             <h2 class="cardTitle">Crear sala</h2>
-            <p class="cardHint">Usa la misma lógica original que ya te funcionaba. Selecciona géneros y define cuántas canciones cargar.</p>
+            <p class="cardHint">Selecciona géneros y Votify cargará automáticamente todas las canciones válidas de esos géneros.</p>
           </div>
-          <span class="pill">✅ Función original</span>
+          <span class="pill">Todas las canciones</span>
         </div>
 
         <div class="cardBody">
           <label for="nameInput">Nombre del restaurante o sala</label>
           <input id="nameInput" class="input" placeholder="NOMBRE DEL RESTAURANTE O SALA" />
-
-          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-            <div style="flex:1; min-width:220px;">
-              <label for="totalSongs">Cantidad de canciones</label>
-              <input id="totalSongs" class="input" type="number" min="5" max="300" placeholder="Ej. 60" value="" />
-            </div>
-          </div>
 
           <div class="toolbar">
             <input id="genreSearch" class="input" placeholder="Buscar género…" />
@@ -677,16 +662,33 @@
             </div>
 
             <div>
-              <div style="font-weight:900; margin-bottom:10px;">Resumen</div>
+              <div style="font-weight:900; margin-bottom:10px;">Resumen avanzado</div>
               <div class="miniInfo">
                 <div class="miniItem">
                   <strong>Géneros de la sala</strong>
                   <span id="genresSummary">Sin información.</span>
                 </div>
+
                 <div class="miniItem">
                   <strong>Canción líder</strong>
                   <span id="leaderSummary">Sin información.</span>
                 </div>
+
+                <div class="miniItem">
+                  <strong>Género más votado</strong>
+                  <span id="topGenreSummary">Sin información.</span>
+                </div>
+
+                <div class="miniItem">
+                  <strong>Promedio de votos</strong>
+                  <span id="avgVotesSummary">Sin información.</span>
+                </div>
+
+                <div class="miniItem">
+                  <strong>Participación</strong>
+                  <span id="participationSummary">Sin información.</span>
+                </div>
+
                 <div class="miniItem">
                   <strong>QR</strong>
                   <div id="qrWrap" style="margin-top:10px;">
@@ -710,7 +712,6 @@
     const chipsBox = document.getElementById("chipsBox");
     const genreSearch = document.getElementById("genreSearch");
     const genresList = document.getElementById("genresList");
-    const totalSongsEl = document.getElementById("totalSongs");
     const sessionPill = document.getElementById("sessionPill");
 
     const roomIdText = document.getElementById("roomIdText");
@@ -726,6 +727,9 @@
     const songsBox = document.getElementById("songsBox");
     const genresSummary = document.getElementById("genresSummary");
     const leaderSummary = document.getElementById("leaderSummary");
+    const topGenreSummary = document.getElementById("topGenreSummary");
+    const avgVotesSummary = document.getElementById("avgVotesSummary");
+    const participationSummary = document.getElementById("participationSummary");
     const qrWrap = document.getElementById("qrWrap");
 
     const adminEmail = localStorage.getItem("votify_admin_email") || "Administrador";
@@ -740,7 +744,7 @@
       { key: "salsa",            label: "Salsa" },
       { key: "merengue",         label: "Merengue" },
       { key: "rockEnEspanol",    label: "Rock en Español" },
-      { key: "rockGuatemalteco", label: "Rock Guatemalteco" },
+      { key: "rockGuatemalteco", label: "Rock Guatemalteco" }
     ];
 
     const selected = new Set();
@@ -848,6 +852,9 @@
       songsBox.innerHTML = `<div class="empty">${escapeHtml(message)}</div>`;
       genresSummary.textContent = "Sin información.";
       leaderSummary.textContent = "Sin información.";
+      topGenreSummary.textContent = "Sin información.";
+      avgVotesSummary.textContent = "Sin información.";
+      participationSummary.textContent = "Sin información.";
       qrWrap.innerHTML = `<div class="empty">QR no disponible.</div>`;
     }
 
@@ -864,7 +871,10 @@
       metricUpdated.textContent = formatNow();
       statsPill.textContent = "Sala cargada";
 
-      genresSummary.textContent = genres.length ? genres.join(", ") : "Sin géneros configurados.";
+      genresSummary.textContent = genres.length
+        ? genres.join(", ")
+        : "Sin géneros configurados.";
+
       leaderSummary.textContent = leader
         ? `${songTitle(leader, 0)} con ${voteCount(leader)} votos`
         : "No hay una canción líder todavía.";
@@ -884,6 +894,28 @@
         `).join("");
       }
 
+      const genreVotes = {};
+      for (const song of songs) {
+        const genre = song?.genre || "Sin género";
+        genreVotes[genre] = (genreVotes[genre] || 0) + voteCount(song);
+      }
+
+      const topGenreEntry = Object.entries(genreVotes).sort((a, b) => b[1] - a[1])[0];
+      topGenreSummary.textContent = topGenreEntry
+        ? `${topGenreEntry[0]} con ${topGenreEntry[1]} votos`
+        : "Sin información suficiente.";
+
+      const avgVotes = songs.length ? (totalVotes / songs.length) : 0;
+      avgVotesSummary.textContent = songs.length
+        ? `${avgVotes.toFixed(1)} votos por canción`
+        : "Sin canciones para calcular.";
+
+      const songsWithVotes = songs.filter(song => voteCount(song) > 0).length;
+      const participation = songs.length ? ((songsWithVotes / songs.length) * 100) : 0;
+      participationSummary.textContent = songs.length
+        ? `${songsWithVotes} de ${songs.length} canciones tienen votos (${participation.toFixed(0)}%)`
+        : "Sin información suficiente.";
+
       const qrUrl = data?.qrUrl || (state.activeRoomId ? `/qrcodes/${state.activeRoomId}.png` : "");
       state.qrUrl = qrUrl;
 
@@ -897,6 +929,7 @@
       }
 
       roomStatusText.innerHTML = `<span class="ok">Sala conectada correctamente.</span>`;
+
       if (state.activeRoomId) {
         const base = location.origin;
         const voteUrl = `${base}/r/${state.activeRoomId}`;
@@ -960,19 +993,18 @@
 
     document.getElementById("createBtn").addEventListener("click", async () => {
       const name = (document.getElementById("nameInput").value || "").trim();
+
       if (!name) {
         alert("Escribe el nombre del restaurante");
         return;
       }
 
       const genres = Array.from(selected);
+
       if (!genres.length) {
         alert("Selecciona al menos 1 género");
         return;
       }
-
-      const raw = String(totalSongsEl.value || "").trim();
-      const totalSongs = Math.max(5, Math.min(300, Number(raw || 40)));
 
       setLoading(true);
 
@@ -981,7 +1013,7 @@
           method: "POST",
           credentials: "include",
           headers: { "Content-Type":"application/json" },
-          body: JSON.stringify({ name, genres, totalSongs })
+          body: JSON.stringify({ name, genres })
         });
 
         const data = await res.json().catch(() => ({}));
