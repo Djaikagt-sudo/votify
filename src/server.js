@@ -200,7 +200,9 @@ app.get("/admin.html", requireAdmin, (req, res) => {
 app.use(restaurantPagesRoutes);
 app.use("/api/restaurants", requireAdmin, restaurantRoutes);
 app.use("/api/r", restaurantApiRoutes);
-
+// DJ ROUTES
+app.use(djPagesRoutes);
+app.use("/api/dj", djApiRoutes);
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 server.listen(PORT, "0.0.0.0", () => {
