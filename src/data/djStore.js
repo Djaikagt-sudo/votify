@@ -2,14 +2,14 @@ import crypto from "crypto";
 
 const djRooms = new Map();
 
-function ensureRoom(roomId) {
+export function ensureDjRoom(roomId, name = "") {
   const id = String(roomId || "").trim();
   if (!id) return null;
 
   if (!djRooms.has(id)) {
     djRooms.set(id, {
       id,
-      name: `Votify Dj ${id.slice(0, 4)}`,
+      name: String(name || `Votify Dj ${id.slice(0, 6)}`).trim(),
       requests: [],
       createdAt: new Date().toISOString(),
     });
@@ -33,7 +33,7 @@ export function createDjRoom({ name }) {
 }
 
 export function getDjRoom(roomId) {
-  return djRooms.get(String(roomId));
+  return djRooms.get(String(roomId)) || null;
 }
 
 export function getDjRooms() {
@@ -41,7 +41,7 @@ export function getDjRooms() {
 }
 
 export function createDjRequest(roomId, payload = {}) {
-  const room = ensureRoom(roomId);
+  const room = ensureDjRoom(roomId);
   if (!room) return null;
 
   const request = {
@@ -75,13 +75,13 @@ export function createDjRequest(roomId, payload = {}) {
 }
 
 export function getDjRequests(roomId) {
-  const room = getDjRoom(roomId);
+  const room = ensureDjRoom(roomId);
   if (!room) return [];
   return room.requests;
 }
 
 export function getDjRequest(roomId, requestId) {
-  const room = getDjRoom(roomId);
+  const room = ensureDjRoom(roomId);
   if (!room) return null;
   return room.requests.find((r) => String(r.id) === String(requestId)) || null;
 }
