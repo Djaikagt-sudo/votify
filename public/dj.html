@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Votify Dj — Dashboard</title>
+  <script src="/vendor/socket.io.min.js"></script>
+  <style>
+    :root{
+      --bg:#12051d;
+      --card:#1d0d2b;
+      --line:rgba(255,255,255,.08);
+      --text:#fff;
+      --muted:rgba(255,255,255,.7);
+      --primary:#9E1AAD;
+      --ok:#1fbf75;
+      --danger:#ff5d73;
+      --warn:#ffb020;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:linear-gradient(180deg,#12051d,#1b082a);
+      color:var(--text);
+    }
+    .wrap{max-width:1300px;margin:0 auto;padding:24px}
+    .top{
+      display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{width:54px;height:54px;border-radius:14px}
+    .title{font-size:28px;font-weight:800}
+    .sub{color:var(--muted);margin-top:4px}
+    .qrbox{
+      background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;
+      display:flex;align-items:center;gap:14px
+    }
+    .qrbox img{width:120px;height:120px;background:#fff;border-radius:14px;padding:8px}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+    }
+    .col{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+      min-height:420px;
+    }
+    .col h3{margin:0 0 14px;font-size:18px}
+    .count{opacity:.7;font-size:13px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .song{
+      display:flex;gap:10px;
+    }
+    .song img{
+      width:58px;height:58px;border-radius:12px;object-fit:cover;background:#2f2040;
+    }
+    .song h4{margin:0 0 4px;font-size:15px}
+    .song p{margin:0;font-size:13px;color:var(--muted)}
+    .meta{margin-top:10px;font-size:12px;color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:none;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer;
+    }
+    .btn-ok{background:var(--ok);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-warn{background:var(--warn);color:#151515}
+    .linkpay{
+      display:inline-block;margin-top:10px;color:#fff;text-decoration:none;
+      background:var(--primary);padding:10px 12px;border-radius:12px;font-weight:700;
+    }
+    @media (max-width:1100px){ .grid{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:700px){ .grid{grid-template-columns:1fr} .qrbox{width:100%} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <img src="/icon.png" alt="Votify">
+        <div>
+          <div class="title">Votify Dj</div>
+          <div class="sub" id="roomName">Cargando sala...</div>
+        </div>
+      </div>
+
+      <div class="qrbox">
+        <img id="qr" alt="QR">
+        <div>
+          <div style="font-weight:800;font-size:18px">QR del cliente</div>
+          <div class="sub">Escanea para enviar complacencias en vivo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="col">
+        <h3>Pendientes <span class="count" id="countPending">(0)</span></h3>
+        <div id="pendingList"></div>
+      </div>
+      <div class="col">
+        <h3>Aceptadas <span class="count" id="countAccepted">(0)</span></h3>
+        <div id="acceptedList"></div>
+      </div>
+      <div class="col">
+        <h3>Pagadas <span class="count" id="countPaid">(0)</span></h3>
+        <div id="paidList"></div>
+      </div>
+      <div class="col">
+        <h3>Rechazadas / Tocadas <span class="count" id="countOther">(0)</span></h3>
+        <div id="otherList"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const room = location.pathname.split("/").pop();
+const socket = io();
+let state = { room:null, requests:[] };
+
+socket.emit("room:join", { room: `dj:${room}` });
+socket.on("dj:requests:update", (payload) => {
+  if (!payload || payload.roomId !== room) return;
+  state.requests = payload.requests || [];
+  render();
+});
+
+async function loadState() {
+  const res = await fetch(`/api/dj/${room}/state`);
+  const data = await res.json();
+  if (!data.ok) {
+    alert(data.error || "No se pudo cargar");
+    return;
+  }
+  state.room = data.room;
+  state.requests = data.requests || [];
+  document.getElementById("roomName").textContent = data.room.name;
+  document.getElementById("qr").src = data.qrUrl;
+  render();
+}
+
+function card(req) {
+  const payBtn = req.paymentUrl
+    ? `<a class="linkpay" href="${req.paymentUrl}" target="_blank">Abrir pago</a>`
+    : "";
+
+  const acceptBtn = req.status === "pending"
+    ? `<button class="btn-ok" onclick="acceptReq('${req.id}')">Aceptar</button>`
+    : "";
+
+  const rejectBtn = req.status === "pending"
+    ? `<button class="btn-danger" onclick="rejectReq('${req.id}')">Rechazar</button>`
+    : "";
+
+  const playedBtn = req.status === "paid"
+    ? `<button class="btn-warn" onclick="markPlayed('${req.id}')">Marcar tocada</button>`
+    : "";
+
+  return `
+    <div class="card">
+      <div class="song">
+        <img src="${req.artwork || '/icon.png'}" alt="">
+        <div>
+          <h4>${escapeHtml(req.title)}</h4>
+          <p>${escapeHtml(req.artist)}</p>
+          <p>${escapeHtml(req.album || "")}</p>
+        </div>
+      </div>
+
+      <div class="meta">
+        Cliente: <strong>${escapeHtml(req.customerName || "Cliente")}</strong><br>
+        Estado: <strong>${escapeHtml(req.status)}</strong><br>
+        Precio: <strong>Q.${Number(req.price || 20).toFixed(2)}</strong>
+        ${req.rejectionReason ? `<br>Motivo: <strong>${escapeHtml(req.rejectionReason)}</strong>` : ""}
+      </div>
+
+      <div class="actions">
+        ${acceptBtn}
+        ${rejectBtn}
+        ${playedBtn}
+      </div>
+
+      ${payBtn}
+    </div>
+  `;
+}
+
+function render() {
+  const pending = state.requests.filter(x => x.status === "pending");
+  const accepted = state.requests.filter(x => x.status === "accepted_waiting_payment");
+  const paid = state.requests.filter(x => x.status === "paid");
+  const other = state.requests.filter(x => x.status === "rejected" || x.status === "played");
+
+  document.getElementById("countPending").textContent = `(${pending.length})`;
+  document.getElementById("countAccepted").textContent = `(${accepted.length})`;
+  document.getElementById("countPaid").textContent = `(${paid.length})`;
+  document.getElementById("countOther").textContent = `(${other.length})`;
+
+  document.getElementById("pendingList").innerHTML = pending.map(card).join("") || `<div class="sub">Sin pendientes</div>`;
+  document.getElementById("acceptedList").innerHTML = accepted.map(card).join("") || `<div class="sub">Sin aceptadas</div>`;
+  document.getElementById("paidList").innerHTML = paid.map(card).join("") || `<div class="sub">Sin pagadas</div>`;
+  document.getElementById("otherList").innerHTML = other.map(card).join("") || `<div class="sub">Sin historial</div>`;
+}
+
+async function acceptReq(requestId) {
+  const res = await fetch(`/api/dj/${room}/request/${requestId}/accept`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  });
+  const data = await res.json();
+  if (!data.ok) alert(data.error || "No se pudo aceptar");
+}
+
+async function rejectReq(requestId) {
+  const reason = prompt("Motivo del rechazo:", "No disponible en este momento") || "No disponible";
+  const res = await fetch(`/api/dj/${room}/request/${requestId}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason })
+  });
+  const data = await res.json();
+  if (!data.ok) alert(data.error || "No se pudo rechazar");
+}
+
+async function markPlayed(requestId) {
+  const res = await fetch(`/api/dj/${room}/request/${requestId}/played`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  });
+  const data = await res.json();
+  if (!data.ok) alert(data.error || "No se pudo marcar");
+}
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+loadState();
+</script>
+</body>
+</html>

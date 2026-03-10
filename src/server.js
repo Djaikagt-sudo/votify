@@ -6,10 +6,11 @@ import { fileURLToPath } from "url";
 import http from "http";
 import crypto from "crypto";
 import { Server } from "socket.io";
-
 import restaurantRoutes from "./routes/restaurantRoutes.js";
 import restaurantPagesRoutes from "./routes/restaurantPagesRoutes.js";
 import restaurantApiRoutes from "./routes/restaurantApiRoutes.js";
+import djPagesRoutes from "./routes/djPagesRoutes.js";
+import djApiRoutes from "./routes/djApiRoutes.js";
 
 import { moveSongToBottomAfterPlayed, blockSongAndMoveBottom } from "./data/store.js";
 

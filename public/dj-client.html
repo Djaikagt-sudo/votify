@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Votify Dj — Cliente</title>
+  <script src="/vendor/socket.io.min.js"></script>
+  <style>
+    :root{
+      --bg:#12051d;
+      --card:#1d0d2b;
+      --line:rgba(255,255,255,.08);
+      --text:#fff;
+      --muted:rgba(255,255,255,.7);
+      --primary:#9E1AAD;
+      --ok:#1fbf75;
+      --danger:#ff5d73;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:linear-gradient(180deg,#12051d,#1b082a);
+      color:var(--text);
+    }
+    .wrap{max-width:900px;margin:0 auto;padding:22px}
+    .header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+    .header img{width:56px;height:56px;border-radius:14px}
+    .title{font-size:28px;font-weight:800}
+    .sub{color:var(--muted)}
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px;
+      margin-bottom:18px;
+    }
+    input,button{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:14px 16px;
+      font-size:16px;
+    }
+    input{margin-bottom:10px}
+    button{background:var(--primary);color:#fff;font-weight:800;cursor:pointer}
+    .result,.mine{
+      display:flex;gap:12px;align-items:center;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      padding:12px;border-radius:16px;margin-bottom:10px;
+    }
+    .result img,.mine img{
+      width:64px;height:64px;object-fit:cover;border-radius:12px;background:#2f2040;
+    }
+    .grow{flex:1}
+    .small{font-size:13px;color:var(--muted)}
+    .miniBtn{
+      width:auto;padding:10px 12px;border-radius:12px;background:var(--primary);
+    }
+    .pay{
+      display:inline-block;
+      text-decoration:none;
+      background:var(--ok);
+      color:#fff;
+      font-weight:800;
+      padding:10px 12px;
+      border-radius:12px;
+      margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <img src="/icon.png" alt="Votify">
+      <div>
+        <div class="title">Votify Dj</div>
+        <div class="sub" id="roomName">Complacencias en vivo</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <input id="customerName" placeholder="Tu nombre">
+      <input id="searchInput" placeholder="Buscar canción o artista">
+      <button onclick="searchSongs()">Buscar en Spotify</button>
+    </div>
+
+    <div class="panel">
+      <h3>Resultados</h3>
+      <div id="results"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Mis solicitudes</h3>
+      <div id="mine"></div>
+    </div>
+  </div>
+
+<script>
+const room = location.pathname.split("/").pop();
+const socket = io();
+let allRequests = [];
+const myKey = `votify_dj_client_${room}`;
+
+socket.emit("room:join", { room: `dj:${room}` });
+socket.on("dj:requests:update", (payload) => {
+  if (!payload || payload.roomId !== room) return;
+  allRequests = payload.requests || [];
+  renderMine();
+});
+
+async function loadState() {
+  const res = await fetch(`/api/dj/${room}/state`);
+  const data = await res.json();
+  if (!data.ok) {
+    alert(data.error || "No se pudo cargar");
+    return;
+  }
+  document.getElementById("roomName").textContent = data.room.name;
+  allRequests = data.requests || [];
+  renderMine();
+}
+
+async function searchSongs() {
+  const q = document.getElementById("searchInput").value.trim();
+  if (!q) return;
+
+  const res = await fetch(`/api/dj/${room}/search?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+
+  if (!data.ok) {
+    alert(data.error || "Error buscando");
+    return;
+  }
+
+  const el = document.getElementById("results");
+  el.innerHTML = (data.results || []).map(item => `
+    <div class="result">
+      <img src="${item.artwork || '/icon.png'}" alt="">
+      <div class="grow">
+        <div><strong>${escapeHtml(item.title)}</strong></div>
+        <div class="small">${escapeHtml(item.artist)}</div>
+        <div class="small">${escapeHtml(item.album || "")}</div>
+      </div>
+      <button class="miniBtn" onclick='sendRequest(${JSON.stringify(JSON.stringify(item))})'>Solicitar</button>
+    </div>
+  `).join("") || `<div class="small">Sin resultados</div>`;
+}
+
+async function sendRequest(raw) {
+  const track = JSON.parse(raw);
+  const customerName = document.getElementById("customerName").value.trim() || "Cliente";
+
+  const res = await fetch(`/api/dj/${room}/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      customerName,
+      spotifyTrackId: track.spotifyTrackId,
+      title: track.title,
+      artist: track.artist,
+      album: track.album,
+      artwork: track.artwork,
+      durationMs: track.durationMs,
+      previewUrl: track.previewUrl
+    })
+  });
+
+  const data = await res.json();
+  if (!data.ok) {
+    alert(data.error || "No se pudo enviar");
+    return;
+  }
+
+  const mine = JSON.parse(localStorage.getItem(myKey) || "[]");
+  mine.unshift(data.request.id);
+  localStorage.setItem(myKey, JSON.stringify(mine));
+  renderMine();
+  alert("Solicitud enviada al DJ");
+}
+
+function renderMine() {
+  const ids = JSON.parse(localStorage.getItem(myKey) || "[]");
+  const mine = allRequests.filter(x => ids.includes(x.id));
+
+  document.getElementById("mine").innerHTML = mine.map(req => `
+    <div class="mine">
+      <img src="${req.artwork || '/icon.png'}" alt="">
+      <div class="grow">
+        <div><strong>${escapeHtml(req.title)}</strong></div>
+        <div class="small">${escapeHtml(req.artist)}</div>
+        <div class="small">Estado: <strong>${escapeHtml(req.status)}</strong></div>
+        ${req.status === "accepted_waiting_payment" && req.paymentUrl
+          ? `<a class="pay" href="${req.paymentUrl}" target="_blank">Pagar Q20 con tarjeta</a>`
+          : ""}
+        ${req.status === "rejected" && req.rejectionReason
+          ? `<div class="small">Motivo: ${escapeHtml(req.rejectionReason)}</div>`
+          : ""}
+        ${req.status === "paid"
+          ? `<div class="small">Pago confirmado. Tu complacencia ya quedó lista.</div>`
+          : ""}
+      </div>
+    </div>
+  `).join("") || `<div class="small">Aún no has enviado solicitudes</div>`;
+}
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+loadState();
+</script>
+</body>
+</html>
