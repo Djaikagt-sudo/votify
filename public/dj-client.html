@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Votify Dj — Cliente</title>
-  <script src="/vendor/socket.io.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     :root{
       --bg:#12051d;
@@ -20,12 +20,15 @@
     body{
       margin:0;
       font-family:Inter,system-ui,Arial,sans-serif;
-      background:linear-gradient(180deg,#12051d,#1b082a);
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(158,26,173,.18), transparent 60%),
+        linear-gradient(180deg,#12051d,#1b082a);
       color:var(--text);
+      min-height:100vh;
     }
     .wrap{max-width:900px;margin:0 auto;padding:22px}
     .header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
-    .header img{width:56px;height:56px;border-radius:14px}
+    .header img{width:56px;height:56px;border-radius:14px;object-fit:cover}
     .title{font-size:28px;font-weight:800}
     .sub{color:var(--muted)}
     .panel{
@@ -34,6 +37,7 @@
       border-radius:20px;
       padding:16px;
       margin-bottom:18px;
+      box-shadow:0 8px 30px rgba(0,0,0,.15);
     }
     input,button{
       width:100%;
@@ -42,21 +46,43 @@
       padding:14px 16px;
       font-size:16px;
     }
-    input{margin-bottom:10px}
-    button{background:var(--primary);color:#fff;font-weight:800;cursor:pointer}
+    input{
+      margin-bottom:10px;
+      outline:none;
+    }
+    button{
+      background:var(--primary);
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    button:hover{opacity:.95}
     .result,.mine{
-      display:flex;gap:12px;align-items:center;
+      display:flex;
+      gap:12px;
+      align-items:center;
       background:rgba(255,255,255,.04);
       border:1px solid var(--line);
-      padding:12px;border-radius:16px;margin-bottom:10px;
+      padding:12px;
+      border-radius:16px;
+      margin-bottom:10px;
     }
     .result img,.mine img{
-      width:64px;height:64px;object-fit:cover;border-radius:12px;background:#2f2040;
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius:12px;
+      background:#2f2040;
+      flex:0 0 64px;
     }
-    .grow{flex:1}
-    .small{font-size:13px;color:var(--muted)}
+    .grow{flex:1;min-width:0}
+    .small{font-size:13px;color:var(--muted);line-height:1.45}
     .miniBtn{
-      width:auto;padding:10px 12px;border-radius:12px;background:var(--primary);
+      width:auto;
+      padding:10px 12px;
+      border-radius:12px;
+      background:var(--primary);
+      white-space:nowrap;
     }
     .pay{
       display:inline-block;
@@ -68,10 +94,31 @@
       border-radius:12px;
       margin-top:8px;
     }
+    .empty{
+      color:var(--muted);
+      font-size:14px;
+      padding:8px 2px;
+    }
+    .errorBox{
+      display:none;
+      margin-bottom:16px;
+      background:rgba(255,93,115,.12);
+      color:#ffd7dd;
+      border:1px solid rgba(255,93,115,.35);
+      border-radius:16px;
+      padding:12px 14px;
+      white-space:pre-wrap;
+    }
+    @media (max-width:640px){
+      .result,.mine{align-items:flex-start}
+      .miniBtn{margin-top:8px}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
+    <div id="errorBox" class="errorBox"></div>
+
     <div class="header">
       <img src="/icon.png" alt="Votify">
       <div>
@@ -88,7 +135,7 @@
 
     <div class="panel">
       <h3>Resultados</h3>
-      <div id="results"></div>
+      <div id="results"><div class="empty">Busca una canción para empezar</div></div>
     </div>
 
     <div class="panel">
@@ -99,43 +146,93 @@
 
 <script>
 const room = location.pathname.split("/").pop();
-const socket = io();
-let allRequests = [];
+const socket = window.io ? io() : null;
 const myKey = `votify_dj_client_${room}`;
 
-socket.emit("room:join", { room: `dj:${room}` });
-socket.on("dj:requests:update", (payload) => {
-  if (!payload || payload.roomId !== room) return;
-  allRequests = payload.requests || [];
-  renderMine();
-});
+let allRequests = [];
+
+if (socket) {
+  socket.emit("room:join", { room: `dj:${room}` });
+
+  socket.on("dj:requests:update", (payload) => {
+    if (!payload || payload.roomId !== room) return;
+    allRequests = payload.requests || [];
+    renderMine();
+  });
+}
+
+function showError(message) {
+  const box = document.getElementById("errorBox");
+  box.style.display = "block";
+  box.textContent = String(message || "Error desconocido");
+}
 
 async function loadState() {
-  const res = await fetch(`/api/dj/${room}/state`);
-  const data = await res.json();
-  if (!data.ok) {
-    alert(data.error || "No se pudo cargar");
-    return;
+  try {
+    const res = await fetch(`/api/dj/${room}/state`, {
+      headers: { "Accept": "application/json" }
+    });
+
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`La API no devolvió JSON.\n\nRespuesta:\n${text.slice(0, 300)}`);
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Error HTTP ${res.status}`);
+    }
+
+    document.getElementById("roomName").textContent = data.room?.name || "Votify Dj";
+    allRequests = data.requests || [];
+    renderMine();
+  } catch (err) {
+    console.error("loadState error:", err);
+    showError(err.message || "Error cargando cliente DJ");
   }
-  document.getElementById("roomName").textContent = data.room.name;
-  allRequests = data.requests || [];
-  renderMine();
 }
 
 async function searchSongs() {
-  const q = document.getElementById("searchInput").value.trim();
-  if (!q) return;
+  try {
+    const q = document.getElementById("searchInput").value.trim();
+    if (!q) return;
 
-  const res = await fetch(`/api/dj/${room}/search?q=${encodeURIComponent(q)}`);
-  const data = await res.json();
+    const res = await fetch(`/api/dj/${room}/search?q=${encodeURIComponent(q)}`, {
+      headers: { "Accept": "application/json" }
+    });
 
-  if (!data.ok) {
-    alert(data.error || "Error buscando");
-    return;
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`La búsqueda no devolvió JSON.\n\nRespuesta:\n${text.slice(0, 300)}`);
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Error HTTP ${res.status}`);
+    }
+
+    const results = Array.isArray(data.results) ? data.results : [];
+    const el = document.getElementById("results");
+
+    el.innerHTML = results.length
+      ? results.map(item => resultCard(item)).join("")
+      : `<div class="empty">Sin resultados</div>`;
+  } catch (err) {
+    console.error("searchSongs error:", err);
+    showError(err.message || "Error buscando canciones");
   }
+}
 
-  const el = document.getElementById("results");
-  el.innerHTML = (data.results || []).map(item => `
+function resultCard(item) {
+  const raw = encodeURIComponent(JSON.stringify(item));
+
+  return `
     <div class="result">
       <img src="${item.artwork || '/icon.png'}" alt="">
       <div class="grow">
@@ -143,69 +240,94 @@ async function searchSongs() {
         <div class="small">${escapeHtml(item.artist)}</div>
         <div class="small">${escapeHtml(item.album || "")}</div>
       </div>
-      <button class="miniBtn" onclick='sendRequest(${JSON.stringify(JSON.stringify(item))})'>Solicitar</button>
+      <button class="miniBtn" onclick="sendRequestFromEncoded('${raw}')">Solicitar</button>
     </div>
-  `).join("") || `<div class="small">Sin resultados</div>`;
+  `;
 }
 
-async function sendRequest(raw) {
-  const track = JSON.parse(raw);
-  const customerName = document.getElementById("customerName").value.trim() || "Cliente";
+async function sendRequestFromEncoded(raw) {
+  const track = JSON.parse(decodeURIComponent(raw));
+  await sendRequest(track);
+}
 
-  const res = await fetch(`/api/dj/${room}/request`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      customerName,
-      spotifyTrackId: track.spotifyTrackId,
-      title: track.title,
-      artist: track.artist,
-      album: track.album,
-      artwork: track.artwork,
-      durationMs: track.durationMs,
-      previewUrl: track.previewUrl
-    })
-  });
+async function sendRequest(track) {
+  try {
+    const customerName = document.getElementById("customerName").value.trim() || "Cliente";
 
-  const data = await res.json();
-  if (!data.ok) {
-    alert(data.error || "No se pudo enviar");
-    return;
+    const res = await fetch(`/api/dj/${room}/request`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        customerName,
+        spotifyTrackId: track.spotifyTrackId,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        artwork: track.artwork,
+        durationMs: track.durationMs,
+        previewUrl: track.previewUrl
+      })
+    });
+
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`La solicitud no devolvió JSON.\n\nRespuesta:\n${text.slice(0, 300)}`);
+    }
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Error HTTP ${res.status}`);
+    }
+
+    const mine = JSON.parse(localStorage.getItem(myKey) || "[]");
+    if (!mine.includes(data.request.id)) {
+      mine.unshift(data.request.id);
+      localStorage.setItem(myKey, JSON.stringify(mine));
+    }
+
+    allRequests = [data.request, ...allRequests.filter(x => x.id !== data.request.id)];
+    renderMine();
+    alert("Solicitud enviada al DJ");
+  } catch (err) {
+    console.error("sendRequest error:", err);
+    showError(err.message || "No se pudo enviar la solicitud");
   }
-
-  const mine = JSON.parse(localStorage.getItem(myKey) || "[]");
-  mine.unshift(data.request.id);
-  localStorage.setItem(myKey, JSON.stringify(mine));
-  renderMine();
-  alert("Solicitud enviada al DJ");
 }
 
 function renderMine() {
   const ids = JSON.parse(localStorage.getItem(myKey) || "[]");
   const mine = allRequests.filter(x => ids.includes(x.id));
 
-  document.getElementById("mine").innerHTML = mine.map(req => `
-    <div class="mine">
-      <img src="${req.artwork || '/icon.png'}" alt="">
-      <div class="grow">
-        <div><strong>${escapeHtml(req.title)}</strong></div>
-        <div class="small">${escapeHtml(req.artist)}</div>
-        <div class="small">Estado: <strong>${escapeHtml(req.status)}</strong></div>
-        ${req.status === "accepted_waiting_payment" && req.paymentUrl
-          ? `<a class="pay" href="${req.paymentUrl}" target="_blank">Pagar Q20 con tarjeta</a>`
-          : ""}
-        ${req.status === "rejected" && req.rejectionReason
-          ? `<div class="small">Motivo: ${escapeHtml(req.rejectionReason)}</div>`
-          : ""}
-        ${req.status === "paid"
-          ? `<div class="small">Pago confirmado. Tu complacencia ya quedó lista.</div>`
-          : ""}
+  document.getElementById("mine").innerHTML = mine.length
+    ? mine.map(req => `
+      <div class="mine">
+        <img src="${req.artwork || '/icon.png'}" alt="">
+        <div class="grow">
+          <div><strong>${escapeHtml(req.title)}</strong></div>
+          <div class="small">${escapeHtml(req.artist)}</div>
+          <div class="small">Estado: <strong>${escapeHtml(req.status)}</strong></div>
+
+          ${req.status === "accepted_waiting_payment" && req.paymentUrl
+            ? `<a class="pay" href="${req.paymentUrl}" target="_blank" rel="noopener noreferrer">Pagar Q20 con tarjeta</a>`
+            : ""}
+
+          ${req.status === "rejected" && req.rejectionReason
+            ? `<div class="small">Motivo: ${escapeHtml(req.rejectionReason)}</div>`
+            : ""}
+
+          ${req.status === "paid"
+            ? `<div class="small">Pago confirmado. Tu complacencia ya quedó lista.</div>`
+            : ""}
+        </div>
       </div>
-    </div>
-  `).join("") || `<div class="small">Aún no has enviado solicitudes</div>`;
+    `).join("")
+    : `<div class="empty">Aún no has enviado solicitudes</div>`;
 }
 
-function escapeHtml(s){
+function escapeHtml(s) {
   return String(s || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
