@@ -30,12 +30,13 @@ async function getSpotifyAccessToken() {
     }),
   });
 
+  const text = await resp.text();
+
   if (!resp.ok) {
-    const txt = await resp.text();
-    throw new Error(`Spotify token error: ${txt}`);
+    throw new Error(`Spotify token error: ${text}`);
   }
 
-  const data = await resp.json();
+  const data = JSON.parse(text);
 
   spotifyTokenCache = {
     accessToken: data.access_token,
@@ -54,27 +55,33 @@ export async function searchSpotifyTracks(query) {
   const url = new URL("https://api.spotify.com/v1/search");
   url.searchParams.set("q", q);
   url.searchParams.set("type", "track");
-  url.searchParams.set("limit", "12");
   url.searchParams.set("market", "GT");
+  url.searchParams.set("limit", "10");
+  url.searchParams.set("offset", "0");
 
-  const resp = await fetch(url, {
+  const resp = await fetch(url.toString(), {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
+      Accept: "application/json",
     },
   });
 
+  const text = await resp.text();
+
   if (!resp.ok) {
-    const txt = await resp.text();
-    throw new Error(`Spotify search error: ${txt}`);
+    throw new Error(`Spotify search error: ${text}`);
   }
 
-  const data = await resp.json();
+  const data = JSON.parse(text);
   const items = data?.tracks?.items || [];
 
   return items.map((track) => ({
-    spotifyTrackId: track.id,
+    spotifyTrackId: track.id || "",
     title: track.name || "",
-    artist: (track.artists || []).map((a) => a.name).join(", "),
+    artist: Array.isArray(track.artists)
+      ? track.artists.map((a) => a.name).join(", ")
+      : "",
     album: track.album?.name || "",
     artwork: track.album?.images?.[0]?.url || "",
     durationMs: Number(track.duration_ms || 0),
