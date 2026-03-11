@@ -6,7 +6,7 @@ import {
   acceptDjRequest,
   rejectDjRequest,
   attachPaymentLink,
-  markDjRequestPaidBySession,
+  markDjRequestPaid,
   markDjRequestPlayed,
   getDjRequest,
 } from "../data/djStore.js";
@@ -26,7 +26,6 @@ router.get("/:room/state", (req, res) => {
     room,
     qrUrl: `/qrcodes/dj-${room.id}.png`,
     requests: getDjRequests(room.id),
-    stripePublicKey: process.env.STRIPE_PUBLIC_KEY || "",
   });
 });
 
@@ -149,6 +148,31 @@ router.post("/:room/request/:requestId/reject", (req, res) => {
   }
 });
 
+router.post("/:room/request/:requestId/mark-paid", (req, res) => {
+  try {
+    const { room, requestId } = req.params;
+    ensureDjRoom(room);
+
+    const paid = markDjRequestPaid(room, requestId);
+    if (!paid) {
+      return res.status(404).json({ ok: false, error: "Solicitud no existe" });
+    }
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`dj:${room}`).emit("dj:requests:update", {
+        roomId: room,
+        requests: getDjRequests(room),
+      });
+    }
+
+    return res.json({ ok: true, request: paid });
+  } catch (e) {
+    console.error("Mark paid error:", e);
+    return res.status(500).json({ ok: false, error: e.message || "No se pudo marcar como pagada" });
+  }
+});
+
 router.post("/:room/request/:requestId/played", (req, res) => {
   try {
     const { room, requestId } = req.params;
@@ -171,33 +195,6 @@ router.post("/:room/request/:requestId/played", (req, res) => {
   } catch (e) {
     console.error("Played DJ request error:", e);
     return res.status(500).json({ ok: false, error: e.message || "No se pudo marcar como tocada" });
-  }
-});
-
-router.get("/payment/confirm", (req, res) => {
-  try {
-    const sessionId = String(req.query.session_id || "").trim();
-    if (!sessionId) {
-      return res.status(400).json({ ok: false, error: "Falta session_id" });
-    }
-
-    const paid = markDjRequestPaidBySession(sessionId);
-    if (!paid) {
-      return res.status(404).json({ ok: false, error: "Pago no encontrado" });
-    }
-
-    const io = req.app.get("io");
-    if (io) {
-      io.to(`dj:${paid.roomId}`).emit("dj:requests:update", {
-        roomId: paid.roomId,
-        requests: getDjRequests(paid.roomId),
-      });
-    }
-
-    return res.json({ ok: true, request: paid });
-  } catch (e) {
-    console.error("Confirm payment error:", e);
-    return res.status(500).json({ ok: false, error: e.message || "No se pudo confirmar el pago" });
   }
 });
 

@@ -121,20 +121,18 @@ export function attachPaymentLink(roomId, requestId, { paymentUrl, stripeSession
   return req;
 }
 
-export function markDjRequestPaidBySession(stripeSessionId) {
-  const sid = String(stripeSessionId || "").trim();
-  if (!sid) return null;
+export function markDjRequestPaid(roomId, requestId) {
+  const req = getDjRequest(roomId, requestId);
+  if (!req) return null;
 
-  for (const room of djRooms.values()) {
-    const req = room.requests.find((r) => String(r.stripeSessionId) === sid);
-    if (req) {
-      req.status = "paid";
-      req.paymentStatus = "paid";
-      req.updatedAt = new Date().toISOString();
-      req.paidAt = new Date().toISOString();
-      return req;
-    }
-  }
+  req.status = "paid";
+  req.paymentStatus = "paid";
+  req.updatedAt = new Date().toISOString();
+  req.paidAt = new Date().toISOString();
+
+  return req;
+
+  
 
   return null;
 }

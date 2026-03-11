@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pagar complacencia — Votify Dj</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:linear-gradient(180deg,#12051d,#1b082a);
+      color:#fff;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      box-sizing:border-box;
+    }
+    .box{
+      width:100%;
+      max-width:520px;
+      background:#1d0d2b;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      padding:24px;
+      box-shadow:0 10px 40px rgba(0,0,0,.25);
+    }
+    h1{margin:0 0 8px;font-size:32px}
+    p{color:rgba(255,255,255,.78);line-height:1.5}
+    .meta{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:14px;
+      margin:18px 0;
+      line-height:1.6;
+    }
+    .note{
+      margin-top:16px;
+      font-size:14px;
+      color:rgba(255,255,255,.7);
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Pago de complacencia</h1>
+    <p>Completa el pago en PayPal para que el DJ pueda marcar tu canción como pagada.</p>
+
+    <div class="meta">
+      <div><strong>Canción:</strong> <span id="title">Complacencia</span></div>
+      <div><strong>Artista:</strong> <span id="artist">—</span></div>
+      <div><strong>Monto:</strong> Q<span id="amount">20</span></div>
+    </div>
+
+    <div id="paypal-container-MZTKHHE5TB6AY"></div>
+
+    <div class="note">
+      Después de pagar, muéstrale al DJ la confirmación para que marque la solicitud como pagada.
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.getElementById("title").textContent = params.get("title") || "Complacencia";
+    document.getElementById("artist").textContent = params.get("artist") || "—";
+    document.getElementById("amount").textContent = params.get("amount") || "20";
+  </script>
+
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=BAAAAo0ssVOljj2_H8WamfI3TNAxEbUApLODLoRPcFqnZURnlnmiq2QXjA6q1uvGQVflMXeZAkZ85r—buttons&disable-funding=venmo&currency=USD">
+  </script>
+  <script>
+    paypal.HostedButtons({
+      hostedButtonId: "MZTKHHE5TB6AY",
+    }).render("#paypal-container-MZTKHHE5TB6AY");
+  </script>
+</body>
+</html>
